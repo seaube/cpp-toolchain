@@ -3,7 +3,7 @@ CT_NG_URL=http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.
 
 .PHONY: all
 
-all: ct-ng-build/toolchains/x86_64-linux-gnu
+all: toolchain
 
 llvm-archive: 
 	curl -L ${LLVM_URL} --output $@
@@ -24,43 +24,40 @@ ct-ng: ct-ng-src
 	cd $< && ./configure --prefix=${CURDIR}/$@
 	make -C $< && make -C $< install
 
-ct-ng-build/toolchains/x86_64-linux-gnu: ct-ng-build/x86_64.config ct-ng
-	cp $< ct-ng-build/.config
-	ct-ng/bin/ct-ng build
-
-# the stage1 libs are built against musl using the stage0 compiler
-stage0: llvm-project sysroot0
+x86_64-pc-linux-gnu: x86_64.config ct-ng
 	mkdir $@
-	cd $@ && cmake ../$</llvm \
-		-DCMAKE_CXX_COMPILER=clang++ \
-		-DCMAKE_CXX_FLAGS="-nobuiltininc -nostdinc++ --sysroot=${CURDIR}/sysroot0 --prefix=/usr/lib/gcc/x86_64-redhat-linux/4.4.4/ -iwithsysroot=/opt/rh/devtoolset-9/root/usr/include/c++/9" \
-		-DLLVM_ENABLE_PROJECTS="libcxx" \
-		-DLIBUNWIND_ENABLE_SHARED=OFF \
-		-DLIBUNWIND_ENABLE_STATIC=ON \
-		-DLIBUNWIND_USE_COMPILER_RT=ON \
-		-DLIBUNWIND_HERMETIC_STATIC_LIBRARY=ON \
-		-DLIBCXX_ENABLE_SHARED=OFF \
-		-DLIBCXX_ENABLE_STATIC=ON \
-		-DLIBCXX_HERMETIC_STATIC_LIBRARY=ON \
-		-DLIBCXX_USE_COMPILER_RT=ON \
-		-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-		-DLIBCXXABI_USE_LLVM_UNWINDER=ON \
-		-DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
-		-DLIBCXXABI_USE_COMPILER_RT=ON \
-		-DLIBCXXABI_HERMETIC_STATIC_LIBRARY=ON
+	cp $< $@/.config
+	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
+
+aarch64-pc-linux-gnu: aarch64.config ct-ng
+	mkdir $@
+	cp $< $@/.config
+	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
+
+llvm/build: x86_64-pc-linux-gnu llvm-project
+	mkdir -p $@
+	cd $@ && PATH=${PATH}:${CURDIR}/toolchain/bin cmake ${CURDIR}/llvm-project/llvm \
+		-DCMAKE_C_COMPILER=x86_64-pc-linux-gnu-gcc \
+		-DCMAKE_CXX_COMPILER=x86_64-pc-linux-gnu-g++ \
+		-DLLVM_ENABLE_PROJECTS="clang;lld" \
+		-DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" \
+		-DLLVM_ENABLE_ZLIB=ON \
+		-DCMAKE_BUILD_TYPE=Release
 	cmake --build $@
 
-stage0/root: stage0
-	cd stage0 && cmake -DCMAKE_INSTALL_PREFIX=${CURDIR}/$@ -P cmake_install.cmake
+toolchain/gcc: x86_64-pc-linux-gnu aarch64-pc-linux-gnu
+	mkdir -p $@
+	cp -r x86_64-pc-linux-gnu/toolchain $@/x86_64-pc-linux-gnu
+	cp -r aarch64-pc-linux-gnu/toolchain $@/aarch64-pc-linux-gnu
 
-sysroot: stage1/root musl-host
-	mkdir $@
-	cp -r musl-host/root/lib $@/lib
-	cp -r musl-host/root/include $@/include
-	cp stage0/root/lib/libc++.a stage0/root/lib/libc++abi.a stage0/root/lib/libunwind.a $@/lib
-	cp -r stage0/root/lib/clang $@/lib
-	cp -r stage0/root/include/c++ $@/include
+toolchain/llvm: llvm/build
+	mkdir -p $@
+	cd $< && cmake -DCMAKE_INSTALL_PREFIX=${CURDIR}/$@ -P cmake_install.cmake
 
-clean:
-	rm -f llvm-archive
-	rm -rf llvm-project stage0
+toolchain/bin: portable-toolchain.sh
+	mkdir -p $@
+	cp $< $@/$<
+	ln -sf $< $@/x86_64-pc-linux-gnu-c++
+	ln -sf $< $@/aarch64-pc-linux-gnu-c++
+
+toolchain: toolchain/gcc toolchain/llvm toolchain/bin
