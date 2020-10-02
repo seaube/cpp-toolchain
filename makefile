@@ -89,6 +89,31 @@ toolchain/gcc: ${X86_TARGET}/zlib ${AARCH64_TARGET}/zlib
 toolchain/llvm: llvm
 	mkdir -p $@
 	cd $< && cmake -DCMAKE_INSTALL_PREFIX=${CURDIR}/$@ -P cmake_install.cmake
+	find $@/bin \
+		! -name "clang" \
+		! -name "clang++" \
+		! -name "clang-10" \
+		! -name "ld.lld" \
+		! -name "lld" \
+		! -name "llvm-ar" \
+		! -name "llvm-as" \
+		! -name "llvm-ranlib" \
+		! -name "llvm-size" \
+		! -name "llvm-nm" \
+		! -name "llvm-strip" \
+		! -name "llvm-objcopy" \
+		! -name "llvm-objdump" \
+		! -name "llvm-cxxfilt" \
+		! -name "llvm-addr2line" \
+		! -name "llvm-symbolizer" \
+		! -name "llvm-strings" \
+		! -name "llvm-readelf" \
+		! -name "llvm-readobj" \
+		! -name "clang-format" \
+		! -name "scan-build" \
+		-xtype f \
+		-exec rm -f {} +
+	find $@/lib -name "*.a" -exec rm -f {} +
 
 toolchain/scripts: tools.sh
 	mkdir -p $@
@@ -102,30 +127,33 @@ toolchain/bin: toolchain/scripts
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-ar
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-as
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-ranlib
-	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-strip
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-size
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-nm
+	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-strip
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-objcopy
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-objdump
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-c++filt
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-addr2line
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-strings
 	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-readelf
+	ln -sf ../scripts/tools.sh $@/${X86_TARGET}-scan-build
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-cc
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-c++
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-ld
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-ar
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-as
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-ranlib
-	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-strip
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-size
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-nm
+	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-strip
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-objcopy
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-objdump
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-c++filt
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-addr2line
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-strings
 	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-readelf
+	ln -sf ../scripts/tools.sh $@/${AARCH64_TARGET}-scan-build
 	ln -sf ../llvm/bin/clang-format $@/clang-format
+	ln -sf ../llvm/bin/scan-build $@/scan-build
 
 toolchain: toolchain/gcc toolchain/llvm toolchain/bin
