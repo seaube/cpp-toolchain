@@ -7,17 +7,12 @@ AARCH64_TARGET=aarch64-unknown-linux-gnu
 
 .PHONY: all
 
-all: toolchain
+all: toolchain.tar.gz
 
 
 
-llvm-archive: 
-	curl -L ${LLVM_URL} --output $@
-
-llvm-project: llvm-archive
-	mkdir $@
-	tar -xf $< -C $@ --strip-components=1
-
+# crosstool-NG rules
+# builds GCC for building LLVM, as well as the sysroot
 
 ct-ng-archive:
 	curl -L ${CT_NG_URL} --output $@
@@ -31,7 +26,27 @@ ct-ng: ct-ng-src
 	cd $< && ./configure --prefix=${CURDIR}/$@
 	make -C $< && make -C $< install
 
+${X86_TARGET}: x86_64.config ct-ng
+	mkdir $@
+	cp $< $@/.config
+	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
 
+${AARCH64_TARGET}: aarch64.config ct-ng
+	mkdir $@
+	cp $< $@/.config
+	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
+
+toolchain/gcc: ${X86_TARGET}/zlib ${AARCH64_TARGET}/zlib
+	mkdir -p $@
+	cp -r ${X86_TARGET}/toolchain $@/${X86_TARGET}
+	cp -r ${AARCH64_TARGET}/toolchain $@/${AARCH64_TARGET}
+	cd ${X86_TARGET}/zlib && make DESTDIR=${CURDIR}/$@/${X86_TARGET}/${X86_TARGET}/sysroot install
+	cd ${AARCH64_TARGET}/zlib && make DESTDIR=${CURDIR}/$@/${AARCH64_TARGET}/${AARCH64_TARGET}/sysroot install
+
+
+
+# zlib rules
+# required for building LLD
 
 zlib-archive:
 	curl -L ${ZLIB_URL} --output $@
@@ -58,15 +73,14 @@ ${AARCH64_TARGET}/zlib: zlib-src ${AARCH64_TARGET}
 
 
 
-${X86_TARGET}: x86_64.config ct-ng
-	mkdir $@
-	cp $< $@/.config
-	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
+# LLVM rules
 
-${AARCH64_TARGET}: aarch64.config ct-ng
+llvm-archive: 
+	curl -L ${LLVM_URL} --output $@
+
+llvm-project: llvm-archive
 	mkdir $@
-	cp $< $@/.config
-	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
+	tar -xf $< -C $@ --strip-components=1
 
 llvm: toolchain/gcc llvm-project
 	mkdir $@
@@ -78,13 +92,6 @@ llvm: toolchain/gcc llvm-project
 		-DLLVM_ENABLE_ZLIB=ON \
 		-DCMAKE_BUILD_TYPE=Release
 	cmake --build $@ -- -j4
-
-toolchain/gcc: ${X86_TARGET}/zlib ${AARCH64_TARGET}/zlib
-	mkdir -p $@
-	cp -r ${X86_TARGET}/toolchain $@/${X86_TARGET}
-	cp -r ${AARCH64_TARGET}/toolchain $@/${AARCH64_TARGET}
-	cd ${X86_TARGET}/zlib && make DESTDIR=${CURDIR}/$@/${X86_TARGET}/${X86_TARGET}/sysroot install
-	cd ${AARCH64_TARGET}/zlib && make DESTDIR=${CURDIR}/$@/${AARCH64_TARGET}/${AARCH64_TARGET}/sysroot install
 
 toolchain/llvm: llvm
 	mkdir -p $@
@@ -114,6 +121,9 @@ toolchain/llvm: llvm
 		-xtype f \
 		-exec rm -f {} +
 	find $@/lib -name "*.a" -exec rm -f {} +
+
+
+# toolchain rules
 
 toolchain/scripts: tools.sh
 	mkdir -p $@
@@ -157,3 +167,14 @@ toolchain/bin: toolchain/scripts
 	ln -sf ../llvm/bin/scan-build $@/scan-build
 
 toolchain: toolchain/gcc toolchain/llvm toolchain/bin
+	rm -rf $@/gcc/${X86_TARGET}/build.log.bz2
+	rm -rf $@/gcc/${X86_TARGET}/bin
+	rm -rf $@/gcc/${X86_TARGET}/libexec
+	rm -rf $@/gcc/${X86_TARGET}/${X86_TARGET}/bin
+	rm -rf $@/gcc/${AARCH64_TARGET}/build.log.bz2
+	rm -rf $@/gcc/${AARCH64_TARGET}/bin
+	rm -rf $@/gcc/${AARCH64_TARGET}/libexec
+	rm -rf $@/gcc/${AARCH64_TARGET}/${AARCH64_TARGET}/bin
+
+toolchain.tar.gz: toolchain
+	tar czvf $@ $<
