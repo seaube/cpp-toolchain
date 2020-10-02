@@ -29,14 +29,14 @@ x86_64-pc-linux-gnu: x86_64.config ct-ng
 	cp $< $@/.config
 	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
 
-aarch64-pc-linux-gnu: aarch64.config ct-ng
+aarch64-unknown-linux-gnu: aarch64.config ct-ng
 	mkdir $@
 	cp $< $@/.config
 	cd $@ && ${CURDIR}/ct-ng/bin/ct-ng build
 
-llvm/build: x86_64-pc-linux-gnu llvm-project
+llvm: x86_64-pc-linux-gnu llvm-project
 	mkdir -p $@
-	cd $@ && PATH=${PATH}:${CURDIR}/toolchain/bin cmake ${CURDIR}/llvm-project/llvm \
+	cd $@ && PATH=${PATH}:${CURDIR}/$</toolchain/bin cmake ${CURDIR}/llvm-project/llvm \
 		-DCMAKE_C_COMPILER=x86_64-pc-linux-gnu-gcc \
 		-DCMAKE_CXX_COMPILER=x86_64-pc-linux-gnu-g++ \
 		-DLLVM_ENABLE_PROJECTS="clang;lld" \
@@ -45,19 +45,23 @@ llvm/build: x86_64-pc-linux-gnu llvm-project
 		-DCMAKE_BUILD_TYPE=Release
 	cmake --build $@
 
-toolchain/gcc: x86_64-pc-linux-gnu aarch64-pc-linux-gnu
+toolchain/gcc: x86_64-pc-linux-gnu aarch64-unknown-linux-gnu
 	mkdir -p $@
 	cp -r x86_64-pc-linux-gnu/toolchain $@/x86_64-pc-linux-gnu
-	cp -r aarch64-pc-linux-gnu/toolchain $@/aarch64-pc-linux-gnu
+	cp -r aarch64-unknown-linux-gnu/toolchain $@/aarch64-unknown-linux-gnu
 
-toolchain/llvm: llvm/build
+toolchain/llvm: llvm
 	mkdir -p $@
 	cd $< && cmake -DCMAKE_INSTALL_PREFIX=${CURDIR}/$@ -P cmake_install.cmake
 
 toolchain/bin: portable-toolchain.sh
 	mkdir -p $@
 	cp $< $@/$<
+	ln -sf $< $@/x86_64-pc-linux-gnu-cc
 	ln -sf $< $@/x86_64-pc-linux-gnu-c++
-	ln -sf $< $@/aarch64-pc-linux-gnu-c++
+	ln -sf $< $@/x86_64-pc-linux-gnu-ld
+	ln -sf $< $@/aarch64-unknown-linux-gnu-cc
+	ln -sf $< $@/aarch64-unknown-linux-gnu-c++
+	ln -sf $< $@/aarch64-unknown-linux-gnu-ld
 
 toolchain: toolchain/gcc toolchain/llvm toolchain/bin

@@ -7,8 +7,8 @@ case $TOOL in
     x86_64-pc-linux-gnu*)
         TARGET=x86_64-pc-linux-gnu
         ;;
-    aarch64-pc-linux-gnu*)
-        TARGET=x86_64-pc-linux-gnu
+    aarch64-unknown-linux-gnu*)
+        TARGET=aarch64-unknown-linux-gnu
         ;;
     *)
         echo "Invalid target" >&2
@@ -16,9 +16,17 @@ case $TOOL in
         ;;
 esac
 
+CFLAGS="--target=$TARGET --sysroot=$BINDIR/../gcc/$TARGET/$TARGET/sysroot -gcc-toolchain $BINDIR/../gcc/$TARGET"
+
 case $TOOL in
     ${TARGET}-c++)
-        $BINDIR/../llvm/bin/clang++ --target=$TARGET --sysroot=$BINDIR/../gcc/$TARGET/$TARGET/sysroot -gcc-toolchain $BINDIR/../gcc/$TARGET $@
+        $BINDIR/../llvm/bin/clang++ $@
+        ;;
+    ${TARGET}-cc)
+        $BINDIR/../llvm/bin/clang $@
+        ;;
+    ${TARGET}-ld)
+        $BINDIR/../gcc/$TARGET/bin/${TARGET}-ld $@
         ;;
     *)
         echo "Invalid tool" >&2
