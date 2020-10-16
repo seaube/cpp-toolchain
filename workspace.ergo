@@ -46,7 +46,7 @@ ct-ng = value:cache {
     task "building crosstool-NG" :out
 }
 
-triple = fn target -> string:format "{}-unknown-linux-gnu" target
+triple = fn target -> string:format "{}-unknown-linux-gnu" :target
 
 gcc = fn target -> value:cache {
     config = string:format "{}.config" :target
@@ -106,11 +106,15 @@ llvm = fn target -> value:cache {
 toolchain = fn target -> value:cache {
     out = (path:new)
     toolchain = seq ^[
-        fs:create-dir :out
-        fs:create-dir <| path:join :out gcc
-        fs:copy (gcc-with-zlib x86_64) (path:join :out gcc <| triple x86_64)
-        fs:copy (gcc-with-zlib aarch64) (path:join :out gcc <| triple aarch64)
-        fs:copy (llvm :target) (path:join :out llvm)
+        [
+            fs:create-dir :out
+            fs:create-dir <| path:join :out gcc
+        ]
+        [
+            fs:copy (gcc x86_64) (path:join :out gcc <| triple x86_64)
+            fs:copy (gcc aarch64) (path:join :out gcc <| triple aarch64)
+            fs:copy (llvm :target) (path:join :out llvm)
+        ]
         :out
     ]
     task (string:format "assembling toolchain ({})" :target) :toolchain
