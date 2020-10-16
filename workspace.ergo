@@ -1,0 +1,126 @@
+^(ergo std)
+
+llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/llvm-project-10.0.1.tar.xz"
+ct-ng-url="http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz"
+zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
+
+x86-64-target=x86_64-unknown-linux-gnu
+aarch64-target=aarch64-unknown-linux-gnu
+
+remove-top-dir = fn dir -> {
+    [only] = fs:glob <| string:format "{}/*/" :dir
+    :only
+}
+
+download-and-unpack = fn url -> value:cache {
+    [^_, filename] = string:split / :url
+    archive = seq ^[
+        out = path:join (path:new) :filename
+        fs:create-dir <| path:parent :out
+        net:download :url :out
+        :out
+    ]
+    unpacked = (path:new)
+    task (string:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
+}
+
+llvm-src = download-and-unpack :llvm-url
+ct-ng-src = download-and-unpack :ct-ng-url
+zlib-src = download-and-unpack :zlib-url
+
+ct-ng = value:cache {
+    args = {
+        env = { PATH = env:get PATH }
+        pwd = remove-top-dir :ct-ng-src
+    }
+    out = seq ^[
+        build-dir = (path:new)
+        install-dir = (path:new)
+        fs:create-dir :build-dir
+        fs:create-dir :install-dir
+        exec ^:args sh ./configure <| string:format "--prefix={}" :install-dir |>:complete
+        exec ^:args make |>:complete
+        exec ^:args make install |>:complete
+        path:join :install-dir bin ct-ng
+    ]
+    task "building crosstool-NG" :out
+}
+
+triple = fn target -> string:format "{}-unknown-linux-gnu" target
+
+gcc = fn target -> value:cache {
+    config = string:format "{}.config" :target
+    out = (path:new)
+    args = {
+        env = { PATH = env:get PATH }
+        pwd = :out
+    }
+    toolchain = seq ^[
+        fs:create-dir :out
+        fs:create-dir (path:join :out tarballs)
+        fs:copy (path:join :work-dir :config) (path:join :out ".config")
+        exec ^:args :ct-ng build |>:complete
+        path:join :out toolchain
+    ]
+    task (string:format "building gcc ({})" :target) :toolchain
+}
+
+gcc-with-zlib = fn target -> value:cache {
+    out = (path:new)
+    args = {
+        env = { PATH = string:format "{}:{}" (path:join  (gcc :target) bin) <| env:get PATH }
+        pwd = :out
+    }
+    compiler = string:format "-DCMAKE_C_COMPILER={}-gcc" (triple :target)
+    install-prefix = string:format "-DCMAKE_INSTALL_REFIX={}" <| path:join :out (triple :target) sysroot usr
+    toolchain = seq ^[
+        fs:copy (gcc :target) :out
+        exec ^:args cmake :zlib-src :compiler :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
+	    exec ^:args cmake "--build" :out |>:complete
+        exec ^:args cmake :install-prefix "-P" cmake_install.cmake |>:complete
+        :out
+    ]
+    task (string:format "building zlib ({})" :target) :toolchain
+}
+
+llvm = fn target -> value:cache {
+    build = (path:new)
+    install = (path:new)
+    args = {
+        env = { PATH = string:format "{}:{}" (path:join (gcc-with-zlib :target) bin) <| env:get PATH }
+        pwd = :build
+    }
+    c-compiler = string:format "-DCMAKE_C_COMPILER={}-gcc" (triple :target)
+    c++-compiler = string:format "-DCMAKE_C_COMPILER={}-g++" (triple :target)
+    install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" :install
+    toolchain = seq ^[
+        fs:create-dir :build
+        exec ^:args cmake (path:join :llvm-src llvm) :c-compiler :c++-compiler "-DLLVM_ENABLE_PROJECTS=clang;lld" "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64" "-DLLVM_ENABLE_ZLIB=ON" "-DCMAKE_BUILD_TYPE=Release" |>:complete
+        exec ^:args cmake "--build" :build "--" "-j4" |>:complete
+        exec ^:args cmake :install-prefix "-P" cmake_install.cmake |>:complete
+        :install
+    ]
+    task (string:format "building llvm ({})" :target) :toolchain
+}
+
+toolchain = fn target -> value:cache {
+    out = (path:new)
+    toolchain = seq ^[
+        fs:create-dir :out
+        fs:create-dir <| path:join :out gcc
+        fs:copy (gcc-with-zlib x86_64) (path:join :out gcc <| triple x86_64)
+        fs:copy (gcc-with-zlib aarch64) (path:join :out gcc <| triple aarch64)
+        fs:copy (llvm :target) (path:join :out llvm)
+        :out
+    ]
+    task (string:format "assembling toolchain ({})" :target) :toolchain
+}
+
+install-toolchain = fn target -> {
+    out = path:join :work-dir <| string:format "toolchain-{}" <| triple :target
+    fs:copy (toolchain :target) :out
+}
+
+{
+    build = install-toolchain x86_64
+}
