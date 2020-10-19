@@ -138,13 +138,17 @@ delete-unused-llvm-libraries = fn dir -> {
 delete-unused-gcc-components = fn dir -> {
     delete-target = fn target -> {
         gcc-dir = path:join :dir gcc (triple :target)
-        exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
-        exec rm "-rf" (path:join :gcc-dir bin) |>:complete
-        exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
-        exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
+        [
+            exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
+            exec rm "-rf" (path:join :gcc-dir bin) |>:complete
+            exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
+            exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
+        ]
     }
-    delete-target aarch64
-    delete-target x86_64
+    [
+        delete-target aarch64
+        delete-target x86_64
+    ]
 }
 
 make-links = fn dir target -> {
