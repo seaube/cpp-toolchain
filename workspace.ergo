@@ -56,7 +56,6 @@ gcc = fn target -> value:cache {
         pwd = :out
     }
     toolchain = seq ^[
-        fs:create-dir :out
         fs:create-dir (path:join :out tarballs)
         fs:copy (path:join :work-dir :config) (path:join :out ".config")
         exec ^:args :ct-ng build |>:complete
@@ -72,10 +71,10 @@ gcc-with-zlib = fn target -> value:cache {
         pwd = :out
     }
     compiler = string:format "-DCMAKE_C_COMPILER={}-gcc" (triple :target)
-    install-prefix = string:format "-DCMAKE_INSTALL_REFIX={}" <| path:join :out (triple :target) sysroot usr
+    install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" <| path:join :out (triple :target) sysroot usr
     toolchain = seq ^[
         fs:copy (gcc :target) :out
-        exec ^:args cmake :zlib-src :compiler :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
+        exec ^:args cmake (remove-top-dir :zlib-src) :compiler :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
 	    exec ^:args cmake "--build" :out |>:complete
         exec ^:args cmake :install-prefix "-P" cmake_install.cmake |>:complete
         :out
@@ -91,11 +90,11 @@ llvm = fn target -> value:cache {
         pwd = :build
     }
     c-compiler = string:format "-DCMAKE_C_COMPILER={}-gcc" (triple :target)
-    c++-compiler = string:format "-DCMAKE_C_COMPILER={}-g++" (triple :target)
+    c++-compiler = string:format "-DCMAKE_CXX_COMPILER={}-g++" (triple :target)
     install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" :install
     toolchain = seq ^[
         fs:create-dir :build
-        exec ^:args cmake (path:join :llvm-src llvm) :c-compiler :c++-compiler "-DLLVM_ENABLE_PROJECTS=clang;lld" "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64" "-DLLVM_ENABLE_ZLIB=ON" "-DCMAKE_BUILD_TYPE=Release" |>:complete
+        exec ^:args cmake (path:join (remove-top-dir :llvm-src) llvm) :c-compiler :c++-compiler "-DLLVM_ENABLE_PROJECTS=clang;lld" "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64" "-DLLVM_ENABLE_ZLIB=ON" "-DCMAKE_BUILD_TYPE=Release" |>:complete
         exec ^:args cmake "--build" :build "--" "-j4" |>:complete
         exec ^:args cmake :install-prefix "-P" cmake_install.cmake |>:complete
         :install
@@ -103,17 +102,116 @@ llvm = fn target -> value:cache {
     task (string:format "building llvm ({})" :target) :toolchain
 }
 
+delete-unused-llvm-binaries = fn dir -> {
+    keep = [
+        clang
+        clang++
+        clang-10
+        ld.lld
+		llvm-ar
+		llvm-as 
+		llvm-ranlib
+		llvm-size
+		llvm-nm
+		llvm-strip
+		llvm-objcopy 
+		llvm-objdump 
+		llvm-cxxfilt 
+		llvm-addr2line 
+		llvm-symbolizer 
+		llvm-strings
+		llvm-readelf 
+		llvm-readobj 
+		clang-format 
+		scan-build
+    ]
+
+    patterns = collection:fold (fn acc v -> [^:acc, "!", "-name", :v]) [] :keep
+
+    exec find (path:join :dir llvm bin) ^:patterns ^(string:split " " "-xtype f -exec rm -f {} +") |>:complete
+}
+
+delete-unused-llvm-libraries = fn dir -> {
+    exec find (path:join :dir llvm lib) ^(string:split " " "-name *.a -exec rm -f {} +") |>:complete
+}
+
+delete-unused-gcc-components = fn dir -> {
+    delete-target = fn target -> {
+        gcc-dir = path:join :dir gcc (triple :target)
+        exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
+        exec rm "-rf" (path:join :gcc-dir bin) |>:complete
+        exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
+        exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
+    }
+    delete-target aarch64
+    delete-target x86_64
+}
+
+make-links = fn dir target -> {
+    prefixed-tools = [
+        cc
+        c++
+        ld
+		ar
+		as 
+		ranlib
+		size
+		nm
+		strip
+		objcopy
+		objdump 
+		c++filt 
+		addr2line 
+		strings
+		readelf 
+    ]
+
+    non-prefixed-tools = [
+		clang-format 
+		scan-build
+    ]
+
+    make-script-tools = fn target -> {
+        prefix = fn file -> path:join :dir bin (string:format "{}-{}" (triple :target) :file)
+        collection:map (fn file -> exec ln "-sf" "../scripts/tools.sh" (prefix :file) |>:complete) :prefixed-tools
+    }
+
+    [
+        make-script-tools aarch64
+        make-script-tools x86_64
+        collection:map (fn file -> exec ln "-sf" (string:format "{}-{}" (triple :target) :file) (path:join :dir bin :file) |>:complete) :prefixed-tools
+        collection:map (fn file -> exec ln "-sf" (path:join .. llvm bin :file) (path:join :dir bin :file) |>:complete) :non-prefixed-tools
+    ]
+}
+
+make-host-file = fn dir target -> {
+    exec sh "-c" (string:format "echo {} > {}" (triple :target) (path:join :dir scripts host)) |>:complete
+}
+
+toolchain-name = fn target -> string:format "toolchain-{}" <| triple :target
+
 toolchain = fn target -> value:cache {
-    out = (path:new)
+    parent = (path:new)
+    out = path:join :parent <| toolchain-name :target
     toolchain = seq ^[
         [
-            fs:create-dir :out
             fs:create-dir <| path:join :out gcc
+            fs:create-dir <| path:join :out scripts
+            fs:create-dir <| path:join :out bin
         ]
         [
-            fs:copy (gcc x86_64) (path:join :out gcc <| triple x86_64)
-            fs:copy (gcc aarch64) (path:join :out gcc <| triple aarch64)
-            fs:copy (llvm :target) (path:join :out llvm)
+            fs:copy (gcc-with-zlib x86_64) (path:join :out gcc <| triple x86_64)
+            fs:copy (gcc-with-zlib aarch64) (path:join :out gcc <| triple aarch64)
+            fs:copy (path:join :work-dir tools.sh) (path:join :out scripts tools.sh)
+        ]
+        # building llvm *should* run simultaneously with gcc, but a cache bug requires it to be run after
+        fs:copy (llvm :target) (path:join :out llvm)
+        [
+            delete-unused-llvm-binaries :out
+            delete-unused-llvm-libraries :out
+            delete-unused-gcc-components :out
+            make-links :out :target
+            make-host-file :out :target
         ]
         :out
     ]
@@ -121,8 +219,12 @@ toolchain = fn target -> value:cache {
 }
 
 install-toolchain = fn target -> {
-    out = path:join :work-dir <| string:format "toolchain-{}" <| triple :target
-    fs:copy (toolchain :target) :out
+    out = path:join :work-dir <| string:format "{}.tar.gz" <| toolchain-name :target
+    args = {
+        pwd = path:parent <| toolchain :target
+        env = { PATH = env:get PATH }
+    }
+    exec ^:args tar "-czvf" :out (toolchain-name :target) |>:complete
 }
 
 {

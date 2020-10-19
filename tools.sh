@@ -4,15 +4,17 @@ BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
 
 case $TOOL in
-    x86_64-pc-linux-gnu*)
-        TARGET=x86_64-pc-linux-gnu
+    x86_64-unknown-linux-gnu-*)
+        TARGET=x86_64-unknown-linux-gnu
+        PREFIX="${TARGET}-"
         ;;
-    aarch64-unknown-linux-gnu*)
+    aarch64-unknown-linux-gnu-*)
         TARGET=aarch64-unknown-linux-gnu
+        PREFIX="${TARGET}-"
         ;;
     *)
-        echo "Invalid target" >&2
-        exit -1
+        TARGET=$(cat ${BINDIR}/../scripts/host)
+        PREFIX=""
         ;;
 esac
 
@@ -20,46 +22,46 @@ SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
 COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET -fuse-ld=lld"
 
 case $TOOL in
-    ${TARGET}-c++)
+    ${PREFIX}c++)
         $BINDIR/../llvm/bin/clang++ $COMPILER_FLAGS $@
         ;;
-    ${TARGET}-cc)
+    ${PREFIX}cc)
         $BINDIR/../llvm/bin/clang $COMPILER_FLAGS $@
         ;;
-    ${TARGET}-ld)
+    ${PREFIX}ld)
         $BINDIR/../llvm/bin/ld.lld --sysroot=$SYSROOT $@
         ;;
-    ${TARGET}-ar)
+    ${PREFIX}ar)
         $BINDIR/../llvm/bin/llvm-ar $@
         ;;
-    ${TARGET}-ranlib)
+    ${PREFIX}ranlib)
         $BINDIR/../llvm/bin/llvm-ranlib $@
         ;;
-    ${TARGET}-strip)
+    ${PREFIX}strip)
         $BINDIR/../llvm/bin/llvm-strip $@
         ;;
-    ${TARGET}-nm)
+    ${PREFIX}nm)
         $BINDIR/../llvm/bin/llvm-nm $@
         ;;
-    ${TARGET}-objcopy)
+    ${PREFIX}objcopy)
         $BINDIR/../llvm/bin/llvm-objcopy $@
         ;;
-    ${TARGET}-objdump)
+    ${PREFIX}objdump)
         $BINDIR/../llvm/bin/llvm-objdump $@
         ;;
-    ${TARGET}-c++filt)
+    ${PREFIX}c++filt)
         $BINDIR/../llvm/bin/llvm-cxxfilt $@
         ;;
-    ${TARGET}-addr2line)
+    ${PREFIX}addr2line)
         $BINDIR/../llvm/bin/llvm-addr2line $@
         ;;
-    ${TARGET}-strings)
+    ${PREFIX}strings)
         $BINDIR/../llvm/bin/llvm-strings $@
         ;;
-    ${TARGET}-readelf)
+    ${PREFIX}readelf)
         $BINDIR/../llvm/bin/llvm-readelf $@
         ;;
-    ${TARGET}-size)
+    ${PREFIX}size)
         $BINDIR/../llvm/bin/llvm-readelf $@
         ;;
     *)
