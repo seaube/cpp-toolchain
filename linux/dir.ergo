@@ -1,0 +1,128 @@
+ct-ng-url="http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz"
+ct-ng-src = download-and-unpack :ct-ng-url
+
+# CMake flags for using a particular GCC toolchain
+use-gcc-cmake-flags = fn toolchain-dir target -> {
+    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
+    [
+        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
+        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
+    ]
+}
+
+# Build crosstool-NG
+ct-ng = value:cache {
+    args = {
+        env = { PATH = env:get PATH }
+        pwd = remove-top-dir :ct-ng-src
+    }
+    out = seq ^[
+        build-dir = (path:new)
+        install-dir = (path:new)
+        fs:create-dir :build-dir
+        fs:create-dir :install-dir
+        exec ^:args sh ./configure <| string:format "--prefix={}" :install-dir |>:complete
+        exec ^:args make |>:complete
+        exec ^:args make install |>:complete
+        path:join :install-dir bin ct-ng
+    ]
+    task "building crosstool-NG" :out
+}
+
+# Build bootstrap GCC with crosstool-NG
+gcc = fn target -> value:cache {
+    config = string:format "{}.config" :target
+    out = (path:new)
+    args = {
+        env = { PATH = env:get PATH }
+        pwd = :out
+    }
+    toolchain = seq ^[
+        fs:create-dir (path:join :out tarballs)
+        fs:copy (path:join :work-dir :config) (path:join :out ".config")
+        exec ^:args :ct-ng build |>:complete
+        path:join :out toolchain
+    ]
+    task (string:format "building gcc ({})" :target) :toolchain
+}
+
+# Build zlib for target, using bootstrap toolchain
+zlib = fn target -> build-zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
+
+# Assemble bootstrap toolchain containing zlib
+gcc-with-zlib = fn target -> value:cache {
+    out = (path:new)
+    toolchain = seq ^[
+        fs:copy (gcc :target) :out
+        merge-dir (zlib :target) (path:join :out (triple :target) sysroot usr)
+        :out
+    ]
+    task (string:format "assembling bootstrap toolchain ({})" :target) :toolchain
+}
+
+# Build LLVM with bootstrap toolchain
+llvm = fn target -> build-llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags (gcc-with-zlib :target) :target)
+
+# Delete remnants of GCC build
+delete-unused-gcc-components = fn dir -> {
+    delete-target = fn target -> {
+        gcc-dir = path:join :dir gcc (triple :target)
+        [
+            exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
+            exec rm "-rf" (path:join :gcc-dir bin) |>:complete
+            exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
+            exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
+        ]
+    }
+    [
+        delete-target aarch64
+        delete-target x86_64
+    ]
+}
+
+# Delete static libraries from LLVM
+delete-unused-llvm-libraries = fn dir -> {
+    exec find (path:join :dir llvm lib) ^(string:split " " "-name *.a -exec rm -f {} +") |>:complete
+}
+
+# Assemble the toolchain
+toolchain = fn target -> value:cache {
+    parent = (path:new)
+    out = path:join :parent <| toolchain-name :target
+    toolchain = seq ^[
+        [
+            fs:create-dir <| path:join :out gcc
+            fs:create-dir <| path:join :out scripts
+            fs:create-dir <| path:join :out bin
+        ]
+        [
+            fs:copy (gcc-with-zlib x86_64) (path:join :out gcc <| triple x86_64)
+            fs:copy (gcc-with-zlib aarch64) (path:join :out gcc <| triple aarch64)
+            fs:copy (path:join :work-dir tools.sh) (path:join :out scripts tools.sh)
+        ]
+        # building llvm *should* run simultaneously with gcc, but a cache bug requires it to be run after
+        fs:copy (llvm :target) (path:join :out llvm)
+        [
+            delete-unused-llvm-binaries :out
+            delete-unused-llvm-libraries :out
+            delete-unused-gcc-components :out
+            make-links :out :target
+            make-host-file :out :target
+        ]
+        :out
+    ]
+    task (string:format "assembling toolchain ({})" :target) :toolchain
+}
+
+install-toolchain = fn target -> {
+    out = path:join (path:parent :work-dir) <| string:format "{}.tar.gz" <| toolchain-name :target
+    args = {
+        pwd = path:parent <| toolchain :target
+        env = { PATH = env:get PATH }
+    }
+    exec ^:args tar "-czvf" :out (toolchain-name :target) |>:complete
+}
+
+{
+    install-toolchain x86_64
+}
