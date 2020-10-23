@@ -47,10 +47,13 @@ gcc = fn target -> value:cache {
 }
 
 # Build zlib for target, using bootstrap toolchain
-zlib = fn target -> build-zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
+zlib = fn target -> build:zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
+
+# Build flatbuffers for target, using bootstrap toolchain
+flatbuffers = fn target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
 
 # Assemble bootstrap toolchain containing zlib
-gcc-with-zlib = fn target -> value:cache {
+gcc-with-deps = fn target -> value:cache {
     out = (path:new)
     toolchain = seq ^[
         fs:copy (gcc :target) :out
@@ -61,7 +64,7 @@ gcc-with-zlib = fn target -> value:cache {
 }
 
 # Build LLVM with bootstrap toolchain
-llvm = fn target -> build-llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags (gcc-with-zlib :target) :target)
+llvm = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags (gcc-with-deps :target) :target)
 
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn dir -> {
@@ -86,7 +89,7 @@ delete-unused-llvm-libraries = fn dir -> {
 }
 
 # Assemble the toolchain
-toolchain = fn target -> value:cache {
+build-toolchain = fn target -> value:cache {
     parent = (path:new)
     out = path:join :parent <| toolchain-name :target
     toolchain = seq ^[
@@ -96,8 +99,9 @@ toolchain = fn target -> value:cache {
             fs:create-dir <| path:join :out bin
         ]
         [
-            fs:copy (gcc-with-zlib x86_64) (path:join :out gcc <| triple x86_64)
-            fs:copy (gcc-with-zlib aarch64) (path:join :out gcc <| triple aarch64)
+            fs:copy (gcc-with-deps x86_64) (path:join :out gcc <| triple x86_64)
+            fs:copy (gcc-with-deps aarch64) (path:join :out gcc <| triple aarch64)
+            fs:copy (flatbuffers :target) (path:join :out flatbuffers)
             fs:copy (path:join :work-dir tools.sh) (path:join :out scripts tools.sh)
         ]
         # building llvm *should* run simultaneously with gcc, but a cache bug requires it to be run after
@@ -114,15 +118,6 @@ toolchain = fn target -> value:cache {
     task (string:format "assembling toolchain ({})" :target) :toolchain
 }
 
-install-toolchain = fn target -> {
-    out = path:join (path:parent :work-dir) <| string:format "{}.tar.gz" <| toolchain-name :target
-    args = {
-        pwd = path:parent <| toolchain :target
-        env = { PATH = env:get PATH }
-    }
-    exec ^:args tar "-czvf" :out (toolchain-name :target) |>:complete
-}
-
 {
-    install-toolchain x86_64
+    build-toolchain
 }

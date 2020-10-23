@@ -1,13 +1,12 @@
 ^(ergo std)
 
-llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/llvm-project-10.0.1.tar.xz"
-zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-
+# Step into the only directory in another directory
 remove-top-dir = fn dir -> {
     [only] = fs:glob <| string:format "{}/*/" :dir
     :only
 }
 
+# Download a file and unarchive it
 download-and-unpack = fn url -> value:cache {
     [^_, filename] = string:split / :url
     archive = seq ^[
@@ -20,48 +19,81 @@ download-and-unpack = fn url -> value:cache {
     task (string:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
 }
 
+
+llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/llvm-project-10.0.1.tar.xz"
+zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
+flatbuffers-url="https://github.com/google/flatbuffers/archive/v1.12.0.tar.gz"
+
 llvm-src = download-and-unpack :llvm-url
 zlib-src = download-and-unpack :zlib-url
+flatbuffers-src = download-and-unpack :flatbuffers-url
 
-build-cmake-project = fn build-args -> value:cache {
-    build = (path:new)
-    install = (path:new)
-    args = {
-        env = { PATH = env:get PATH }
-        pwd = :build
+build = {
+    cmake-project = fn build-args -> value:cache {
+        build = (path:new)
+        install = (path:new)
+        args = {
+            env = { PATH = env:get PATH }
+            pwd = :build
+        }
+        install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" :install
+        out = seq ^[
+            fs:create-dir :build
+            exec ^:args cmake build-args:src ^build-args:extra-flags :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
+            exec ^:args cmake "--build" :build "--" "-j4" |>:complete
+            exec ^:args cmake "-P" cmake_install.cmake |>:complete
+            :install
+        ]
+        task (string:format "{}" build-args:info) :out
     }
-    install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" :install
-    out = seq ^[
-        fs:create-dir :build
-        exec ^:args cmake build-args:src ^build-args:extra-flags :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
-        exec ^:args cmake "--build" :build "--" "-j4" |>:complete
-        exec ^:args cmake "-P" cmake_install.cmake |>:complete
-        :install
+
+    llvm = fn message llvm-projects flags -> value:cache {
+        projects = collection:fold (fn acc v -> string:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
+        build-args = {
+            src = path:join (remove-top-dir :llvm-src) llvm
+            extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=ON"]
+            message = :message
+        }
+        cmake-project :build-args
+    }
+
+    zlib = fn message flags -> {
+        build-args = {
+            src = remove-top-dir :zlib-src
+            extra-flags = :flags
+            message = :message
+        }
+        cmake-project :build-args
+    }
+    
+    flatbuffers = fn message flags -> {
+        build-args = {
+            src = remove-top-dir :flatbuffers-src
+            extra-flags = :flags
+            message = :message
+        }
+        cmake-project :build-args
+    }
+}
+
+use-gcc-cmake-flags = fn toolchain-dir target -> {
+    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
+    [
+        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
+        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
     ]
-    task (string:format "{}" build-args:info) :out
 }
 
-build-llvm = fn message llvm-projects flags -> value:cache {
-    projects = collection:fold (fn acc v -> string:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
-    build-args = {
-        src = path:join (remove-top-dir :llvm-src) llvm
-        extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=ON"]
-        message = :message
-    }
-    build-cmake-project :build-args
-}
+# Build flatbuffers for target, using bootstrap toolchain
+flatbuffers = fn toolchain target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
 
-build-zlib = fn message flags -> {
-    build-args = {
-        src = remove-top-dir :zlib-src
-        extra-flags = :flags
-        message = :message
-    }
-    build-cmake-project :build-args
-}
-
+# Get the OS (values are "Linux", "Darwin")
 os = exec uname |>:stdout | string:from | string:trim | value:force
 
+# Get the architecture ("x86_64", "aarch64", etc)
+arch = exec uname "-p" |>:stdout | string:from | string:trim | value:force
+
+# Return the target triple for an architecture on the host OS
 triple = fn target -> value:cache {
     match :os {
         =Linux = string:format "{}-unknown-linux-gnu" :target
@@ -69,8 +101,10 @@ triple = fn target -> value:cache {
     }
 }
 
+# Format a toolchain name
 toolchain-name = fn target -> string:format "toolchain-{}" <| triple :target
 
+# Delete unused binaries from an LLVM installation
 delete-unused-llvm-binaries = fn dir -> {
     keep = [
         clang
@@ -102,6 +136,7 @@ delete-unused-llvm-binaries = fn dir -> {
     exec find (path:join :dir llvm bin) ^:patterns ^(string:split " " "-xtype f -exec rm -f {} +") |>:complete
 }
 
+# Make toolchain binary links to the appropriate implementation (either script or binary)
 make-links = fn dir target -> {
     prefixed-tools = [
         cc
@@ -132,6 +167,7 @@ make-links = fn dir target -> {
     }
 
     [
+        exec ln "-sf" "../flatbuffers/bin/flatc" (path:join :dir bin flatc) |>:complete
         make-script-tools aarch64
         make-script-tools x86_64
         collection:map (fn file -> exec ln "-sf" (string:format "{}-{}" (triple :target) :file) (path:join :dir bin :file) |>:complete) :prefixed-tools
@@ -139,29 +175,45 @@ make-links = fn dir target -> {
     ]
 }
 
+# Make a file in the toolchain that contains the host triple
 make-host-file = fn dir target -> {
     exec sh "-c" (string:format "echo {} > {}" (triple :target) (path:join :dir scripts host)) |>:complete
 }
 
+# Merge a directory into another directory
 merge-dir = fn src dst -> exec sh "-c" (string:format "cp -rl {}/* {}" :src :dst) |>:complete
+
+# Archives a toolchain and installs it into the working directory
+install-toolchain = fn toolchain -> {
+    [^_, basename] = path:split :toolchain
+    out = path:join :work-dir <| string:format "{}.tar.gz" :basename
+    args = {
+        pwd = path:parent :toolchain
+        env = { PATH = env:get PATH }
+    }
+    exec ^:args tar "-czvf" :out :basename |>:complete
+}
 
 prelude = {
     ^(ergo std)
-    download-and-unpack = :download-and-unpack
-    remove-top-dir = :remove-top-dir
-    build-llvm = :build-llvm
-    build-zlib = :build-zlib
-    delete-unused-llvm-binaries = :delete-unused-llvm-binaries
-    make-links = :make-links
-    make-host-file = :make-host-file
-    merge-dir = :merge-dir
-    triple = :triple
-    toolchain-name = :toolchain-name
+    download-and-unpack
+    remove-top-dir
+    build
+    delete-unused-llvm-binaries
+    make-links
+    make-host-file
+    merge-dir
+    triple
+    toolchain-name
 }
 
 fn cmd ^args -> match :cmd {
     =prelude = :prelude
-    =build = match :os {
-        =Linux = ergo linux
+    =build = {
+        meta = match :os {
+            =Linux = ergo linux
+        }
+        toolchain = meta:build-toolchain :arch
+        install-toolchain :toolchain
     }
 }

@@ -19,7 +19,7 @@ case $TOOL in
 esac
 
 SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
-COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET -fuse-ld=lld"
+COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET -isystem $BINDIR/../flatbuffers/include -fuse-ld=lld"
 
 case $TOOL in
     ${PREFIX}c++)
