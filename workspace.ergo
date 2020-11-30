@@ -1,4 +1,4 @@
-^(ergo std)
+^ergo std
 
 # Step into the only directory in another directory
 remove-top-dir = fn dir -> {
@@ -44,7 +44,7 @@ build = {
             exec ^:args cmake "-P" cmake_install.cmake |>:complete
             :install
         ]
-        task (string:format "{}" build-args:info) :out
+        task (string:format "{}" build-args:message) :out
     }
 
     llvm = fn message llvm-projects flags -> value:cache {
@@ -76,22 +76,11 @@ build = {
     }
 }
 
-use-gcc-cmake-flags = fn toolchain-dir target -> {
-    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
-    [
-        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
-        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
-    ]
-}
-
-# Build flatbuffers for target, using bootstrap toolchain
-flatbuffers = fn toolchain target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
-
 # Get the OS (values are "Linux", "Darwin")
-os = exec uname |>:stdout | string:from | string:trim | value:force
+os = exec uname |>:stdout | string:from | string:trim | value:by-content
 
 # Get the architecture ("x86_64", "aarch64", etc)
-arch = exec uname "-p" |>:stdout | string:from | string:trim | value:force
+arch = exec uname "-p" |>:stdout | string:from | string:trim | value:by-content
 
 # Return the target triple for an architecture on the host OS
 triple = fn target -> value:cache {
@@ -103,6 +92,14 @@ triple = fn target -> value:cache {
 
 # Format a toolchain name
 toolchain-name = fn target -> string:format "toolchain-{}" <| triple :target
+
+use-gcc-cmake-flags = fn toolchain-dir target -> {
+    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
+    [
+        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
+        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
+    ]
+}
 
 # Delete unused binaries from an LLVM installation
 delete-unused-llvm-binaries = fn dir -> {
@@ -186,7 +183,7 @@ merge-dir = fn src dst -> exec sh "-c" (string:format "cp -rl {}/* {}" :src :dst
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn toolchain -> {
     [^_, basename] = path:split :toolchain
-    out = path:join :work-dir <| string:format "{}.tar.gz" :basename
+    out = path:join :script-dir <| string:format "{}.tar.gz" :basename
     args = {
         pwd = path:parent :toolchain
         env = { PATH = env:get PATH }
@@ -194,26 +191,27 @@ install-toolchain = fn toolchain -> {
     exec ^:args tar "-czvf" :out :basename |>:complete
 }
 
-prelude = {
-    ^(ergo std)
-    download-and-unpack
-    remove-top-dir
-    build
-    delete-unused-llvm-binaries
-    make-links
-    make-host-file
-    merge-dir
-    triple
-    toolchain-name
-}
+{
+    prelude = {
+        ^(ergo std)
+        download-and-unpack
+        remove-top-dir
+        build
+        delete-unused-llvm-binaries
+        make-links
+        make-host-file
+        merge-dir
+        triple
+        toolchain-name
+    }
 
-fn cmd ^args -> match :cmd {
-    =prelude = :prelude
-    =build = {
-        meta = match :os {
-            =Linux = ergo linux
+    command = fn cmd ^args -> match :cmd {
+        =build = {
+            meta = match :os {
+                =Linux = ergo linux
+            }
+            toolchain = meta:build-toolchain :arch
+            install-toolchain :toolchain
         }
-        toolchain = meta:build-toolchain :arch
-        install-toolchain :toolchain
     }
 }

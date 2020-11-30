@@ -10,6 +10,11 @@ use-gcc-cmake-flags = fn toolchain-dir target -> {
     ]
 }
 
+per-architecture = fn f -> {
+    x86_64 = f x86_64
+    aarch64 = f aarch64
+}
+
 # Build crosstool-NG
 ct-ng = value:cache {
     args = {
@@ -30,41 +35,56 @@ ct-ng = value:cache {
 }
 
 # Build bootstrap GCC with crosstool-NG
-gcc = fn target -> value:cache {
-    config = string:format "{}.config" :target
-    out = (path:new)
-    args = {
-        env = { PATH = env:get PATH }
-        pwd = :out
+gcc = {
+    build = fn target -> value:cache {
+        config = string:format "{}.config" :target
+        out = (path:new)
+        args = {
+            env = { PATH = env:get PATH }
+            pwd = :out
+        }
+        toolchain = seq ^[
+            fs:create-dir (path:join :out tarballs)
+            fs:copy (path:join :script-dir :config) (path:join :out ".config")
+            exec ^:args :ct-ng build |>:complete
+            path:join :out toolchain
+        ]
+        task (string:format "building gcc ({})" :target) :toolchain
     }
-    toolchain = seq ^[
-        fs:create-dir (path:join :out tarballs)
-        fs:copy (path:join :work-dir :config) (path:join :out ".config")
-        exec ^:args :ct-ng build |>:complete
-        path:join :out toolchain
-    ]
-    task (string:format "building gcc ({})" :target) :toolchain
+    per-architecture :build
 }
 
 # Build zlib for target, using bootstrap toolchain
-zlib = fn target -> build:zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
+zlib = {
+    build = fn target -> build:zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags gcc::target :target)
+    per-architecture :build
+}
 
 # Build flatbuffers for target, using bootstrap toolchain
-flatbuffers = fn target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags (gcc :target) :target)
+flatbuffers = {
+    build = fn target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags gcc::target :target)
+    per-architecture :build
+}
 
 # Assemble bootstrap toolchain containing zlib
-gcc-with-deps = fn target -> value:cache {
-    out = (path:new)
-    toolchain = seq ^[
-        fs:copy (gcc :target) :out
-        merge-dir (zlib :target) (path:join :out (triple :target) sysroot usr)
-        :out
-    ]
-    task (string:format "assembling bootstrap toolchain ({})" :target) :toolchain
+gcc-with-deps = {
+    build = fn target -> value:cache {
+        out = (path:new)
+        toolchain = seq ^[
+            fs:copy gcc::target :out
+            merge-dir zlib::target (path:join :out (triple :target) sysroot usr)
+            :out
+        ]
+        task (string:format "assembling bootstrap toolchain ({})" :target) :toolchain
+    }
+    per-architecture :build
 }
 
 # Build LLVM with bootstrap toolchain
-llvm = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags (gcc-with-deps :target) :target)
+llvm = {
+    build = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags gcc-with-deps::target :target)
+    per-architecture :build
+}
 
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn dir -> {
@@ -77,10 +97,7 @@ delete-unused-gcc-components = fn dir -> {
             exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
         ]
     }
-    [
-        delete-target aarch64
-        delete-target x86_64
-    ]
+    per-architecture :delete-target
 }
 
 # Delete static libraries from LLVM
@@ -99,13 +116,11 @@ build-toolchain = fn target -> value:cache {
             fs:create-dir <| path:join :out bin
         ]
         [
-            fs:copy (gcc-with-deps x86_64) (path:join :out gcc <| triple x86_64)
-            fs:copy (gcc-with-deps aarch64) (path:join :out gcc <| triple aarch64)
-            fs:copy (flatbuffers :target) (path:join :out flatbuffers)
-            fs:copy (path:join :work-dir tools.sh) (path:join :out scripts tools.sh)
+            per-architecture (fn target -> fs:copy gcc-with-deps::target (path:join :out gcc <| triple :target))
+            fs:copy llvm::target (path:join :out llvm)
+            fs:copy flatbuffers::target (path:join :out flatbuffers)
+            fs:copy (path:join :script-dir tools.sh) (path:join :out scripts tools.sh)
         ]
-        # building llvm *should* run simultaneously with gcc, but a cache bug requires it to be run after
-        fs:copy (llvm :target) (path:join :out llvm)
         [
             delete-unused-llvm-binaries :out
             delete-unused-llvm-libraries :out
