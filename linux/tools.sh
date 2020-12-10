@@ -50,7 +50,7 @@ for ARG in "$@"; do
 done
 
 SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
-COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET -isystem $BINDIR/../flatbuffers/include $LINK_FLAGS"
+COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET $LINK_FLAGS"
 
 case $TOOL in
     ${PREFIX}c++)

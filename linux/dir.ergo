@@ -60,12 +60,6 @@ zlib = {
     per-architecture :build
 }
 
-# Build flatbuffers for target, using bootstrap toolchain
-flatbuffers = {
-    build = fn target -> build:flatbuffers (string:format "building flatbuffers ({})" :target) (use-gcc-cmake-flags gcc::target :target)
-    per-architecture :build
-}
-
 # Assemble bootstrap toolchain containing zlib
 gcc-with-deps = {
     build = fn target -> value:cache {
@@ -82,7 +76,8 @@ gcc-with-deps = {
 
 # Build LLVM with bootstrap toolchain
 llvm = {
-    build = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (use-gcc-cmake-flags gcc-with-deps::target :target)
+    flags = fn target -> [^(use-gcc-cmake-flags gcc-with-deps::target :target), "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"]
+    build = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (flags :target)
     per-architecture :build
 }
 
@@ -118,7 +113,6 @@ build-toolchain = fn target -> value:cache {
         [
             per-architecture (fn target -> fs:copy gcc-with-deps::target (path:join :out gcc <| triple :target))
             fs:copy llvm::target (path:join :out llvm)
-            fs:copy flatbuffers::target (path:join :out flatbuffers)
             fs:copy (path:join :script-dir tools.sh) (path:join :out scripts tools.sh)
         ]
         [

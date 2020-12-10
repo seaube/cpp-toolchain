@@ -22,11 +22,9 @@ download-and-unpack = fn url -> value:cache {
 
 llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/llvm-project-10.0.1.tar.xz"
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-flatbuffers-url="https://github.com/google/flatbuffers/archive/v1.12.0.tar.gz"
 
 llvm-src = download-and-unpack :llvm-url
 zlib-src = download-and-unpack :zlib-url
-flatbuffers-src = download-and-unpack :flatbuffers-url
 
 build = {
     cmake-project = fn build-args -> value:cache {
@@ -60,15 +58,6 @@ build = {
     zlib = fn message flags -> {
         build-args = {
             src = remove-top-dir :zlib-src
-            extra-flags = :flags
-            message = :message
-        }
-        cmake-project :build-args
-    }
-    
-    flatbuffers = fn message flags -> {
-        build-args = {
-            src = remove-top-dir :flatbuffers-src
             extra-flags = :flags
             message = :message
         }
@@ -164,7 +153,6 @@ make-links = fn dir target -> {
     }
 
     [
-        exec ln "-sf" "../flatbuffers/bin/flatc" (path:join :dir bin flatc) |>:complete
         make-script-tools aarch64
         make-script-tools x86_64
         collection:map (fn file -> exec ln "-sf" (string:format "{}-{}" (triple :target) :file) (path:join :dir bin :file) |>:complete) :prefixed-tools
