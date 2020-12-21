@@ -25,12 +25,14 @@ unsupported () {
 }
 
 # Look for special arguments
-LINK_FLAGS="-fuse-ld=lld -static-libstdc++"
+CC_LINK_FLAGS="-fuse-ld=lld"
+CXX_LINK_FLAGS="-fuse-ld=lld -static-libstdc++"
 for ARG in "$@"; do
     case $ARG in
         -c|-S)
             # We aren't linking, so don't use any link flags
-            LINK_FLAGS=""
+            CC_LINK_FLAGS=""
+            CXX_LINK_FLAGS=""
             ;;
         -fuse-ld*)
             unsupported $ARG
@@ -50,14 +52,14 @@ for ARG in "$@"; do
 done
 
 SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
-COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET $LINK_FLAGS"
+COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET"
 
 case $TOOL in
     ${PREFIX}c++)
-        $BINDIR/../llvm/bin/clang++ $COMPILER_FLAGS $@
+        $BINDIR/../llvm/bin/clang++ $COMPILER_FLAGS $CXX_LINK_FLAGS $@
         ;;
     ${PREFIX}cc)
-        $BINDIR/../llvm/bin/clang $COMPILER_FLAGS $@
+        $BINDIR/../llvm/bin/clang $COMPILER_FLAGS $CC_LINK_FLAGS $@
         ;;
     ${PREFIX}ld)
         $BINDIR/../llvm/bin/ld.lld --sysroot=$SYSROOT $@
