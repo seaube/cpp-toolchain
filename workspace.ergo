@@ -19,8 +19,7 @@ download-and-unpack = fn url -> value:cache {
     task (string:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
 }
 
-
-llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/llvm-project-10.0.1.tar.xz"
+llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/llvm-project-11.0.0.tar.xz"
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
 
 llvm-src = download-and-unpack :llvm-url
@@ -38,8 +37,8 @@ build = {
         out = seq ^[
             fs:create-dir :build
             exec ^:args cmake build-args:src ^build-args:extra-flags :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
-            exec ^:args cmake "--build" :build "--" "-j4" |>:complete
-            exec ^:args cmake "-P" cmake_install.cmake |>:complete
+            exec ^:args cmake --build :build -- -j4 |>:complete
+            exec ^:args cmake -P cmake_install.cmake |>:complete
             :install
         ]
         task (string:format "{}" build-args:message) :out
@@ -65,108 +64,115 @@ build = {
     }
 }
 
-# Get the OS (values are "Linux", "Darwin")
-os = exec uname |>:stdout | string:from | string:trim | value:by-content
+target-triple = {
+    arch = fn target -> (string:split - :target) 0 | value:by-content
+    vendor = fn target -> (string:split - :target) 1 | value:by-content
+    os = fn target -> (string:split - :target) 2 | value:by-content
 
-# Get the architecture ("x86_64", "aarch64", etc)
-arch = exec uname "-p" |>:stdout | string:from | string:trim | value:by-content
+    host = {
+        # Get the OS (values are "Linux", "Darwin")
+        os = exec uname |>:stdout | string:from | string:trim | value:by-content
 
-# Return the target triple for an architecture on the host OS
-triple = fn target -> value:cache {
-    match :os {
-        =Linux = string:format "{}-unknown-linux-gnu" :target
-        =Darwin = string:format "{}-apple-darwin" :target
+        # Get the architecture ("x86_64", "aarch64", etc)
+        arch = exec uname -m |>:stdout | string:from | string:trim | value:by-content
+
+        match (:os | value:by-content) {
+            =Linux = string:format "{}-unknown-linux-gnu" :arch
+            =Darwin = string:format "{}-apple-macos" :arch
+        }
     }
 }
 
-# Format a toolchain name
-toolchain-name = fn target -> string:format "toolchain-{}" <| triple :target
-
 use-gcc-cmake-flags = fn toolchain-dir target -> {
-    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
+    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" :target :tool
     [
         string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
         string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
     ]
 }
 
-# Delete unused binaries from an LLVM installation
-delete-unused-llvm-binaries = fn dir -> {
-    keep = [
+# Make toolchain binary links to the appropriate implementation (either script or binary)
+prepare-toolchain = fn dir targets -> {
+    binaries-to-keep = [
         clang
         clang++
         clang-10
         ld.lld
         ld64.lld
         lld
-		llvm-ar
-		llvm-as 
-		llvm-ranlib
-		llvm-size
-		llvm-nm
-		llvm-strip
-		llvm-objcopy 
-		llvm-objdump 
-		llvm-cxxfilt 
-		llvm-addr2line 
-		llvm-symbolizer 
-		llvm-strings
-		llvm-readelf 
-		llvm-readobj 
-		clang-format 
-		scan-build
+        llvm-ar
+        llvm-as 
+        llvm-ranlib
+        llvm-size
+        llvm-nm
+        llvm-strip
+        llvm-objcopy 
+        llvm-objdump 
+        llvm-cxxfilt 
+        llvm-addr2line 
+        llvm-symbolizer 
+        llvm-strings
+        llvm-readelf 
+        llvm-readobj
+        llvm-install-name-tool
+        llvm-lipo
+        clang-format 
+        scan-build
     ]
 
-    patterns = collection:fold (fn acc v -> [^:acc, "!", "-name", :v]) [] :keep
-
-    exec find (path:join :dir llvm bin) ^:patterns ^(string:split " " "-xtype f -exec rm -f {} +") |>:complete
-}
-
-# Make toolchain binary links to the appropriate implementation (either script or binary)
-make-links = fn dir target -> {
     prefixed-tools = [
         cc
         c++
         ld
-		ar
-		as 
-		ranlib
-		size
-		nm
-		strip
-		objcopy
-		objdump 
-		c++filt 
-		addr2line 
-		strings
-		readelf 
+        ar
+        as 
+        ranlib
+        size
+        nm
+        strip
+        objcopy
+        objdump 
+        c++filt 
+        addr2line 
+        strings
+        readelf
+        ^match target-vendor {
+            =apple = [install_name_tool, lipo]
+            _ = []
+        }
     ]
 
     non-prefixed-tools = [
-		clang-format 
-		scan-build
+        clang-format 
+        scan-build
     ]
+
+    link = fn source target -> exec ln -sf :source :target |>:complete
 
     make-script-tools = fn target -> {
-        prefix = fn file -> path:join :dir bin (string:format "{}-{}" (triple :target) :file)
-        collection:map (fn file -> exec ln "-sf" "../scripts/tools.sh" (prefix :file) |>:complete) :prefixed-tools
+        prefix = fn file -> path:join :dir bin (string:format "{}-{}" :target :file)
+        collection:map (fn file -> link "../scripts/tools.sh" (prefix :file)) :prefixed-tools
     }
 
-    [
-        make-script-tools aarch64
-        make-script-tools x86_64
-        collection:map (fn file -> exec ln "-sf" (string:format "{}-{}" (triple :target) :file) (path:join :dir bin :file) |>:complete) :prefixed-tools
-        collection:map (fn file -> exec ln "-sf" (path:join .. llvm bin :file) (path:join :dir bin :file) |>:complete) :non-prefixed-tools
-    ]
-}
+    keep-binary-patterns = collection:fold (fn acc v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
 
-# Make a file in the toolchain that contains the host triple
-make-host-file = fn dir target -> {
-    exec sh "-c" (string:format "echo {} > {}" (triple :target) (path:join :dir scripts host)) |>:complete
+    [
+        # Delete unusued llvm binaries
+        exec find (path:join :dir llvm bin) ^:keep-binary-patterns ^(string:split " " "-type f -exec rm -f {} +") |>:complete
+        exec find (path:join :dir llvm lib) ^(string:split " " "-name *.a -exec rm -f {} +") |>:complete
+
+        # Link the various tools into the bin directory
+        collection:map :make-script-tools :targets
+        collection:map (fn file -> link (string:format "{}-{}" target-triple:host :file) (path:join :dir bin :file)) :prefixed-tools
+        collection:map (fn file -> link (path:join .. llvm bin :file) (path:join :dir bin :file)) :non-prefixed-tools
+
+        # Make a file in the toolchain that contains the host triple
+        exec sh -c (string:format "echo {} > {}" target-triple:host (path:join :dir scripts host)) |>:complete
+    ]
 }
 
 # Merge a directory into another directory
-merge-dir = fn src dst -> exec sh "-c" (string:format "cp -rl {}/* {}" :src :dst) |>:complete
+merge-dir = fn src dst -> exec sh -c (string:format "cp -rl {}/* {}" :src :dst) |>:complete
 
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn toolchain -> {
@@ -176,7 +182,7 @@ install-toolchain = fn toolchain -> {
         pwd = path:parent :toolchain
         env = { PATH = env:get PATH }
     }
-    exec ^:args tar "-czvf" :out :basename |>:complete
+    exec ^:args tar -czvf :out :basename |>:complete
 }
 
 {
@@ -185,20 +191,18 @@ install-toolchain = fn toolchain -> {
         download-and-unpack
         remove-top-dir
         build
-        delete-unused-llvm-binaries
-        make-links
-        make-host-file
+        prepare-toolchain
         merge-dir
-        triple
-        toolchain-name
+        target-triple
     }
 
     command = fn cmd ^args -> match :cmd {
         =build = {
-            meta = match :os {
-                =Linux = ergo linux
-            }
-            toolchain = meta:build-toolchain :arch
+	    toolchain = value:cache <| seq ^[
+                out = path:join (path:new) <| string:format "toolchain-{}" target-triple:host
+                ergo (target-triple:os target-triple:host) :out
+                :out
+            ]
             install-toolchain :toolchain
         }
     }
