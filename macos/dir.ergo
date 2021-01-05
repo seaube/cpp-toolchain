@@ -15,28 +15,6 @@ unique = fn array -> {
 
 per-target = fn f -> collection:fold (fn curr i -> {^:curr, :i = f :i}) {} :targets
 
-copy-sysroots = fn dir -> {
-    sdk-path = fn os -> value:cache {
-        sdk-name = match (value:by-content :os) {
-            =macos = macosx
-            =ios = iphoneos
-        }
-        exec xcrun "--sdk" :sdk-name "--show-sdk-path" |>:stdout | string:from | string:trim | value:by-content | path:join
-    }
-
-    copy-sysroot = fn os -> {
-        source = string:format "{}/" <| sdk-path :os
-        dest = path:join :dir sysroot :os
-        seq ^[
-            fs:create-dir :dest
-            exec cp "-RP" :source :dest |>:complete
-        ]
-    }
-
-    os-list = collection:map target-triple:os :targets | unique
-    collection:map :copy-sysroot :os-list
-}
-
 # Build LLVM
 llvm = {
     min-supported-version = match (target-triple:arch target-triple:host) {
@@ -64,7 +42,6 @@ fn dir -> seq ^[
     [
         fs:copy :llvm (path:join :dir llvm)
         fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
-        copy-sysroots :dir
     ]
     prepare-toolchain :dir :targets
 ]

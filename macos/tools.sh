@@ -42,72 +42,107 @@ esac
 ARCH=$(cut -d - -f 1 <(echo ${TARGET}))
 OS=$(cut -d - -f 3 <(echo ${TARGET}))
 
-case $OS in
-    macos)
-        case $ARCH in
-            arm64)
-                MIN_VERSION=11.0
-                ;;
-            x86_64)
-                MIN_VERSION=10.13
-                ;;
-        esac
-        VERSION_FLAG=macos-version-min
-        ;;
-    ios)
-        MIN_VERSION=12.5
-        VERSION_FLAG=iphoneos-version-min
-        ;;
-esac
-
 unsupported () {
     echo "Invalid flag for this toolchain ($1)" >&2
     exit 1
 }
 
-# Look for special arguments
-LINK_FLAGS="-fuse-ld=lld -mlinker-version=0 -Wl,-sdk_version,${MIN_VERSION}"
-for ARG in "$@"; do
-    case $ARG in
-        -c|-S)
-            # We aren't linking, so don't use any link flags
-            LINK_FLAGS=""
+min_version () {
+    case $OS in
+        macos)
+            case $ARCH in
+                arm64)
+                    echo 11.0
+                    ;;
+                x86_64)
+                    echo 10.13
+                    ;;
+            esac
             ;;
-        -fuse-ld*)
-            unsupported $ARG
-            ;;
-        --target|--target=*)
-            unsupported $ARG
-            ;;
-        --sysroot|--sysroot=*)
-            unsupported $ARG
-            ;;
-        -gcc-toolchain)
-            unsupported $ARG
-            ;;
-        *)
+        ios)
+            echo 12.5
             ;;
     esac
-done
+}
 
-SYSROOT=$BINDIR/../sysroot/$OS
-COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -m${VERSION_FLAG}=${MIN_VERSION}"
+sdk_name () {
+    case $OS in
+        macos)
+            echo macosx
+            ;;
+        ios)
+            echo iphoneos
+            ;;
+    esac
+}
+
+sysroot() {
+    xcrun --sdk $(sdk_name) --show-sdk-path
+}
+
+compiler_args() {
+    SDK_NAME=$(sdk_name)
+    MIN_VERSION=$(min_version)
+    COMPILER_FLAGS="--target=$TARGET --sysroot=$(sysroot) -m${SDK_NAME}-version-min=${MIN_VERSION}"
+    LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
+    LINK_FLAGS="-B${LD_PATH}"
+    for ARG in "$@"; do
+        case $ARG in
+            -c|-S|-E)
+                # We aren't linking, so don't use any link flags
+                LINK_FLAGS=""
+                ;;
+            -fuse-ld*)
+                unsupported $ARG
+                ;;
+            --target|--target=*)
+                unsupported $ARG
+                ;;
+            --sysroot|--sysroot=*)
+                unsupported $ARG
+                ;;
+            -gcc-toolchain)
+                unsupported $ARG
+                ;;
+            *)
+                ;;
+        esac
+    done
+    echo "$COMPILER_FLAGS $LINK_FLAGS $@"
+}
+
+linker_args() {
+    FLAGS="-syslibroot $(sysroot) -arch ${ARCH} -platform_version ${OS} $(min_version) 0.0"
+    for ARG in "$@"; do
+        case $ARG in
+            -syslibroot*)
+                unsupported $ARG
+                ;;
+            -arch*)
+                unsupported $ARG
+                ;;
+            *)
+                ;;
+        esac
+    done
+    echo "$FLAGS $@"
+}
 
 case $TOOL in
     ${PREFIX}c++)
-        $BINDIR/../llvm/bin/clang++ $COMPILER_FLAGS $LINK_FLAGS $@
+        $BINDIR/../llvm/bin/clang++ $(compiler_args $@)
         ;;
     ${PREFIX}cc)
-        $BINDIR/../llvm/bin/clang $COMPILER_FLAGS $LINK_FLAGS $@
+        $BINDIR/../llvm/bin/clang $(compiler_args $@)
         ;;
     ${PREFIX}ld)
-        $BINDIR/../llvm/bin/ld64.lld --sysroot=$SYSROOT -sdk_version ${MIN_VERSION} $@
+        xcrun ld $(linker_args $@)
         ;;
     ${PREFIX}ar)
-        $BINDIR/../llvm/bin/llvm-ar $@
+        $BINDIR/../llvm/bin/llvm-ar --format=bsd $@
         ;;
     ${PREFIX}ranlib)
-        $BINDIR/../llvm/bin/llvm-ranlib $@
+        $BINDIR/../llvm/bin/llvm-ar --format=bsd s $@
         ;;
     ${PREFIX}strip)
         $BINDIR/../llvm/bin/llvm-strip $@
@@ -134,7 +169,7 @@ case $TOOL in
         $BINDIR/../llvm/bin/llvm-readelf $@
         ;;
     ${PREFIX}size)
-        $BINDIR/../llvm/bin/llvm-readelf $@
+        $BINDIR/../llvm/bin/llvm-size $@
         ;;
     *)
         echo "Invalid tool" >&2
