@@ -26,4 +26,4 @@ Tools are provided that target both the host platform (e.g. `c++`) and particula
 
 ¹ the toolchain also requires an [Xcode](https://developer.apple.com/xcode/) installation
 
-² libstdc++ is statically linked into executables, since it is not backward-compatible with older versions
+² libstdc++ is statically linked into binaries, since it is not backward-compatible with older versions
