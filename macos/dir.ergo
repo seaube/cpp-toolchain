@@ -8,13 +8,6 @@ targets = [
     arm64e-apple-ios
 ]
 
-unique = fn array -> {
-    set = collection:fold (fn set value -> {^:set, :value = ()}) {} :array
-    collection:map (fn {key,^_} -> :key) (collection:entries :set)
-}
-
-per-target = fn f -> collection:fold (fn curr i -> {^:curr, :i = f :i}) {} :targets
-
 # Build LLVM
 llvm = {
     min-supported-version = match (target-triple:arch target-triple:host) {

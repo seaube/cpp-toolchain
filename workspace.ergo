@@ -20,10 +20,7 @@ download-and-unpack = fn url -> value:cache {
 }
 
 llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/llvm-project-11.0.0.tar.xz"
-zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-
 llvm-src = download-and-unpack :llvm-url
-zlib-src = download-and-unpack :zlib-url
 
 build = {
     cmake-project = fn build-args -> value:cache {
@@ -53,15 +50,6 @@ build = {
         }
         cmake-project :build-args
     }
-
-    zlib = fn message flags -> {
-        build-args = {
-            src = remove-top-dir :zlib-src
-            extra-flags = :flags
-            message = :message
-        }
-        cmake-project :build-args
-    }
 }
 
 target-triple = {
@@ -69,7 +57,7 @@ target-triple = {
     vendor = fn target -> (string:split - :target) 1 | value:by-content
     os = fn target -> (string:split - :target) 2 | value:by-content
 
-    host = {
+    host = value:by-content {
         # Get the OS (values are "Linux", "Darwin")
         os = exec uname |>:stdout | string:from | string:trim | value:by-content
 
@@ -96,13 +84,12 @@ prepare-toolchain = fn dir targets -> {
     binaries-to-keep = [
         clang
         clang++
-        clang-10
+        clang-11
         ld.lld
         ld64.lld
         lld
         llvm-ar
         llvm-as 
-        llvm-ranlib
         llvm-size
         llvm-nm
         llvm-strip

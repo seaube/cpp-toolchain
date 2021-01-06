@@ -19,56 +19,75 @@ case $TOOL in
         ;;
 esac
 
+SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
+
 unsupported () {
     echo "Invalid flag for this toolchain ($1)" >&2
     exit 1
 }
 
-# Look for special arguments
-CC_LINK_FLAGS="-fuse-ld=lld"
-CXX_LINK_FLAGS="-fuse-ld=lld -static-libstdc++"
-for ARG in "$@"; do
-    case $ARG in
-        -c|-S)
-            # We aren't linking, so don't use any link flags
-            CC_LINK_FLAGS=""
-            CXX_LINK_FLAGS=""
-            ;;
-        -fuse-ld*)
-            unsupported $ARG
-            ;;
-        --target|--target=*)
-            unsupported $ARG
-            ;;
-        --sysroot|--sysroot=*)
-            unsupported $ARG
-            ;;
-        -gcc-toolchain)
-            unsupported $ARG
-            ;;
-        *)
-            ;;
+compiler_args() {
+    # set language-specific flags
+    case $1 in
+        c)  LINK_FLAGS="-fuse-ld=lld" ;;
+        c++) LINK_FLAGS="-fuse-ld=lld -static-libstdc++" ;;
     esac
-done
+    shift 1
 
-SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
-COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET"
+    COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET"
+    for ARG in "$@"; do
+        case $ARG in
+            -c|-S)
+                # We aren't linking, so don't use any link flags
+                LINK_FLAGS=""
+                ;;
+            -fuse-ld*)
+                unsupported $ARG
+                ;;
+            --target|--target=*)
+                unsupported $ARG
+                ;;
+            --sysroot|--sysroot=*)
+                unsupported $ARG
+                ;;
+            -gcc-toolchain)
+                unsupported $ARG
+                ;;
+            *)
+                ;;
+        esac
+    done
+    echo "$COMPILER_FLAGS $LINK_FLAGS $@"
+}
+
+linker_args() {
+    for ARG in "$@"; do
+        case $ARG in
+            --sysroot|--sysroot=*)
+                unsupported $ARG
+                ;;
+            *)
+                ;;
+        esac
+    done
+    echo "--sysroot=$SYSROOT $@"
+}
 
 case $TOOL in
     ${PREFIX}c++)
-        $BINDIR/../llvm/bin/clang++ $COMPILER_FLAGS $CXX_LINK_FLAGS $@
+        $BINDIR/../llvm/bin/clang++ $(compiler_args c++ $@)
         ;;
     ${PREFIX}cc)
-        $BINDIR/../llvm/bin/clang $COMPILER_FLAGS $CC_LINK_FLAGS $@
+        $BINDIR/../llvm/bin/clang $(compiler_args c $@)
         ;;
     ${PREFIX}ld)
-        $BINDIR/../llvm/bin/ld.lld --sysroot=$SYSROOT $@
+        $BINDIR/../llvm/bin/ld.lld $(linker_args $@)
         ;;
     ${PREFIX}ar)
         $BINDIR/../llvm/bin/llvm-ar $@
         ;;
     ${PREFIX}ranlib)
-        $BINDIR/../llvm/bin/llvm-ranlib $@
+        $BINDIR/../llvm/bin/llvm-ar s $@
         ;;
     ${PREFIX}strip)
         $BINDIR/../llvm/bin/llvm-strip $@

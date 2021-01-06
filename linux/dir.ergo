@@ -1,18 +1,23 @@
+targets = [
+    x86_64-unknown-linux-gnu
+    aarch64-unknown-linux-gnu
+]
+
+per-target = fn f -> collection:fold (fn curr i -> {^:curr, :i = f :i}) {} :targets
+
 ct-ng-url="http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz"
 ct-ng-src = download-and-unpack :ct-ng-url
 
+zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
+zlib-src = download-and-unpack :zlib-url
+
 # CMake flags for using a particular GCC toolchain
 use-gcc-cmake-flags = fn toolchain-dir target -> {
-    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" (triple :target) :tool
+    gcc-tool = fn tool -> path:join :toolchain-dir bin <| string:format "{}-{}" :target :tool
     [
-        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
-        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
+        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
+        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool c++
     ]
-}
-
-per-architecture = fn f -> {
-    x86_64 = f x86_64
-    aarch64 = f aarch64
 }
 
 # Build crosstool-NG
@@ -51,13 +56,20 @@ gcc = {
         ]
         task (string:format "building gcc ({})" :target) :toolchain
     }
-    per-architecture :build
+    per-target :build
 }
 
 # Build zlib for target, using bootstrap toolchain
 zlib = {
-    build = fn target -> build:zlib (string:format "building zlib ({})" :target) (use-gcc-cmake-flags gcc::target :target)
-    per-architecture :build
+    build = fn target -> {
+        build-args = {
+            src = remove-top-dir :zlib-src
+            extra-flags = use-gcc-cmake-flags gcc::target :target
+            message = string:format "building zlib ({})" :target
+        }
+        build:cmake-project :build-args
+    }
+    per-target :build
 }
 
 # Assemble bootstrap toolchain containing zlib
@@ -66,67 +78,51 @@ gcc-with-deps = {
         out = (path:new)
         toolchain = seq ^[
             fs:copy gcc::target :out
-            merge-dir zlib::target (path:join :out (triple :target) sysroot usr)
+            merge-dir zlib::target (path:join :out :target sysroot usr)
             :out
         ]
         task (string:format "assembling bootstrap toolchain ({})" :target) :toolchain
     }
-    per-architecture :build
+    per-target :build
 }
 
 # Build LLVM with bootstrap toolchain
 llvm = {
-    flags = fn target -> [^(use-gcc-cmake-flags gcc-with-deps::target :target), "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"]
-    build = fn target -> build:llvm (string:format "building llvm ({})" :target) [clang, lld] (flags :target)
-    per-architecture :build
+    host = target-triple:host
+    build:llvm "building llvm" [clang, lld] [
+        ^(use-gcc-cmake-flags gcc-with-deps::host :host),
+        "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
+    ]
 }
 
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn dir -> {
     delete-target = fn target -> {
-        gcc-dir = path:join :dir gcc (triple :target)
+        gcc-dir = path:join :dir gcc :target
         [
             exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
             exec rm "-rf" (path:join :gcc-dir bin) |>:complete
             exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
-            exec rm "-rf" (path:join :gcc-dir (triple :target) bin) |>:complete
+            exec rm "-rf" (path:join :gcc-dir :target bin) |>:complete
         ]
     }
-    per-architecture :delete-target
-}
-
-# Delete static libraries from LLVM
-delete-unused-llvm-libraries = fn dir -> {
-    exec find (path:join :dir llvm lib) ^(string:split " " "-name *.a -exec rm -f {} +") |>:complete
+    per-target :delete-target
 }
 
 # Assemble the toolchain
-build-toolchain = fn target -> value:cache {
-    parent = (path:new)
-    out = path:join :parent <| toolchain-name :target
-    toolchain = seq ^[
-        [
-            fs:create-dir <| path:join :out gcc
-            fs:create-dir <| path:join :out scripts
-            fs:create-dir <| path:join :out bin
-        ]
-        [
-            per-architecture (fn target -> fs:copy gcc-with-deps::target (path:join :out gcc <| triple :target))
-            fs:copy llvm::target (path:join :out llvm)
-            fs:copy (path:join :script-dir tools.sh) (path:join :out scripts tools.sh)
-        ]
-        [
-            delete-unused-llvm-binaries :out
-            delete-unused-llvm-libraries :out
-            delete-unused-gcc-components :out
-            make-links :out :target
-            make-host-file :out :target
-        ]
-        :out
+fn dir -> seq ^[
+    [
+        fs:create-dir <| path:join :dir gcc
+        fs:create-dir <| path:join :dir scripts
+        fs:create-dir <| path:join :dir bin
     ]
-    task (string:format "assembling toolchain ({})" :target) :toolchain
-}
-
-{
-    build-toolchain
-}
+    [
+        per-target (fn target -> fs:copy gcc-with-deps::target (path:join :dir gcc :target))
+        fs:copy :llvm (path:join :dir llvm)
+        fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
+    ]
+    [
+        delete-unused-gcc-components :dir
+        prepare-toolchain :dir :targets
+    ]
+]
