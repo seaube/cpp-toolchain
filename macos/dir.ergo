@@ -37,4 +37,5 @@ fn dir -> seq ^[
         fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
     ]
     prepare-toolchain :dir :targets
+    :targets
 ]

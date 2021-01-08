@@ -110,19 +110,22 @@ delete-unused-gcc-components = fn dir -> {
 }
 
 # Assemble the toolchain
-fn dir -> seq ^[
-    [
-        fs:create-dir <| path:join :dir gcc
-        fs:create-dir <| path:join :dir scripts
-        fs:create-dir <| path:join :dir bin
+{
+    build = fn dir -> seq ^[
+        [
+            fs:create-dir <| path:join :dir gcc
+            fs:create-dir <| path:join :dir scripts
+            fs:create-dir <| path:join :dir bin
+        ]
+        [
+            per-target (fn target -> fs:copy gcc-with-deps::target (path:join :dir gcc :target))
+            fs:copy :llvm (path:join :dir llvm)
+            fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
+        ]
+        [
+            delete-unused-gcc-components :dir
+            prepare-toolchain :dir :targets
+        ]
     ]
-    [
-        per-target (fn target -> fs:copy gcc-with-deps::target (path:join :dir gcc :target))
-        fs:copy :llvm (path:join :dir llvm)
-        fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
-    ]
-    [
-        delete-unused-gcc-components :dir
-        prepare-toolchain :dir :targets
-    ]
-]
+    targets
+}

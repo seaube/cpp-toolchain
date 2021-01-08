@@ -1,5 +1,7 @@
 ^ergo std
 
+version = 1.0.0
+
 # Step into the only directory in another directory
 remove-top-dir = fn dir -> {
     [only] = fs:glob <| string:format "{}/*/" :dir
@@ -172,6 +174,85 @@ install-toolchain = fn toolchain -> {
     exec ^:args tar -czvf :out :basename |>:complete
 }
 
+test-toolchain = fn toolchain targets -> value:cache {
+    test-target = fn target -> {
+        tool = fn tool -> fn ^args -> {
+            kwargs = {
+                env = { PATH = string:format "{}:{}" (path:join :toolchain bin) (env:get PATH) }
+                pwd = path:join :script-dir test
+            }
+            prefix = match :target {
+                =() = ""
+                _ = string:format "{}-" :target
+            }
+            tool = string:format "{}{}" :prefix :tool
+            exec ^:kwargs :tool ^:args |>:complete
+        }
+
+        cc = tool cc
+        c++ = tool c++
+        ld = tool ld
+        ar = tool ar
+        ranlib = tool ranlib
+        strip = tool strip
+
+        out = (path:new)
+        bar.o = path:join :out bar.o
+        bar.a = path:join :out bar.a
+        foo.o = path:join :out foo.o
+        foo-lib = match (target-triple:os target-triple:host) {
+            =macos = path:join :out foo.dylib
+            =linux = path:join :out foo.so
+        }
+        test-c = path:join :out test-c
+        test-c++ = path:join :out test-c++
+
+        link-flags = match (target-triple:os target-triple:host) {
+            =macos = [-dylib]
+            =linux = [-shared]
+        }
+        run-test = {
+        }
+        seq ^[
+            fs:create-dir :out
+
+            # Build library
+            cc -c -o :bar.o bar.c
+            cc -c -o :foo.o foo.c
+            ar r :bar.a :bar.o
+            ranlib :bar.a
+            ld ^:link-flags -o :foo-lib :foo.o :bar.a
+            strip --strip-all :foo-lib
+  
+            # Build C program
+            cc -o :test-c main.c :foo-lib
+            strip --strip-all :test-c
+
+            # Test C++ compiler
+            c++ -o :test-c++ main.cpp :foo-lib
+            strip --strip-all :test-c++
+
+            # Run tests (if correct target)
+            match (value:by-content :target) {
+                =target-triple:host = {
+                    kwargs = {
+                        env = {
+                            LD_LIBRARY_PATH = :out
+                            DYLD_LIBRARY_PATH = :out
+                        }
+                    }
+                    seq ^[
+                        exec ^:kwargs :test-c |>:complete
+                        exec ^:kwargs :test-c++ |>:complete
+                    ]
+                }
+                _ = ()
+            }
+        ]
+    }
+    collection:map :test-target :targets
+}
+
 {
     prelude = {
         ^(ergo std)
@@ -185,9 +266,11 @@ install-toolchain = fn toolchain -> {
 
     command = fn cmd ^args -> match :cmd {
         =build = {
-	    toolchain = value:cache <| seq ^[
-                out = path:join (path:new) <| string:format "toolchain-{}" target-triple:host
-                ergo (target-triple:os target-triple:host) :out
+            impl = ergo (target-triple:os target-triple:host)
+	        toolchain = value:cache <| seq ^[
+                out = path:join (path:new) <| string:format "wut-{}-{}" :version target-triple:host
+                impl:build :out
+                test-toolchain :out impl:targets
                 :out
             ]
             install-toolchain :toolchain
