@@ -35,6 +35,8 @@ compiler_args() {
     shift 1
 
     COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET"
+
+    # Check for incompatible flags
     for ARG in "$@"; do
         case $ARG in
             -c|-S)
@@ -61,6 +63,7 @@ compiler_args() {
 }
 
 linker_args() {
+    # Check for incompatible flags
     for ARG in "$@"; do
         case $ARG in
             --sysroot|--sysroot=*)

@@ -127,5 +127,6 @@ delete-unused-gcc-components = fn dir -> {
             prepare-toolchain :dir :targets
         ]
     ]
+
     targets
 }

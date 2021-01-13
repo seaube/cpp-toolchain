@@ -201,8 +201,8 @@ test-toolchain = fn toolchain targets -> value:cache {
         bar.a = path:join :out bar.a
         foo.o = path:join :out foo.o
         foo-lib = match (target-triple:os target-triple:host) {
-            =macos = path:join :out foo.dylib
-            =linux = path:join :out foo.so
+            =macos = path:join :out libfoo.dylib
+            =linux = path:join :out libfoo.so
         }
         test-c = path:join :out test-c
         test-c++ = path:join :out test-c++
@@ -217,19 +217,19 @@ test-toolchain = fn toolchain targets -> value:cache {
             fs:create-dir :out
 
             # Build library
-            cc -c -o :bar.o bar.c
-            cc -c -o :foo.o foo.c
-            ar r :bar.a :bar.o
+            cc -Wall -c -o :bar.o bar.c
+            cc -Wall -c -o :foo.o foo.c
+            ar rc :bar.a :bar.o
             ranlib :bar.a
             ld ^:link-flags -o :foo-lib :foo.o :bar.a
             strip --strip-all :foo-lib
   
             # Build C program
-            cc -o :test-c main.c :foo-lib
+            cc -Wall -o :test-c main.c :foo-lib
             strip --strip-all :test-c
 
             # Test C++ compiler
-            c++ -o :test-c++ main.cpp :foo-lib
+            c++ -Wall -o :test-c++ main.cpp :foo-lib
             strip --strip-all :test-c++
 
             # Run tests (if correct target)

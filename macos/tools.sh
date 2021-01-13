@@ -17,14 +17,6 @@ case $TOOL in
         TARGET=x86_64-apple-macos
         PREFIX="${TARGET}-"
         ;;
-    armv7-apple-ios-*)
-        TARGET=armv7-apple-ios
-        PREFIX="${TARGET}-"
-        ;;
-    armv7s-apple-ios-*)
-        TARGET=armv7s-apple-ios
-        PREFIX="${TARGET}-"
-        ;;
     arm64-apple-ios-*)
         TARGET=arm64-apple-ios
         PREFIX="${TARGET}-"
@@ -39,7 +31,6 @@ case $TOOL in
         ;;
 esac
 
-ARCH=$(cut -d - -f 1 <(echo ${TARGET}))
 OS=$(cut -d - -f 3 <(echo ${TARGET}))
 
 unsupported () {
@@ -50,11 +41,11 @@ unsupported () {
 min_version () {
     case $OS in
         macos)
-            case $ARCH in
-                arm64)
+            case $TOOL in
+                arm64*)
                     echo 11.0
                     ;;
-                x86_64)
+                x86_64*)
                     echo 10.13
                     ;;
             esac
@@ -86,6 +77,8 @@ compiler_args() {
     COMPILER_FLAGS="--target=$TARGET --sysroot=$(sysroot) -m${SDK_NAME}-version-min=${MIN_VERSION}"
     LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
     LINK_FLAGS="-B${LD_PATH}"
+
+    # Check for incompatible flags
     for ARG in "$@"; do
         case $ARG in
             -c|-S|-E)
@@ -112,7 +105,17 @@ compiler_args() {
 }
 
 linker_args() {
-    FLAGS="-syslibroot $(sysroot) -arch ${ARCH} -platform_version ${OS} $(min_version) 0.0"
+    # Linker uses arm64 as arch even for arm64e
+    case $TOOL in
+        arm64*)
+            ARCH=arm64
+            ;;
+        x86_64*)
+            ARCH=x86_64
+            ;;
+    esac
+
+    # Check for incompatible flags
     for ARG in "$@"; do
         case $ARG in
             -syslibroot*)
@@ -125,7 +128,7 @@ linker_args() {
                 ;;
         esac
     done
-    echo "$FLAGS $@"
+    echo "-syslibroot $(sysroot) -arch ${ARCH} -platform_version ${OS} $(min_version) 0.0 $@"
 }
 
 case $TOOL in

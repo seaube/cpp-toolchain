@@ -2,8 +2,6 @@ targets = [
     arm64-apple-macos
     arm64e-apple-macos
     x86_64-apple-macos
-    armv7-apple-ios
-    armv7s-apple-ios
     arm64-apple-ios
     arm64e-apple-ios
 ]
@@ -23,19 +21,22 @@ llvm = {
         "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF", # llvm.org/PR37398
         string:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" :min-supported-version
     ]
-    build:llvm "building llvm" [clang, lld, libcxx, libcxxabi] :flags
+    build:llvm "building llvm" [clang, libcxx, libcxxabi] :flags
 }
 
 # Assemble the toolchain
-fn dir -> seq ^[
-    [
-        fs:create-dir <| path:join :dir scripts
-        fs:create-dir <| path:join :dir bin
+{
+    build = fn dir -> seq ^[
+        [
+            fs:create-dir <| path:join :dir scripts
+            fs:create-dir <| path:join :dir bin
+        ]
+        [
+            fs:copy :llvm (path:join :dir llvm)
+            fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
+        ]
+        prepare-toolchain :dir :targets
     ]
-    [
-        fs:copy :llvm (path:join :dir llvm)
-        fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
-    ]
-    prepare-toolchain :dir :targets
-    :targets
-]
+
+    targets
+}
