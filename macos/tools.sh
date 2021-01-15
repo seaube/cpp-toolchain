@@ -41,7 +41,7 @@ unsupported () {
 min_version () {
     case $OS in
         macos)
-            case $TOOL in
+            case $TARGET in
                 arm64*)
                     echo 11.0
                     ;;
@@ -106,7 +106,7 @@ compiler_args() {
 
 linker_args() {
     # Linker uses arm64 as arch even for arm64e
-    case $TOOL in
+    case $TARGET in
         arm64*)
             ARCH=arm64
             ;;
