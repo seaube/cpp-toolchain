@@ -211,8 +211,6 @@ test-toolchain = fn toolchain targets -> value:cache {
             =macos = [-dylib]
             =linux = [-shared]
         }
-        run-test = {
-        }
         seq ^[
             fs:create-dir :out
 
@@ -233,24 +231,27 @@ test-toolchain = fn toolchain targets -> value:cache {
             strip --strip-all :test-c++
 
             # Run tests (if correct target)
-            match (value:by-content :target) {
-                =target-triple:host = {
-                    kwargs = {
-                        env = {
-                            LD_LIBRARY_PATH = :out
-                            DYLD_LIBRARY_PATH = :out
-                        }
+            run-tests = fn -> {
+                kwargs = {
+                    env = {
+                        LD_LIBRARY_PATH = :out
+                        DYLD_LIBRARY_PATH = :out
                     }
-                    seq ^[
-                        exec ^:kwargs :test-c |>:complete
-                        exec ^:kwargs :test-c++ |>:complete
-                    ]
                 }
+                seq ^[
+                    exec ^:kwargs :test-c |>:complete
+                    exec ^:kwargs :test-c++ |>:complete
+                ]
+            }
+            match (value:by-content :target) {
+                =target-triple:host = (run-tests)
+                =() = (run-tests)
                 _ = ()
             }
         ]
     }
-    collection:map :test-target :targets
+    # test all available targets, as well as the default host target
+    collection:map :test-target [^:targets, ()]
 }
 
 {
