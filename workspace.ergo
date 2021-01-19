@@ -1,6 +1,6 @@
 ^ergo std
 
-version = 1.0.0
+version = 1.0.1
 
 # Step into the only directory in another directory
 remove-top-dir = fn dir -> {
