@@ -140,23 +140,23 @@ prepare-toolchain = fn :dir :targets -> {
 
     make-script-tools = fn :target -> {
         prefix = fn :file -> Path:join :dir bin (String:format "{}-{}" :target :file)
-        Iter:map (fn :file -> link "../scripts/tools.sh" (prefix :file)) :prefixed-tools
+        Iter:map (fn :file -> link "../libexec/wut/tools.sh" (prefix :file)) :prefixed-tools
     }
 
     keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
 
     [
         # Delete unusued llvm binaries
-        exec find (Path:join :dir llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
-        exec find (Path:join :dir llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
+        exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
+        exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
 
         # Link the various tools into the bin directory
         Iter:map :make-script-tools :targets
         Iter:map (fn :file -> link (String:format "{}-{}" target-triple:host :file) (Path:join :dir bin :file)) :prefixed-tools
-        Iter:map (fn :file -> link (Path:join .. llvm bin :file) (Path:join :dir bin :file)) :non-prefixed-tools
+        Iter:map (fn :file -> link (Path:join .. libexec wut llvm bin :file) (Path:join :dir bin :file)) :non-prefixed-tools
 
         # Make a file in the toolchain that contains the host triple
-        exec sh -c (String:format "echo {} > {}" target-triple:host (Path:join :dir scripts host)) |>:complete
+        exec sh -c (String:format "echo {} > {}" target-triple:host (Path:join :dir libexec wut host)) |>:complete
     ]
 }
 
@@ -211,7 +211,7 @@ test-toolchain = fn :toolchain :targets -> cache {
             macos -> [-dylib]
             linux -> [-shared]
         ]
-        seq ^[
+        !seq ^[
             fs:create-dir :out
 
             # Build library

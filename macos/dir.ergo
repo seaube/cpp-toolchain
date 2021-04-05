@@ -31,12 +31,12 @@ script-dir = script:dir:
 {
     build = fn :dir -> seq ^[
         [
-            fs:create-dir <| Path:join :dir scripts
+            fs:create-dir <| Path:join :dir libexec wut
             fs:create-dir <| Path:join :dir bin
         ]
         [
-            fs:copy :llvm (Path:join :dir llvm)
-            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir scripts tools.sh)
+            fs:copy :llvm (Path:join :dir libexec wut llvm)
+            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir libexec wut tools.sh)
         ]
         workspace:prepare-toolchain :dir :targets
     ]

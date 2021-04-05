@@ -100,12 +100,11 @@ llvm = {
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
-        gcc-dir = Path:join :dir gcc :target
         [
-            exec rm "-rf" (Path:join :gcc-dir build.log.bz2) |>:complete
-            exec rm "-rf" (Path:join :gcc-dir bin) |>:complete
-            exec rm "-rf" (Path:join :gcc-dir libexec) |>:complete
-            exec rm "-rf" (Path:join :gcc-dir :target bin) |>:complete
+            exec rm "-rf" (Path:join :dir build.log.bz2) |>:complete
+            exec rm "-rf" (Path:join :dir bin) |>:complete
+            exec rm "-rf" (Path:join :dir libexec) |>:complete
+            exec rm "-rf" (Path:join :dir :target bin) |>:complete
         ]
     }
     per-target :delete-target
@@ -116,17 +115,16 @@ script-dir = script:dir:
 {
     build = fn :dir -> seq ^[
         [
-            fs:create-dir <| Path:join :dir gcc
-            fs:create-dir <| Path:join :dir scripts
+            fs:create-dir <| Path:join :dir libexec wut gcc
             fs:create-dir <| Path:join :dir bin
         ]
         [
-            per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir gcc :target))
-            fs:copy :llvm (Path:join :dir llvm)
-            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir scripts tools.sh)
+            per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
+            fs:copy :llvm (Path:join :dir libexec wut llvm)
+            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir libexec wut tools.sh)
         ]
         [
-            delete-unused-gcc-components :dir
+            delete-unused-gcc-components <| Path:join :dir libexec wut gcc
             workspace:prepare-toolchain :dir :targets
         ]
     ]

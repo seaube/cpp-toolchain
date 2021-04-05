@@ -14,12 +14,12 @@ case $TOOL in
         PREFIX="${TARGET}-"
         ;;
     *)
-        TARGET=$(cat ${BINDIR}/../scripts/host)
+        TARGET=$(cat ${BINDIR}/../libexec/wut/host)
         PREFIX=""
         ;;
 esac
 
-SYSROOT=$BINDIR/../gcc/$TARGET/$TARGET/sysroot
+SYSROOT=$BINDIR/../libexec/wut/gcc/$TARGET/$TARGET/sysroot
 
 unsupported () {
     echo "Invalid flag for this toolchain ($1)" >&2
@@ -34,7 +34,7 @@ compiler_args() {
     esac
     shift 1
 
-    COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../gcc/$TARGET"
+    COMPILER_FLAGS="--target=$TARGET --sysroot=$SYSROOT -gcc-toolchain $BINDIR/../libexec/wut/gcc/$TARGET"
 
     # Check for incompatible flags
     for ARG in "$@"; do
@@ -78,46 +78,46 @@ linker_args() {
 
 case $TOOL in
     ${PREFIX}c++)
-        $BINDIR/../llvm/bin/clang++ $(compiler_args c++ $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args c++ $@)
         ;;
     ${PREFIX}cc)
-        $BINDIR/../llvm/bin/clang $(compiler_args c $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args c $@)
         ;;
     ${PREFIX}ld)
-        $BINDIR/../llvm/bin/ld.lld $(linker_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/ld.lld $(linker_args $@)
         ;;
     ${PREFIX}ar)
-        $BINDIR/../llvm/bin/llvm-ar $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-ar $@
         ;;
     ${PREFIX}ranlib)
-        $BINDIR/../llvm/bin/llvm-ar s $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-ar s $@
         ;;
     ${PREFIX}strip)
-        $BINDIR/../llvm/bin/llvm-strip $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-strip $@
         ;;
     ${PREFIX}nm)
-        $BINDIR/../llvm/bin/llvm-nm $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-nm $@
         ;;
     ${PREFIX}objcopy)
-        $BINDIR/../llvm/bin/llvm-objcopy $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-objcopy $@
         ;;
     ${PREFIX}objdump)
-        $BINDIR/../llvm/bin/llvm-objdump $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-objdump $@
         ;;
     ${PREFIX}c++filt)
-        $BINDIR/../llvm/bin/llvm-cxxfilt $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-cxxfilt $@
         ;;
     ${PREFIX}addr2line)
-        $BINDIR/../llvm/bin/llvm-addr2line $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-addr2line $@
         ;;
     ${PREFIX}strings)
-        $BINDIR/../llvm/bin/llvm-strings $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-strings $@
         ;;
     ${PREFIX}readelf)
-        $BINDIR/../llvm/bin/llvm-readelf $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
         ;;
     ${PREFIX}size)
-        $BINDIR/../llvm/bin/llvm-readelf $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
         ;;
     *)
         echo "Invalid tool" >&2

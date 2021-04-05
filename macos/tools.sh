@@ -26,7 +26,7 @@ case $TOOL in
         PREFIX="${TARGET}-"
         ;;
     *)
-        TARGET=$(cat ${BINDIR}/../scripts/host)
+        TARGET=$(cat ${BINDIR}/../libexec/wut/host)
         PREFIX=""
         ;;
 esac
@@ -133,46 +133,46 @@ linker_args() {
 
 case $TOOL in
     ${PREFIX}c++)
-        $BINDIR/../llvm/bin/clang++ $(compiler_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args $@)
         ;;
     ${PREFIX}cc)
-        $BINDIR/../llvm/bin/clang $(compiler_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args $@)
         ;;
     ${PREFIX}ld)
         xcrun ld $(linker_args $@)
         ;;
     ${PREFIX}ar)
-        $BINDIR/../llvm/bin/llvm-ar --format=bsd $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-ar --format=bsd $@
         ;;
     ${PREFIX}ranlib)
-        $BINDIR/../llvm/bin/llvm-ar --format=bsd s $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-ar --format=bsd s $@
         ;;
     ${PREFIX}strip)
-        $BINDIR/../llvm/bin/llvm-strip $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-strip $@
         ;;
     ${PREFIX}nm)
-        $BINDIR/../llvm/bin/llvm-nm $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-nm $@
         ;;
     ${PREFIX}objcopy)
-        $BINDIR/../llvm/bin/llvm-objcopy $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-objcopy $@
         ;;
     ${PREFIX}objdump)
-        $BINDIR/../llvm/bin/llvm-objdump $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-objdump $@
         ;;
     ${PREFIX}c++filt)
-        $BINDIR/../llvm/bin/llvm-cxxfilt $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-cxxfilt $@
         ;;
     ${PREFIX}addr2line)
-        $BINDIR/../llvm/bin/llvm-addr2line $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-addr2line $@
         ;;
     ${PREFIX}strings)
-        $BINDIR/../llvm/bin/llvm-strings $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-strings $@
         ;;
     ${PREFIX}readelf)
-        $BINDIR/../llvm/bin/llvm-readelf $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
         ;;
     ${PREFIX}size)
-        $BINDIR/../llvm/bin/llvm-size $@
+        $BINDIR/../libexec/wut/llvm/bin/llvm-size $@
         ;;
     *)
         echo "Invalid tool" >&2
