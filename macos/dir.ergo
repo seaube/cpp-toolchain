@@ -10,18 +10,18 @@ targets = [
 
 # Build LLVM
 llvm = {
-    min-supported-version = match (workspace:target-triple:arch workspace:target-triple:host) {
-        =arm64  = 11.0
-        =arm64e = 11.0
-        =x86_64 = 10.13
-    }
+    min-supported-version = match (workspace:target-triple:arch workspace:target-triple:host) ^[
+        arm64  -> 11.0
+        arm64e -> 11.0
+        x86_64 -> 10.13
+    ]
 
     flags = [
         "-DLIBCXX_INSTALL_LIBRARY=OFF",
         "-DLIBCXX_INSTALL_HEADERS=ON",
         "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON",
         "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF", # llvm.org/PR37398
-        string:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" :min-supported-version
+        String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" :min-supported-version
     ]
     workspace:build:llvm "building llvm" [clang, libcxx, libcxxabi] :flags
 }
@@ -31,12 +31,12 @@ script-dir = script:dir:
 {
     build = fn :dir -> seq ^[
         [
-            fs:create-dir <| path:join :dir scripts
-            fs:create-dir <| path:join :dir bin
+            fs:create-dir <| Path:join :dir scripts
+            fs:create-dir <| Path:join :dir bin
         ]
         [
-            fs:copy :llvm (path:join :dir llvm)
-            fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
+            fs:copy :llvm (Path:join :dir llvm)
+            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir scripts tools.sh)
         ]
         workspace:prepare-toolchain :dir :targets
     ]
