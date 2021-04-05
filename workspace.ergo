@@ -1,38 +1,38 @@
-^ergo std
+^std:
 
 version = 1.0.1
 
 # Step into the only directory in another directory
-remove-top-dir = fn dir -> {
-    [only] = fs:glob <| string:format "{}/*/" :dir
+remove-top-dir = fn :dir -> {
+    [:only] = fs:glob <| String:format "{}/*/" :dir
     :only
 }
 
 # Download a file and unarchive it
-download-and-unpack = fn url -> value:cache {
-    [^_, filename] = string:split / :url
+download-and-unpack = fn :url -> cache {
+    [^_, :filename] = String:split / :url
     archive = seq ^[
-        out = path:join (path:new) :filename
-        fs:create-dir <| path:parent :out
+        out = Path:join Path:new: :filename
+        fs:create-dir <| Path:parent :out
         net:download :url :out
         :out
     ]
-    unpacked = (path:new)
-    task (string:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
+    unpacked = Path:new:
+    task (String:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
 }
 
 llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/llvm-project-11.0.0.tar.xz"
 llvm-src = download-and-unpack :llvm-url
 
 build = {
-    cmake-project = fn build-args -> value:cache {
-        build = (path:new)
-        install = (path:new)
+    cmake-project = fn :build-args -> cache {
+        build = Path:new:
+        install = Path:new:
         args = {
             env = { PATH = env:get PATH }
             pwd = :build
         }
-        install-prefix = string:format "-DCMAKE_INSTALL_PREFIX={}" :install
+        install-prefix = String:format "-DCMAKE_INSTALL_PREFIX={}" :install
         out = seq ^[
             fs:create-dir :build
             exec ^:args cmake build-args:src ^build-args:extra-flags :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
@@ -40,13 +40,13 @@ build = {
             exec ^:args cmake -P cmake_install.cmake |>:complete
             :install
         ]
-        task (string:format "{}" build-args:message) :out
+        task (String:format "{}" build-args:message) :out
     }
 
-    llvm = fn message llvm-projects flags -> value:cache {
-        projects = collection:fold (fn acc v -> string:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
+    llvm = fn :message :llvm-projects :flags -> cache {
+        projects = Iter:fold (fn :acc :v -> String:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
         build-args = {
-            src = path:join (remove-top-dir :llvm-src) llvm
+            src = Path:join (remove-top-dir :llvm-src) llvm
             extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=ON"]
             message = :message
         }
@@ -55,34 +55,34 @@ build = {
 }
 
 target-triple = {
-    arch = fn target -> (string:split - :target) 0 | value:by-content
-    vendor = fn target -> (string:split - :target) 1 | value:by-content
-    os = fn target -> (string:split - :target) 2 | value:by-content
+    arch = fn :target -> by-content <| (String:split - :target):0
+    vendor = fn :target -> by-content <| (String:split - :target):1
+    os = fn :target -> by-content <| (String:split - :target):2
 
-    host = value:by-content {
+    host = by-content {
         # Get the OS (values are "Linux", "Darwin")
-        os = exec uname |>:stdout | string:from | string:trim | value:by-content
+        os = exec uname |>:stdout | String:from | String:trim | by-content
 
         # Get the architecture ("x86_64", "aarch64", etc)
-        arch = exec uname -m |>:stdout | string:from | string:trim | value:by-content
+        arch = exec uname -m |>:stdout | String:from | String:trim | by-content
 
-        match (:os | value:by-content) {
-            =Linux = string:format "{}-unknown-linux-gnu" :arch
-            =Darwin = string:format "{}-apple-macos" :arch
-        }
+        match (by-content :os) ^[
+            Linux -> String:format "{}-unknown-linux-gnu" :arch
+            Darwin -> String:format "{}-apple-macos" :arch
+        ]
     }
 }
 
-use-gcc-cmake-flags = fn toolchain-dir target -> {
-    gcc-tool = fn toolchain-dir target tool -> path:join :toolchain-dir bin <| string:format "{}-{}" :target :tool
+use-gcc-cmake-flags = fn :toolchain-dir :target -> {
+    gcc-tool = fn :toolchain-dir :target :tool -> Path:join :toolchain-dir bin <| String:format "{}-{}" :target :tool
     [
-        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
-        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
+        String:format "-DCMAKE_C_COMPILER={}" <| gcc-tool :toolchain-dir :target cc
+        String:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool :toolchain-dir :target c++
     ]
 }
 
 # Make toolchain binary links to the appropriate implementation (either script or binary)
-prepare-toolchain = fn dir targets -> {
+prepare-toolchain = fn :dir :targets -> {
     binaries-to-keep = [
         clang
         clang++
@@ -125,10 +125,10 @@ prepare-toolchain = fn dir targets -> {
         addr2line 
         strings
         readelf
-        ^match target-vendor {
-            =apple = [install_name_tool, lipo]
-            _ = []
-        }
+        ^match target-vendor ^[
+            apple -> [install_name_tool, lipo]
+            _ -> []
+        ]
     ]
 
     non-prefixed-tools = [
@@ -136,56 +136,56 @@ prepare-toolchain = fn dir targets -> {
         scan-build
     ]
 
-    link = fn source target -> exec ln -sf :source :target |>:complete
+    link = fn :source :target -> (exec ln -sf :source :target |>:complete)
 
-    make-script-tools = fn target -> {
-        prefix = fn file -> path:join :dir bin (string:format "{}-{}" :target :file)
-        collection:map (fn file -> link "../scripts/tools.sh" (prefix :file)) :prefixed-tools
+    make-script-tools = fn :target -> {
+        prefix = fn :file -> Path:join :dir bin (String:format "{}-{}" :target :file)
+        Iter:map (fn :file -> link "../scripts/tools.sh" (prefix :file)) :prefixed-tools
     }
 
-    keep-binary-patterns = collection:fold (fn acc v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
+    keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
 
     [
         # Delete unusued llvm binaries
-        exec find (path:join :dir llvm bin) ^:keep-binary-patterns ^(string:split " " "-type f -exec rm -f {} +") |>:complete
-        exec find (path:join :dir llvm lib) ^(string:split " " "-name *.a -exec rm -f {} +") |>:complete
+        exec find (Path:join :dir llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
+        exec find (Path:join :dir llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
 
         # Link the various tools into the bin directory
-        collection:map :make-script-tools :targets
-        collection:map (fn file -> link (string:format "{}-{}" target-triple:host :file) (path:join :dir bin :file)) :prefixed-tools
-        collection:map (fn file -> link (path:join .. llvm bin :file) (path:join :dir bin :file)) :non-prefixed-tools
+        Iter:map :make-script-tools :targets
+        Iter:map (fn :file -> link (String:format "{}-{}" target-triple:host :file) (Path:join :dir bin :file)) :prefixed-tools
+        Iter:map (fn :file -> link (Path:join .. llvm bin :file) (Path:join :dir bin :file)) :non-prefixed-tools
 
         # Make a file in the toolchain that contains the host triple
-        exec sh -c (string:format "echo {} > {}" target-triple:host (path:join :dir scripts host)) |>:complete
+        exec sh -c (String:format "echo {} > {}" target-triple:host (Path:join :dir scripts host)) |>:complete
     ]
 }
 
 # Merge a directory into another directory
-merge-dir = fn src dst -> exec sh -c (string:format "cp -rl {}/* {}" :src :dst) |>:complete
+merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rl {}/* {}" :src :dst) |>:complete)
 
 # Archives a toolchain and installs it into the working directory
-install-toolchain = fn toolchain -> {
-    [^_, basename] = path:split :toolchain
-    out = path:join :script-dir <| string:format "{}.tar.gz" :basename
+install-toolchain = fn :toolchain -> {
+    [^_, :basename] = Path:split :toolchain
+    out = Path:join script:dir: <| String:format "{}.tar.gz" :basename
     args = {
-        pwd = path:parent :toolchain
+        pwd = Path:parent :toolchain
         env = { PATH = env:get PATH }
     }
     exec ^:args tar -czvf :out :basename |>:complete
 }
 
-test-toolchain = fn toolchain targets -> value:cache {
-    test-target = fn target -> {
-        tool = fn tool -> fn ^args -> {
+test-toolchain = fn :toolchain :targets -> cache {
+    test-target = fn :target -> {
+        tool = fn :tool -> fn ^:args -> {
             kwargs = {
-                env = { PATH = string:format "{}:{}" (path:join :toolchain bin) (env:get PATH) }
-                pwd = path:join :script-dir test
+                env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
+                pwd = Path:join script:dir: test
             }
-            prefix = match :target {
-                =() = ""
-                _ = string:format "{}-" :target
-            }
-            tool = string:format "{}{}" :prefix :tool
+            prefix = match :target ^[
+                () -> ""
+                _ -> String:format "{}-" :target
+            ]
+            tool = String:format "{}{}" :prefix :tool
             exec ^:kwargs :tool ^:args |>:complete
         }
 
@@ -196,21 +196,21 @@ test-toolchain = fn toolchain targets -> value:cache {
         ranlib = tool ranlib
         strip = tool strip
 
-        out = (path:new)
-        bar.o = path:join :out bar.o
-        bar.a = path:join :out bar.a
-        foo.o = path:join :out foo.o
-        foo-lib = match (target-triple:os target-triple:host) {
-            =macos = path:join :out libfoo.dylib
-            =linux = path:join :out libfoo.so
-        }
-        test-c = path:join :out test-c
-        test-c++ = path:join :out test-c++
+        out = Path:new:
+        bar.o = Path:join :out bar.o
+        bar.a = Path:join :out bar.a
+        foo.o = Path:join :out foo.o
+        foo-lib = match (target-triple:os target-triple:host) ^[
+            macos -> Path:join :out libfoo.dylib
+            linux -> Path:join :out libfoo.so
+        ]
+        test-c = Path:join :out test-c
+        test-c++ = Path:join :out test-c++
 
-        link-flags = match (target-triple:os target-triple:host) {
-            =macos = [-dylib]
-            =linux = [-shared]
-        }
+        link-flags = match (target-triple:os target-triple:host) ^[
+            macos -> [-dylib]
+            linux -> [-shared]
+        ]
         seq ^[
             fs:create-dir :out
 
@@ -243,38 +243,35 @@ test-toolchain = fn toolchain targets -> value:cache {
                     exec ^:kwargs :test-c++ |>:complete
                 ]
             }
-            match (value:by-content :target) {
-                =target-triple:host = (run-tests)
-                =() = (run-tests)
-                _ = ()
-            }
+            match (by-content :target) ^[
+                target-triple:host -> (run-tests)
+                () -> (run-tests)
+                _ -> ()
+            ]
         ]
     }
     # test all available targets, as well as the default host target
-    collection:map :test-target [^:targets, ()]
+    Iter:map :test-target [^:targets, ()]
 }
 
 {
-    prelude = {
-        ^(ergo std)
-        download-and-unpack
-        remove-top-dir
-        build
-        prepare-toolchain
-        merge-dir
-        target-triple
-    }
+    download-and-unpack
+    remove-top-dir
+    build
+    prepare-toolchain
+    merge-dir
+    target-triple
 
-    command = fn cmd ^args -> match :cmd {
-        =build = {
+    command = fn :cmd ^:args -> match :cmd ^[
+        build -> {
             impl = ergo (target-triple:os target-triple:host)
-	        toolchain = value:cache <| seq ^[
-                out = path:join (path:new) <| string:format "wut-{}-{}" :version target-triple:host
+	        toolchain = cache <| seq ^[
+                out = Path:join Path:new: <| String:format "wut-{}-{}" :version target-triple:host
                 impl:build :out
                 test-toolchain :out impl:targets
                 :out
             ]
             install-toolchain :toolchain
         }
-    }
+    ]
 }

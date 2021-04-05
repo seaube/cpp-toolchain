@@ -1,130 +1,133 @@
+^std:
+
 targets = [
     x86_64-unknown-linux-gnu
     aarch64-unknown-linux-gnu
 ]
 
-per-target = fn f -> collection:fold (fn curr i -> {^:curr, :i = f :i}) {} :targets
+per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
 
 ct-ng-url="http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz"
-ct-ng-src = download-and-unpack :ct-ng-url
+ct-ng-src = net:unarchive-remote :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-zlib-src = download-and-unpack :zlib-url
+zlib-src = net:unarchive-remote :zlib-url
 
 # CMake flags for using a particular GCC toolchain
-use-gcc-cmake-flags = fn toolchain-dir target -> {
-    gcc-tool = fn tool -> path:join :toolchain-dir bin <| string:format "{}-{}" :target :tool
+use-gcc-cmake-flags = fn :toolchain-dir :target -> {
+    gcc-tool = fn :tool -> Path:join :toolchain-dir bin <| String:format "{}-{}" :target :tool
     [
-        string:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
-        string:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool c++
+        String:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
+        String:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool c++
     ]
 }
 
 # Build crosstool-NG
-ct-ng = value:cache {
+ct-ng = cache {
     args = {
         env = { PATH = env:get PATH }
-        pwd = remove-top-dir :ct-ng-src
+        pwd = workspace:remove-top-dir :ct-ng-src
     }
     out = seq ^[
-        build-dir = (path:new)
-        install-dir = (path:new)
+        build-dir = Path:new:
+        install-dir = Path:new:
         fs:create-dir :build-dir
         fs:create-dir :install-dir
-        exec ^:args sh ./configure <| string:format "--prefix={}" :install-dir |>:complete
+        exec ^:args sh ./configure <| String:format "--prefix={}" :install-dir |>:complete
         exec ^:args make |>:complete
         exec ^:args make install |>:complete
-        path:join :install-dir bin ct-ng
+        Path:join :install-dir bin ct-ng
     ]
     task "building crosstool-NG" :out
 }
 
 # Build bootstrap GCC with crosstool-NG
 gcc = {
-    build = fn target -> value:cache {
-        config = string:format "{}.config" :target
-        out = (path:new)
+    build = fn :target -> cache {
+        config = String:format "{}.config" :target
+        out = Path:new:
         args = {
             env = { PATH = env:get PATH }
             pwd = :out
         }
         toolchain = seq ^[
-            fs:create-dir (path:join :out tarballs)
-            fs:copy (path:join :script-dir :config) (path:join :out ".config")
+            fs:create-dir <| Path:join :out tarballs
+            fs:copy (Path:join script:dir: :config) (Path:join :out ".config")
             exec ^:args :ct-ng build |>:complete
-            path:join :out toolchain
+            Path:join :out toolchain
         ]
-        task (string:format "building gcc ({})" :target) :toolchain
+        task (String:format "building gcc ({})" :target) :toolchain
     }
     per-target :build
 }
 
 # Build zlib for target, using bootstrap toolchain
 zlib = {
-    build = fn target -> {
+    build = fn :target -> {
         build-args = {
-            src = remove-top-dir :zlib-src
+            src = workspace:remove-top-dir :zlib-src
             extra-flags = use-gcc-cmake-flags gcc::target :target
-            message = string:format "building zlib ({})" :target
+            message = String:format "building zlib ({})" :target
         }
-        build:cmake-project :build-args
+        workspace:build:cmake-project :build-args
     }
     per-target :build
 }
 
 # Assemble bootstrap toolchain containing zlib
 gcc-with-deps = {
-    build = fn target -> value:cache {
-        out = (path:new)
+    build = fn :target -> cache {
+        out = Path:new:
         toolchain = seq ^[
             fs:copy gcc::target :out
-            merge-dir zlib::target (path:join :out :target sysroot usr)
+            workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
         ]
-        task (string:format "assembling bootstrap toolchain ({})" :target) :toolchain
+        task (String:format "assembling bootstrap toolchain ({})" :target) :toolchain
     }
     per-target :build
 }
 
 # Build LLVM with bootstrap toolchain
 llvm = {
-    host = target-triple:host
-    build:llvm "building llvm" [clang, lld] [
+    host = workspace:target-triple:host
+    workspace:build:llvm "building llvm" [clang, lld] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host),
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
     ]
 }
 
 # Delete remnants of GCC build
-delete-unused-gcc-components = fn dir -> {
-    delete-target = fn target -> {
-        gcc-dir = path:join :dir gcc :target
+delete-unused-gcc-components = fn :dir -> {
+    delete-target = fn :target -> {
+        gcc-dir = Path:join :dir gcc :target
         [
-            exec rm "-rf" (path:join :gcc-dir build.log.bz2) |>:complete
-            exec rm "-rf" (path:join :gcc-dir bin) |>:complete
-            exec rm "-rf" (path:join :gcc-dir libexec) |>:complete
-            exec rm "-rf" (path:join :gcc-dir :target bin) |>:complete
+            exec rm "-rf" (Path:join :gcc-dir build.log.bz2) |>:complete
+            exec rm "-rf" (Path:join :gcc-dir bin) |>:complete
+            exec rm "-rf" (Path:join :gcc-dir libexec) |>:complete
+            exec rm "-rf" (Path:join :gcc-dir :target bin) |>:complete
         ]
     }
     per-target :delete-target
 }
 
 # Assemble the toolchain
+script-dir = script:dir:
 {
-    build = fn dir -> seq ^[
+    build = fn :dir -> seq ^[
         [
-            fs:create-dir <| path:join :dir gcc
-            fs:create-dir <| path:join :dir scripts
-            fs:create-dir <| path:join :dir bin
+            fs:create-dir <| Path:join :dir gcc
+            fs:create-dir <| Path:join :dir scripts
+            fs:create-dir <| Path:join :dir bin
         ]
         [
-            per-target (fn target -> fs:copy gcc-with-deps::target (path:join :dir gcc :target))
-            fs:copy :llvm (path:join :dir llvm)
-            fs:copy (path:join :script-dir tools.sh) (path:join :dir scripts tools.sh)
+            per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir gcc :target))
+            fs:copy :llvm (Path:join :dir llvm)
+            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir scripts tools.sh)
         ]
         [
             delete-unused-gcc-components :dir
-            prepare-toolchain :dir :targets
+            workspace:prepare-toolchain :dir :targets
         ]
     ]
 
