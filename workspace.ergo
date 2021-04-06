@@ -110,6 +110,8 @@ prepare-toolchain = fn :dir :targets -> {
     ]
 
     prefixed-tools = [
+        clang
+        clang++
         cc
         c++
         ld
