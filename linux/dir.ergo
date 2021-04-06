@@ -7,7 +7,7 @@ targets = [
 
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
 
-ct-ng-url="http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/367fb985bd770262a46fa9277db17429138ff985.tar.gz"
 ct-ng-src = net:unarchive-remote :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
@@ -33,6 +33,10 @@ ct-ng = cache {
         install-dir = Path:new:
         fs:create-dir :build-dir
         fs:create-dir :install-dir
+
+        # Run this, since we aren't using a delivered version of crostool-NG
+        exec ^:args ./bootstrap |>:complete
+
         exec ^:args sh ./configure <| String:format "--prefix={}" :install-dir |>:complete
         exec ^:args make |>:complete
         exec ^:args make install |>:complete
@@ -101,10 +105,10 @@ llvm = {
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
         [
-            exec rm "-rf" (Path:join :dir build.log.bz2) |>:complete
-            exec rm "-rf" (Path:join :dir bin) |>:complete
-            exec rm "-rf" (Path:join :dir libexec) |>:complete
+            exec rm "-rf" (Path:join :dir :target build.log.bz2) |>:complete
             exec rm "-rf" (Path:join :dir :target bin) |>:complete
+            exec rm "-rf" (Path:join :dir :target libexec) |>:complete
+            exec rm "-rf" (Path:join :dir :target :target bin) |>:complete
         ]
     }
     per-target :delete-target
@@ -127,6 +131,7 @@ script-dir = script:dir:
             delete-unused-gcc-components <| Path:join :dir libexec wut gcc
             workspace:prepare-toolchain :dir :targets
         ]
+        ()
     ]
 
     targets

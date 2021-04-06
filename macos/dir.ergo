@@ -39,6 +39,7 @@ script-dir = script:dir:
             fs:copy (Path:join :script-dir tools.sh) (Path:join :dir libexec wut tools.sh)
         ]
         workspace:prepare-toolchain :dir :targets
+        ()
     ]
 
     targets

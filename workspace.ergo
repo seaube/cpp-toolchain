@@ -174,7 +174,7 @@ install-toolchain = fn :toolchain -> {
     exec ^:args tar -czvf :out :basename |>:complete
 }
 
-test-toolchain = fn :toolchain :targets -> cache {
+test-toolchain = fn :toolchain :targets -> {
     test-target = fn :target -> {
         tool = fn :tool -> fn ^:args -> {
             kwargs = {
@@ -211,7 +211,7 @@ test-toolchain = fn :toolchain :targets -> cache {
             macos -> [-dylib]
             linux -> [-shared]
         ]
-        !seq ^[
+        seq ^[
             fs:create-dir :out
 
             # Build library
@@ -248,8 +248,10 @@ test-toolchain = fn :toolchain :targets -> cache {
                 () -> (run-tests)
                 _ -> ()
             ]
+            ()
         ]
     }
+
     # test all available targets, as well as the default host target
     Iter:map :test-target [^:targets, ()]
 }
