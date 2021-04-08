@@ -19,6 +19,10 @@ use-gcc-cmake-flags = fn :toolchain-dir :target -> {
     [
         String:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
         String:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool c++
+        String:format "-DCMAKE_ASM_COMPILER={}" <| gcc-tool cc
+        String:format "-DCMAKE_C_COMPILER_TARGET={}" :target
+        String:format "-DCMAKE_CXX_COMPILER_TARGET={}" :target
+        String:format "-DCMAKE_ASM_COMPILER_TARGET={}" :target
     ]
 }
 
@@ -96,9 +100,48 @@ gcc-with-deps = {
 llvm = {
     host = workspace:target-triple:host
     workspace:build:llvm "building llvm" [clang, lld] [
-        ^(use-gcc-cmake-flags gcc-with-deps::host :host),
+        ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
     ]
+}
+
+# Build compiler-rt
+compiler-rt = {
+    build = fn :target -> cache {
+        workspace:build:compiler-rt (String:format "building compiler-rt ({})" :target) [
+            # We are not using LLVM's builtins
+            "-DCOMPILER_RT_BUILD_BUILTINS=OFF"
+
+            # Required for cross-compiling out-of-tree
+            String:format "-DLLVM_CONFIG_PATH={}" <| Path:join :llvm bin llvm-config
+            "-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON"
+            "-DCOMPILER_RT_USE_LIBCXX=OFF"
+
+            # Cross-compile using clang
+            String:format "-DCMAKE_AR={}" <| Path:join :llvm bin llvm-ar
+            String:format "-DCMAKE_NM={}" <| Path:join :llvm bin llvm-nm
+            String:format "-DCMAKE_RANLIB={}" <| Path:join :llvm bin llvm-ranlib
+            String:format "-DCMAKE_LINKER={}" <| Path:join :llvm bin ld.lld
+            String:format "-DCMAKE_OBJCOPY={}" <| Path:join :llvm bin llvm-objcopy
+            String:format "-DCMAKE_SYSROOT={}" <| Path:join gcc-with-deps::target :target sysroot
+            String:format "-DCMAKE_C_COMPILER={}" <| Path:join :llvm bin clang
+            String:format "-DCMAKE_CXX_COMPILER={}" <| Path:join :llvm bin clang++
+            String:format "-DCMAKE_ASM_COMPILER={}" <| Path:join :llvm bin clang
+            String:format "-DCMAKE_C_COMPILER_TARGET={}" :target
+            String:format "-DCMAKE_CXX_COMPILER_TARGET={}" :target
+            String:format "-DCMAKE_ASM_COMPILER_TARGET={}" :target
+            String:format "-DCMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN={}" gcc-with-deps::target
+            String:format "-DCMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN={}" gcc-with-deps::target
+            String:format "-DCMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN={}" gcc-with-deps::target
+            String:format "-DCMAKE_ASM_FLAGS=--target={}" :target
+            "-DCMAKE_DYNAMIC_LINKER_FLAGS=-fuse-ld=lld"
+            "-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld"
+
+            # Workaround for GNU libstdc++
+            "-DCMAKE_CXX_FLAGS=-D__STDC_FORMAT_MACROS=1"
+        ]
+    }
+    per-target :build
 }
 
 # Delete remnants of GCC build
@@ -131,6 +174,7 @@ script-dir = script:dir:
             delete-unused-gcc-components <| Path:join :dir libexec wut gcc
             workspace:prepare-toolchain :dir :targets
         ]
+        per-target (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 11.0.0)
         ()
     ]
 

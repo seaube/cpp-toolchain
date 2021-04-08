@@ -29,8 +29,8 @@ unsupported () {
 compiler_args() {
     # set language-specific flags
     case $1 in
-        c)  LINK_FLAGS="-fuse-ld=lld" ;;
-        c++) LINK_FLAGS="-fuse-ld=lld -static-libstdc++" ;;
+        c)  LINK_FLAGS="-fuse-ld=lld -static-libgcc -static-libgcc" ;;
+        c++) LINK_FLAGS="-fuse-ld=lld -static-libstdc++ -static-libgcc" ;;
     esac
     shift 1
 

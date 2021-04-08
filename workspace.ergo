@@ -52,6 +52,15 @@ build = {
         }
         cmake-project :build-args
     }
+
+    compiler-rt = fn :message :flags -> cache {
+        build-args = {
+            src = Path:join (remove-top-dir :llvm-src) compiler-rt
+            extra-flags = :flags
+            message = :message
+        }
+        cmake-project :build-args
+    }
 }
 
 target-triple = {
@@ -163,7 +172,7 @@ prepare-toolchain = fn :dir :targets -> {
 }
 
 # Merge a directory into another directory
-merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rl {}/* {}" :src :dst) |>:complete)
+merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rlf {}/* {}" :src :dst) |>:complete)
 
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn :toolchain -> {
