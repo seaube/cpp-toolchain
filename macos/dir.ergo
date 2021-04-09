@@ -8,22 +8,25 @@ targets = [
     arm64e-apple-ios
 ]
 
-# Build LLVM
-llvm = {
-    min-supported-version = match (workspace:target-triple:arch workspace:target-triple:host) ^[
+min-supported-version = fn :target -> match (workspace:target-triple:os :target) ^[
+    ios -> 12.5
+    macos -> match (workspace:target-triple:arch :target) ^[
         arm64  -> 11.0
         arm64e -> 11.0
         x86_64 -> 10.13
     ]
+]
 
+# Build LLVM
+llvm = {
     flags = [
         "-DLIBCXX_INSTALL_LIBRARY=OFF",
         "-DLIBCXX_INSTALL_HEADERS=ON",
         "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON",
         "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF", # llvm.org/PR37398
-        String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" :min-supported-version
+        String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
     ]
-    workspace:build:llvm "building llvm" [clang, libcxx, libcxxabi] :flags
+    workspace:build:llvm "building llvm" [clang, libcxx, libcxxabi, compiler-rt] :flags
 }
 
 # Assemble the toolchain

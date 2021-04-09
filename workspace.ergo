@@ -172,7 +172,7 @@ prepare-toolchain = fn :dir :targets -> {
 }
 
 # Merge a directory into another directory
-merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rlf {}/* {}" :src :dst) |>:complete)
+merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rf {}/* {}" :src :dst) |>:complete)
 
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn :toolchain -> {
