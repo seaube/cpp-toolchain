@@ -24,9 +24,13 @@ llvm = {
         "-DLIBCXX_INSTALL_HEADERS=ON",
         "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON",
         "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF", # llvm.org/PR37398
+        "-DLLDB_ENABLE_PYTHON=OFF"
+        "-DLLDB_ENABLE_LIBEDIT=OFF"
+        "-DLLDB_ENABLE_CURSES=OFF"
+        "-DLLVM_ENABLE_TERMINFO=OFF"
         String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
     ]
-    workspace:build:llvm "building llvm" [clang, libcxx, libcxxabi, compiler-rt] :flags
+    workspace:build:llvm "building llvm" [clang, lldb, libcxx, libcxxabi, compiler-rt] :flags
 }
 
 # Assemble the toolchain

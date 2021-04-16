@@ -160,6 +160,7 @@ prepare-toolchain = fn :dir :targets -> {
         # Delete unusued llvm binaries
         exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
         exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
+        fs:remove <| Path:join :dir libexec wut llvm include
 
         # Link the various tools into the bin directory
         Iter:map :make-script-tools :targets

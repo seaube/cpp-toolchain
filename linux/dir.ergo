@@ -99,9 +99,13 @@ gcc-with-deps = {
 # Build LLVM with bootstrap toolchain
 llvm = {
     host = workspace:target-triple:host
-    workspace:build:llvm "building llvm" [clang, lld] [
+    workspace:build:llvm "building llvm" [clang, lld, lldb] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
+        "-DLLDB_ENABLE_PYTHON=OFF"
+        "-DLLDB_ENABLE_LIBEDIT=OFF"
+        "-DLLDB_ENABLE_CURSES=OFF"
+        "-DLLVM_ENABLE_TERMINFO=OFF"
     ]
 }
 
