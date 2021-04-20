@@ -21,7 +21,7 @@ download-and-unpack = fn :url -> cache {
     task (String:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
 }
 
-llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/llvm-project-11.0.0.tar.xz"
+llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/llvm-project-12.0.0.src.tar.xz"
 llvm-src = download-and-unpack :llvm-url
 
 build = {
@@ -47,7 +47,7 @@ build = {
         projects = Iter:fold (fn :acc :v -> String:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
         build-args = {
             src = Path:join (remove-top-dir :llvm-src) llvm
-            extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=ON"]
+            extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=FORCE_ON"]
             message = :message
         }
         cmake-project :build-args
@@ -95,7 +95,7 @@ prepare-toolchain = fn :dir :targets -> {
     binaries-to-keep = [
         clang
         clang++
-        clang-11
+        clang-12
         ld.lld
         ld64.lld
         lld
