@@ -107,6 +107,9 @@ compiler_args() {
 linker_args() {
     # Linker uses arm64 as arch even for arm64e
     case $TARGET in
+        arm64e*)
+            ARCH=arm64e
+            ;;
         arm64*)
             ARCH=arm64
             ;;

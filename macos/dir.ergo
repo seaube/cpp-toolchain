@@ -30,7 +30,7 @@ llvm = {
         "-DLLVM_ENABLE_TERMINFO=OFF"
         String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
     ]
-    workspace:build:llvm "building llvm" [clang, lldb, libcxx, libcxxabi, compiler-rt] :flags
+    workspace:build:llvm "building llvm" [clang, lld, lldb, libcxx, libcxxabi, compiler-rt] :flags
 }
 
 # Assemble the toolchain

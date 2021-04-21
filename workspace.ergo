@@ -202,13 +202,19 @@ test-toolchain = fn :toolchain :targets -> {
             tool = String:format "{}{}" :prefix :tool
             exec ^:kwargs :tool ^:args |>:complete
         }
+        target = match :target ^[
+            () -> target-triple:host
+            _ -> :target
+        ]
 
         cc = tool cc
         c++ = tool c++
         ld = tool ld
         ar = tool ar
         ranlib = tool ranlib
-        strip = tool strip
+
+        # Skip strip on arm64e: https://bugs.llvm.org/show_bug.cgi?id=50044
+        strip = match (target-triple:arch :target) (arm64e -> fn ^:args -> ()) (_ -> tool strip)
 
         out = Path:new:
         bar.o = Path:join :out bar.o
