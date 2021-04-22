@@ -61,6 +61,15 @@ build = {
         }
         cmake-project :build-args
     }
+
+    openmp = fn :message :flags -> cache {
+        build-args = {
+            src = Path:join (remove-top-dir :llvm-src) openmp
+            extra-flags = :flags
+            message = :message
+        }
+        cmake-project :build-args
+    }
 }
 
 target-triple = {

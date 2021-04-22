@@ -149,6 +149,17 @@ compiler-rt = {
     per-target :build
 }
 
+# Build OpenMP
+openmp = {
+    build = fn :target -> cache {
+        workspace:build:openmp (String:format "building openmp ({})" :target) [
+            ^(use-gcc-cmake-flags gcc-with-deps::target :target)
+            String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join gcc-with-deps::target :target sysroot
+        ]
+    }
+    per-target :build
+}
+
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
@@ -180,6 +191,7 @@ script-dir = script:dir:
             workspace:prepare-toolchain :dir :targets
         ]
         per-target (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.0)
+        per-target (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
         ()
     ]
 
