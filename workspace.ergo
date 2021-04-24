@@ -47,7 +47,14 @@ build = {
         projects = Iter:fold (fn :acc :v -> String:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
         build-args = {
             src = Path:join (remove-top-dir :llvm-src) llvm
-            extra-flags = [^:flags, :projects, "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64", "-DLLVM_ENABLE_ZLIB=FORCE_ON"]
+            extra-flags = [
+                ^:flags
+                :projects
+                "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64"
+                "-DLLVM_ENABLE_ZLIB=FORCE_ON"
+                "-DLLVM_INSTALL_BINUTILS_SYMLINKS=ON"
+                "-DLLVM_INSTALL_CCTOOLS_SYMLINKS=ON"
+            ]
             message = :message
         }
         cmake-project :build-args
@@ -108,21 +115,22 @@ prepare-toolchain = fn :dir :targets -> {
         ld.lld
         ld64.lld
         lld
-        llvm-ar
-        llvm-as 
-        llvm-size
-        llvm-nm
-        llvm-strip
-        llvm-objcopy 
-        llvm-objdump 
-        llvm-cxxfilt 
-        llvm-addr2line 
-        llvm-symbolizer 
-        llvm-strings
-        llvm-readelf 
-        llvm-readobj
-        llvm-install-name-tool
-        llvm-lipo
+        ar, llvm-ar
+        ranlib, llvm-ranlib
+        as, llvm-as 
+        size, llvm-size
+        nm, llvm-nm
+        strip, llvm-strip
+        objcopy, llvm-objcopy 
+        objdump, llvm-objdump 
+        cxxfilt, llvm-cxxfilt 
+        addr2line, llvm-addr2line 
+        symbolizer, llvm-symbolizer 
+        strings, llvm-strings
+        readelf, llvm-readelf 
+        readobj, llvm-readobj
+        install_name_tool, llvm-install-name-tool
+        lipo, llvm-lipo
         clang-format 
         scan-build
     ]
@@ -133,6 +141,11 @@ prepare-toolchain = fn :dir :targets -> {
         cc
         c++
         ld
+    ]
+
+    non-prefixed-tools = [
+        clang-format 
+        scan-build
         ar
         as 
         ranlib
@@ -151,11 +164,6 @@ prepare-toolchain = fn :dir :targets -> {
         ]
     ]
 
-    non-prefixed-tools = [
-        clang-format 
-        scan-build
-    ]
-
     link = fn :source :target -> (exec ln -sf :source :target |>:complete)
 
     make-script-tools = fn :target -> {
@@ -172,6 +180,9 @@ prepare-toolchain = fn :dir :targets -> {
 
         # Delete headers, other than libc++ if present
         exec find (Path:join :dir libexec wut llvm include) ^(String:split " " "! -name c++ -mindepth 1 -maxdepth 1 -exec rm -rf {} +") |>:complete
+
+        # Link `as` because LLVM doesn't, for some reason
+        link llvm-as <| Path:join :dir libexec wut llvm bin as
 
         # Link the various tools into the bin directory
         Iter:map :make-script-tools :targets
@@ -199,7 +210,7 @@ install-toolchain = fn :toolchain -> {
 
 test-toolchain = fn :toolchain :targets -> {
     test-target = fn :target -> {
-        tool = fn :tool -> fn ^:args -> {
+        prefix-tool = fn :tool -> fn ^:args -> {
             kwargs = {
                 env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
                 pwd = Path:join script:dir: test
@@ -211,14 +222,21 @@ test-toolchain = fn :toolchain :targets -> {
             tool = String:format "{}{}" :prefix :tool
             exec ^:kwargs :tool ^:args |>:complete
         }
+        tool = fn :tool -> fn ^:args -> {
+            kwargs = {
+                env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
+                pwd = Path:join script:dir: test
+            }
+            exec ^:kwargs :tool ^:args |>:complete
+        }
         target = match :target ^[
             () -> target-triple:host
             _ -> :target
         ]
 
-        cc = tool cc
-        c++ = tool c++
-        ld = tool ld
+        cc = prefix-tool cc
+        c++ = prefix-tool c++
+        ld = prefix-tool ld
         ar = tool ar
         ranlib = tool ranlib
 
