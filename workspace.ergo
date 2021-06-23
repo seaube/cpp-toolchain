@@ -133,6 +133,8 @@ prepare-toolchain = fn :dir :targets -> {
         lipo, llvm-lipo
         clang-format 
         scan-build
+        lldb
+        lldb-server
     ]
 
     prefixed-tools = [
@@ -144,6 +146,8 @@ prepare-toolchain = fn :dir :targets -> {
     ]
 
     non-prefixed-tools = [
+        lldb
+        lldb-server
         clang-format 
         scan-build
         ar
