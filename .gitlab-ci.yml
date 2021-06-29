@@ -10,9 +10,9 @@ stages:
         - ./build.sh
 
 linux:
-    tags: docker
+    tags: [docker]
     extends: .build
 
 apple:
-    tags: macos
+    tags: [macos]
     extends: .build
