@@ -1,3 +1,4 @@
 linux/docker/ergo.tar.gz
+macos/ergo
 .ergo_work
-wut-*
+dist
