@@ -204,12 +204,17 @@ merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rf {}/* {}" :src :ds
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn :toolchain -> {
     [^_, :basename] = Path:split :toolchain
-    out = Path:join script:dir: <| String:format "{}.tar.gz" :basename
+    dist = Path:join script:dir: dist
+    out = Path:join :dist <| String:format "{}.tar.gz" :basename
     args = {
         pwd = Path:parent :toolchain
         env = { PATH = env:get PATH }
     }
-    exec ^:args tar -czvf :out :basename |>:complete
+    seq ^[
+        fs:remove :dist
+        fs:create-dir :out
+        exec ^:args tar -czvf :out :basename |>:complete
+    ]
 }
 
 test-toolchain = fn :toolchain :targets -> {

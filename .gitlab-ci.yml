@@ -1,0 +1,18 @@
+stages:
+    - build
+    - deploy
+
+.build:
+    stage: build
+    artifacts:
+        paths: [dist]
+    script:
+        - ./build.sh
+
+linux:
+    tags: docker
+    extends: .build
+
+apple:
+    tags: macos
+    extends: .build
