@@ -6,14 +6,16 @@ stages:
     stage: build
     artifacts:
         paths: [dist]
-    script:
-        - ./build.sh
 
 linux:
-    image: curlimages/curl
     tags: [docker]
     extends: .build
+    script:
+        - apt-get update && apt-get install -y curl
+        - ./build.sh
 
 apple:
     tags: [macos]
     extends: .build
+    script:
+        - ./build.sh
