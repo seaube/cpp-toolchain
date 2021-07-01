@@ -10,6 +10,7 @@ stages:
         - ./build.sh
 
 linux:
+    image: curlimages/curl
     tags: [docker]
     extends: .build
 
