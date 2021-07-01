@@ -10,8 +10,9 @@ stages:
 linux:
     tags: [docker]
     extends: .build
+    image: docker:dind
     script:
-        - apt-get update && apt-get install -y curl
+        - apk add curl
         - ./build.sh
 
 apple:
