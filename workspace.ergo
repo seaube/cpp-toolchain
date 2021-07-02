@@ -2,6 +2,8 @@
 
 version = 1.0.1
 
+wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.5.1rc1&format=zip"
+
 # Step into the only directory in another directory
 remove-top-dir = fn :dir -> {
     [:only] = fs:glob <| String:format "{}/*/" :dir
@@ -195,6 +197,20 @@ prepare-toolchain = fn :dir :targets -> {
 
         # Make a file in the toolchain that contains the host triple
         exec sh -c (String:format "echo {} > {}" target-triple:host (Path:join :dir libexec wut host)) |>:complete
+
+        # Create package info
+        {
+            target = match target-triple:host ^[
+                x86_64-unknown-linux-gnu -> linux-x86_64
+                x86_64-apple-macos -> macos-x86_64
+            ]
+            fmt = String:from <| fs:read <| Path:join script:dir: package.json
+            package = String:format ^{ version, target } :fmt
+            seq ^[
+                fs:create-dir (Path:join :dir info)
+                fs:write (Path:join :dir info package.json) :package
+            ]
+        }
     ]
 }
 
@@ -205,16 +221,17 @@ merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rf {}/* {}" :src :ds
 install-toolchain = fn :toolchain -> {
     [^_, :basename] = Path:split :toolchain
     dist = Path:join script:dir: dist
-    out = Path:join :dist <| String:format "{}.tar.gz" :basename
     args = {
         pwd = Path:parent :toolchain
         env = { PATH = env:get PATH }
     }
-    seq ^[
+    package = cache <| seq ^[
         fs:remove :dist
         fs:create-dir :dist
-        exec ^:args tar -czvf :out :basename |>:complete
+        upkg = wipal:fetch:upkg 0.3.4-rc0
+        upkg:package :toolchain
     ]
+    fs:copy :package :dist
 }
 
 test-toolchain = fn :toolchain :targets -> {

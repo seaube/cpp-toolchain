@@ -1,0 +1,8 @@
+{{
+    "name": "wut",
+    "version": "{version}",
+    "target": "{target}",
+    "summary": "WiPAL Universal Toolchain",
+    "description": "the WiPAL Universal Toolchain is a portable, modern C/C++ (cross-)compiler toolchain",
+    "license": "proprietary"
+}}
