@@ -212,7 +212,7 @@ install-toolchain = fn :toolchain -> {
     }
     seq ^[
         fs:remove :dist
-        fs:create-dir :out
+        fs:create-dir :dist
         exec ^:args tar -czvf :out :basename |>:complete
     ]
 }
@@ -330,6 +330,10 @@ test-toolchain = fn :toolchain :targets -> {
                 :out
             ]
             install-toolchain :toolchain
+        }
+        ct-ng -> {
+            impl = ergo (target-triple:os target-triple:host)
+            impl:ct-ng
         }
     ]
 }

@@ -8,7 +8,7 @@ targets = [
 
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
 
-ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/367fb985bd770262a46fa9277db17429138ff985.tar.gz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/94b98a4cc96ff6c4ca982ea19db953447e802919.tar.gz"
 ct-ng-src = net:unarchive-remote :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
@@ -195,6 +195,8 @@ script-dir = script:dir:
         per-target (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
         ()
     ]
+
+    ct-ng = :ct-ng
 
     targets
 }

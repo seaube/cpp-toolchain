@@ -17,6 +17,9 @@ default_target() {
         aarch64-unknown-linux-gnu-*)
             echo aarch64-unknown-linux-gnu
             ;;
+        arm-unknown-linux-gnueabihf-*)
+            echo arm-unknown-linux-gnueabihf
+            ;;
         *)
             # Use the host if unspecified
             cat ${BINDIR}/../libexec/wut/host
