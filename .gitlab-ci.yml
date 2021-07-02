@@ -6,17 +6,13 @@ stages:
     stage: build
     artifacts:
         paths: [dist]
+    script:
+        - ./build.sh
 
 linux:
-    tags: [docker]
+    tags: [linux]
     extends: .build
-    image: docker:dind
-    script:
-        - apk add curl
-        - ./build.sh
 
 apple:
     tags: [macos]
     extends: .build
-    script:
-        - ./build.sh
