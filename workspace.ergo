@@ -1,6 +1,6 @@
 ^std:
 
-version = 1.0.1
+version = 2.0.0
 
 wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.5.1rc1&format=zip"
 
@@ -288,8 +288,8 @@ test-toolchain = fn :toolchain :targets -> {
             fs:create-dir :out
 
             # Build library
-            cc -Wall -c -o :bar.o bar.c
-            cc -Wall -c -o :foo.o foo.c
+            cc -fPIC -Wall -c -o :bar.o bar.c
+            cc -fPIC -Wall -c -o :foo.o foo.c
             ar rc :bar.a :bar.o
             ranlib :bar.a
             ld ^:link-flags -o :foo-lib :foo.o :bar.a

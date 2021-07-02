@@ -1,4 +1,5 @@
 linux/docker/ergo.tar.gz
+linux/docker/wipal-artifactory-key
 macos/ergo
 .ergo_work
 dist
