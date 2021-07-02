@@ -113,7 +113,7 @@ prepare-toolchain = fn :dir :targets -> {
         clang++
         clang-12
         ld.lld
-        ld64.lld
+        ld64.lld.darwinnew
         lld
         ar, llvm-ar
         ranlib, llvm-ranlib
@@ -323,13 +323,15 @@ test-toolchain = fn :toolchain :targets -> {
     command = fn :cmd ^:args -> match :cmd ^[
         build -> {
             impl = ergo (target-triple:os target-triple:host)
-	        toolchain = cache <| seq ^[
+            toolchain = seq ^[
                 out = Path:join Path:new: <| String:format "wut-{}-{}" :version target-triple:host
                 impl:build :out
-                test-toolchain :out impl:targets
                 :out
             ]
-            install-toolchain :toolchain
+            seq ^[
+                test-toolchain :toolchain impl:targets
+                install-toolchain :toolchain
+            ]
         }
         ct-ng -> {
             impl = ergo (target-triple:os target-triple:host)

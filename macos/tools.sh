@@ -3,45 +3,44 @@
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
 
-# Determine the tool prefix
-case $TOOL in
-    arm64-apple-macos-*)
-        TARGET=arm64-apple-macos
-        PREFIX="${TARGET}-"
-        ;;
-    arm64e-apple-macos-*)
-        TARGET=arm64e-apple-macos
-        PREFIX="${TARGET}-"
-        ;;
-    x86_64-apple-macos-*)
-        TARGET=x86_64-apple-macos
-        PREFIX="${TARGET}-"
-        ;;
-    arm64-apple-ios-*)
-        TARGET=arm64-apple-ios
-        PREFIX="${TARGET}-"
-        ;;
-    arm64e-apple-ios-*)
-        TARGET=arm64e-apple-ios
-        PREFIX="${TARGET}-"
-        ;;
-    *)
-        TARGET=$(cat ${BINDIR}/../libexec/wut/host)
-        PREFIX=""
-        ;;
-esac
-
-OS=$(cut -d - -f 3 <(echo ${TARGET}))
-
 unsupported () {
     echo "Invalid flag for this toolchain ($1)" >&2
     exit 1
 }
 
+default_target () {
+    # Determine the tool prefix
+    case $TOOL in
+        arm64-apple-macos-*)
+            echo arm64-apple-macos
+            ;;
+        arm64e-apple-macos-*)
+            echo arm64e-apple-macos
+            ;;
+        x86_64-apple-macos-*)
+            echo x86_64-apple-macos
+            ;;
+        arm64-apple-ios-*)
+            echo arm64-apple-ios
+            ;;
+        arm64e-apple-ios-*)
+            echo arm64e-apple-ios
+            ;;
+        *)
+            # Use the host if unspecified
+            cat ${BINDIR}/../libexec/wut/host
+            ;;
+    esac
+}
+
+os () {
+    cut -d - -f 3 <(echo $1)
+}
+
 min_version () {
-    case $OS in
+    case $(os $1) in
         macos)
-            case $TARGET in
+            case $1 in
                 arm64*)
                     echo 11.0
                     ;;
@@ -57,7 +56,7 @@ min_version () {
 }
 
 sdk_name () {
-    case $OS in
+    case $(os $1) in
         macos)
             echo macosx
             ;;
@@ -68,27 +67,34 @@ sdk_name () {
 }
 
 sysroot() {
-    xcrun --sdk $(sdk_name) --show-sdk-path
+    xcrun --sdk $1 --show-sdk-path
+}
+
+openmp() {
+    echo "${BINDIR}/../libexec/wut/openmp/$1"
 }
 
 compiler_args() {
-    SDK_NAME=$(sdk_name)
-    MIN_VERSION=$(min_version)
-    COMPILER_FLAGS="--target=$TARGET --sysroot=$(sysroot) -m${SDK_NAME}-version-min=${MIN_VERSION}"
-    LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-    LINK_FLAGS="-B${LD_PATH}"
+    TARGET=$(default_target)
 
-    # Check for incompatible flags
-    for ARG in "$@"; do
-        case $ARG in
+    # Handle flags
+    LINK=true
+    FLAGS=""
+    while(($#)) ; do
+        case $1 in
             -c|-S|-E)
                 # We aren't linking, so don't use any link flags
-                LINK_FLAGS=""
+                LINK=false
+                FLAGS="$FLAGS $1"
+                ;;
+            --target=*)
+                TARGET=${1#--target=}
+                ;;
+            -target)
+                TARGET=$2
+                shift 1
                 ;;
             -fuse-ld*)
-                unsupported $ARG
-                ;;
-            --target|--target=*)
                 unsupported $ARG
                 ;;
             --sysroot|--sysroot=*)
@@ -98,14 +104,26 @@ compiler_args() {
                 unsupported $ARG
                 ;;
             *)
+                FLAGS="$FLAGS $1"
                 ;;
         esac
+        shift 1
     done
-    echo "$COMPILER_FLAGS $LINK_FLAGS $@"
+
+    SDK_NAME=$(sdk_name $TARGET)
+    MIN_VERSION=$(min_version $TARGET)
+    OPENMP_FLAGS="-isystem $(openmp ${TARGET})/include -L $(openmp ${TARGET})/lib"
+    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) ${OPENMP_FLAGS} -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
+    if [ "$LINK" = true ]; then
+        LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
+        FLAGS="-B${LD_PATH} $FLAGS"
+    fi
+
+    echo "$FLAGS"
 }
 
 linker_args() {
-    # Linker uses arm64 as arch even for arm64e
+    TARGET=$(default_target)
     case $TARGET in
         arm64e*)
             ARCH=arm64e
@@ -131,51 +149,19 @@ linker_args() {
                 ;;
         esac
     done
-    echo "-syslibroot $(sysroot) -arch ${ARCH} -platform_version ${OS} $(min_version) 0.0 $@"
+    SDK_NAME=$(sdk_name $TARGET)
+    echo "-syslibroot $(sysroot $SDK_NAME) -L$(openmp ${TARGET})/lib -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0 $@"
 }
 
 case $TOOL in
-    ${PREFIX}c++|${PREFIX}clang++)
+    c++|*-c++|*-clang++)
         $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args $@)
         ;;
-    ${PREFIX}cc|${PREFIX}clang)
+    cc|*-cc|*-clang)
         $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args $@)
         ;;
-    ${PREFIX}ld)
+    ld|*-ld)
         xcrun ld $(linker_args $@)
-        ;;
-    ${PREFIX}ar)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-ar --format=bsd $@
-        ;;
-    ${PREFIX}ranlib)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-ar --format=bsd s $@
-        ;;
-    ${PREFIX}strip)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-strip $@
-        ;;
-    ${PREFIX}nm)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-nm $@
-        ;;
-    ${PREFIX}objcopy)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-objcopy $@
-        ;;
-    ${PREFIX}objdump)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-objdump $@
-        ;;
-    ${PREFIX}c++filt)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-cxxfilt $@
-        ;;
-    ${PREFIX}addr2line)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-addr2line $@
-        ;;
-    ${PREFIX}strings)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-strings $@
-        ;;
-    ${PREFIX}readelf)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
-        ;;
-    ${PREFIX}size)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-size $@
         ;;
     *)
         echo "Invalid tool" >&2

@@ -8,6 +8,8 @@ targets = [
     arm64e-apple-ios
 ]
 
+per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
+
 min-supported-version = fn :target -> match (workspace:target-triple:os :target) ^[
     ios -> 12.5
     macos -> match (workspace:target-triple:arch :target) ^[
@@ -30,7 +32,19 @@ llvm = {
         "-DLLVM_ENABLE_TERMINFO=OFF"
         String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
     ]
-    workspace:build:llvm "building llvm" [clang, lld, lldb, libcxx, libcxxabi, compiler-rt] :flags
+    workspace:build:llvm "building llvm" [clang, lldb, libcxx, libcxxabi, compiler-rt] :flags
+}
+
+# Build OpenMP
+openmp = {
+    build = fn :target -> {
+        workspace:build:openmp (String:format "building openmp ({})" :target) [
+            String:format "-DCMAKE_OSX_ARCHITECTURES={}" <| workspace:target-triple:arch :target
+            String:format "-DCMAKE_OSX_SYSROOT={}" <| match (workspace:target-triple:os :target) (macos -> macosx) (ios -> iphoneos)
+            String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+        ]
+    }
+    per-target :build
 }
 
 # Assemble the toolchain
@@ -46,6 +60,7 @@ script-dir = script:dir:
             fs:copy (Path:join :script-dir tools.sh) (Path:join :dir libexec wut tools.sh)
         ]
         workspace:prepare-toolchain :dir :targets
+        per-target (fn :target -> fs:copy openmp::target <| Path:join :dir libexec wut openmp :target)
         ()
     ]
 
