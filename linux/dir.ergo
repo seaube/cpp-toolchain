@@ -8,6 +8,11 @@ targets = [
 
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
 
+per-target-sequenced = fn :f -> {
+    map = per-target :f
+    seq ^(Array:from <| Iter:from :map) :map
+}
+
 ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/94b98a4cc96ff6c4ca982ea19db953447e802919.tar.gz"
 ct-ng-src = net:unarchive-remote :ct-ng-url
 
@@ -177,7 +182,8 @@ delete-unused-gcc-components = fn :dir -> {
 # Assemble the toolchain
 script-dir = script:dir:
 {
-    build = fn :dir -> seq ^[
+    build = fn: -> seq ^[
+        dir = Path:new:
         [
             fs:create-dir <| Path:join :dir libexec wut gcc
             fs:create-dir <| Path:join :dir bin
@@ -191,9 +197,11 @@ script-dir = script:dir:
             delete-unused-gcc-components <| Path:join :dir libexec wut gcc
             workspace:prepare-toolchain :dir :targets
         ]
-        per-target (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.0)
-        per-target (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
-        ()
+
+        # Sequence targets to avoid a race condition in `cp`
+        per-target-sequenced (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.0)
+        per-target-sequenced (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
+        :dir
     ]
 
     ct-ng = :ct-ng

@@ -340,12 +340,8 @@ test-toolchain = fn :toolchain :targets -> {
     command = fn :cmd ^:args -> match :cmd ^[
         build -> {
             impl = ergo (target-triple:os target-triple:host)
-            toolchain = seq ^[
-                out = Path:join Path:new: <| String:format "wut-{}-{}" :version target-triple:host
-                impl:build :out
-                :out
-            ]
             seq ^[
+                toolchain = impl:build:
                 test-toolchain :toolchain impl:targets
                 install-toolchain :toolchain
             ]

@@ -50,7 +50,8 @@ openmp = {
 # Assemble the toolchain
 script-dir = script:dir:
 {
-    build = fn :dir -> seq ^[
+    build = fn: -> seq ^[
+        dir = Path:new:
         [
             fs:create-dir <| Path:join :dir libexec wut
             fs:create-dir <| Path:join :dir bin
@@ -61,7 +62,7 @@ script-dir = script:dir:
         ]
         workspace:prepare-toolchain :dir :targets
         per-target (fn :target -> fs:copy openmp::target <| Path:join :dir libexec wut openmp :target)
-        ()
+        :dir
     ]
 
     targets
