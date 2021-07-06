@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2021-07-06
+### Added
+- Added `lldb` debugger
+- Added the `arm-unknown-linux-gnueabihf` target
+- Added `clang` and `clang++` command aliases
+- Added LLVM sanitizers, instrumentation, and OpenMP
+### Changed
+- Updated to LLVM 12 and libstdc++ 10
+- Changed toolchain distribution to Conda
+### Fixed
+- Hide symbols from libstdc++
+- Allow the `--target` flag to override the compiler target
+
 ## [1.0.1] - 2021-01-19
 ### Added
 - Added changelog
@@ -16,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial toolchain
 
-[Unreleased]: https://ws-apps.redacted.invalid/bitbucket/users/czulawski/repos/wipal-universal-toolchain/commits?since=refs/tags/1.0.1
-[1.0.1]: https://ws-apps.redacted.invalid/bitbucket/users/czulawski/repos/wipal-universal-toolchain/commits?since=refs/tags/1.0.0&until=refs/tags/1.0.1
-[1.0.0]: https://ws-apps.redacted.invalid/bitbucket/users/czulawski/repos/wipal-universal-toolchain/commits?until=refs/tags/1.0.0
+[Unreleased]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/2.0.0...master
+[1.0.1]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/1.0.1...2.0.0
+[1.0.1]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/1.0.0...1.0.1
+[1.0.0]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/commits/1.0.0
