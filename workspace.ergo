@@ -235,7 +235,7 @@ install-toolchain = fn :toolchain -> {
 }
 
 test-toolchain = fn :toolchain :targets -> {
-    test-target = fn :target -> {
+    test-target = fn :target :use-clang-executable -> {
         prefix-tool = fn :tool -> fn ^:args -> {
             kwargs = {
                 env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
@@ -260,8 +260,8 @@ test-toolchain = fn :toolchain :targets -> {
             _ -> :target
         ]
 
-        cc = prefix-tool cc
-        c++ = prefix-tool c++
+        cc = prefix-tool <| match :use-clang-executable (false -> cc) (true -> clang)
+        c++ = prefix-tool <| match :use-clang-executable (false -> c++) (true -> clang++)
         ld = prefix-tool ld
         ar = tool ar
         ranlib = tool ranlib
@@ -326,7 +326,7 @@ test-toolchain = fn :toolchain :targets -> {
     }
 
     # test all available targets, as well as the default host target
-    Iter:map :test-target [^:targets, ()]
+    Iter:map (fn :target -> [test-target :target false, test-target :target true]) [^:targets, ()]
 }
 
 {

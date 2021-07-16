@@ -92,10 +92,10 @@ linker_args() {
 }
 
 case $TOOL in
-    c++|*-c++|*-clang++)
+    c++|clang++|*-c++|*-clang++)
         $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args c++ $@)
         ;;
-    cc|*-cc|*-clang)
+    cc|clang|*-cc|*-clang)
         $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args c $@)
         ;;
     ld|*-ld)
