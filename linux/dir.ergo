@@ -199,7 +199,7 @@ script-dir = script:dir:
         ]
 
         # Sequence targets to avoid a race condition in `cp`
-        per-target-sequenced (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.0)
+        per-target-sequenced (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1)
         per-target-sequenced (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
         :dir
     ]

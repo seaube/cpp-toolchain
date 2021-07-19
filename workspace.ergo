@@ -2,7 +2,7 @@
 
 version = 2.0.0
 
-wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.5.1rc1&format=zip"
+wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.6.1&format=zip"
 
 # Step into the only directory in another directory
 remove-top-dir = fn :dir -> {
@@ -23,7 +23,7 @@ download-and-unpack = fn :url -> cache {
     task (String:format "fetching {} from {}" :filename :url) <| seq (fs:unarchive :archive :unpacked) :unpacked
 }
 
-llvm-url="https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/llvm-project-12.0.0.src.tar.xz"
+llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz"
 llvm-src = download-and-unpack :llvm-url
 
 build = {
