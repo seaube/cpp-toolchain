@@ -4,15 +4,22 @@ stages:
 
 .build:
     stage: build
+    timeout: 3h
     artifacts:
         paths: [dist]
-    script:
-        - ./build.sh
 
 linux:
     tags: [linux]
     extends: .build
+    image: ubuntu:20.04
+    script:
+        - echo ":$ARTIFACTORY_KEY" > ~/.config/wipal-artifactory-key
+        - docker/setup.sh
+        - ./build.sh
 
 apple:
     tags: [macos]
     extends: .build
+    script:
+        - echo ":$ARTIFACTORY_KEY" > ~/.config/wipal-artifactory-key
+        - ./build.sh
