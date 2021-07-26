@@ -7,19 +7,16 @@ stages:
     timeout: 3h
     artifacts:
         paths: [dist]
+    script:
+        - mkdir -p "$HOME/.config" && echo ":$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
+        - ./build.sh
 
 linux:
     tags: [docker]
     extends: .build
     image: ubuntu:20.04
-    script:
-        - echo ":$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
-        - docker/setup.sh
-        - ./build.sh
+    before_script: docker/setup.sh
 
 apple:
     tags: [macos]
     extends: .build
-    script:
-        - echo ":$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
-        - ./build.sh
