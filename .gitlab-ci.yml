@@ -14,9 +14,19 @@ stages:
 linux:
     tags: [docker]
     extends: .build
-    image: ubuntu:20.04
+    image: 
+        name: ubuntu:20.04
+        entrypoint:
+            - bash
+            - -c
+            - >
+                apt-get update &&
+                apt-get install sudo &&
+                useradd default &&
+                echo "default ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/default &&
+                exec su default -c bash
     before_script:
-        - docker/setup.sh
+        - sudo docker/setup.sh
 
 apple:
     tags: [macos]
