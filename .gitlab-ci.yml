@@ -22,7 +22,7 @@ linux:
             - >
                 apt-get update &&
                 apt-get install sudo &&
-                useradd default &&
+                useradd -m default &&
                 echo "default ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/default &&
                 exec su default -c bash
     before_script:
