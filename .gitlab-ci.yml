@@ -15,7 +15,8 @@ linux:
     tags: [docker]
     extends: .build
     image: ubuntu:20.04
-    before_script: docker/setup.sh
+    before_script:
+        - docker/setup.sh
 
 apple:
     tags: [macos]
