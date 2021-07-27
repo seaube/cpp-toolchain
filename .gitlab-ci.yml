@@ -8,7 +8,7 @@ stages:
     artifacts:
         paths: [dist]
     script:
-        - mkdir -p "$HOME/.config" && echo ":$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
+        - mkdir -p "$HOME/.config" && echo "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
         - ./build.sh
 
 linux:
