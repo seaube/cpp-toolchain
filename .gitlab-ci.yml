@@ -4,12 +4,14 @@ stages:
 
 .build:
     stage: build
-    timeout: 3h
+    timeout: 4h
     artifacts:
         paths: [dist]
     script:
         - mkdir -p "$HOME/.config" && echo "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
         - ./build.sh
+    cache:
+        paths: [.ergo_work/**]
 
 linux:
     tags: [docker]
@@ -27,8 +29,9 @@ linux:
                 exec su default -c bash
     before_script:
         - sudo docker/setup.sh
-        - export XDG_CACHE_HOME=/host/.config
+        - export XDG_CACHE_HOME=$CI_PROJECT_DIR/.config
 
 apple:
     tags: [macos]
     extends: .build
+    cache: 
