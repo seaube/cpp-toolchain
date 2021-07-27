@@ -2,7 +2,7 @@
 
 version = 2.0.1
 
-wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.6.1&format=zip"
+wipal = ergo-remote "https://ws-apps.redacted.invalid/bitbucket/rest/api/latest/projects/~AFRANCHUK/repos/ergo-wipal/archive?at=refs%2Ftags%2F0.6.2&format=zip"
 
 # Step into the only directory in another directory
 remove-top-dir = fn :dir -> {
