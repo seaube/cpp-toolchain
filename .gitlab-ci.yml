@@ -45,7 +45,7 @@ deploy:
     dependencies: [apple, linux]
     image: ubuntu:20.04
     script:
-        - apt-get install curl
+        - apt-get update && apt-get install curl
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64/" -T "dist-linux/*.tar.bz2"
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64-cxx03/" -T "dist-linux/*.tar.bz2"
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-64/" -T "dist-apple/*.tar.bz2"
