@@ -6,10 +6,11 @@ stages:
     stage: build
     timeout: 4h
     artifacts:
-        paths: [dist]
+        paths: ["dist-$CI_JOB_NAME"]
     script:
         - mkdir -p "$HOME/.config" && echo "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
         - ./build.sh
+        - mv dist "dist-$CI_JOB_NAME"
     cache:
         paths: [.ergo_work/**]
 
@@ -34,4 +35,17 @@ linux:
 apple:
     tags: [macos]
     extends: .build
-    cache: 
+    cache:
+        paths: [.ergo_work/**]
+
+deploy:
+    stage: deploy
+    rules:
+        if: "$CI_COMMIT_TAG"
+    dependencies: [apple, linux]
+    image: ubuntu:20.04
+    script:
+        - apt-get install curl
+        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64/" -T "dist-linux/*.tar.bz2"
+        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64-cxx03/" -T "dist-linux/*.tar.bz2"
+        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-64/" -T "dist-apple/*.tar.bz2"
