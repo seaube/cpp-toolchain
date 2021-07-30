@@ -231,7 +231,7 @@ install-toolchain = fn :toolchain -> {
         upkg = wipal:fetch:upkg 0.3.4-rc0
         upkg:package :toolchain
     ]
-    fs:copy :package :dist
+    fs:copy :package <| Path:join :dist (Path:name :package)
 }
 
 test-toolchain = fn :toolchain :targets -> {
