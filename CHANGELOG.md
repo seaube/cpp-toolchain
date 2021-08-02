@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.1] - 2021-08-02
+## [2.0.2] - 2021-08-02
 ### Fixed
 - Don't pass linker flags when running preprocessor (-E flag)
 
@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial toolchain
 
-[Unreleased]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/2.0.1...master
+[Unreleased]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/2.0.2...master
+[2.0.2]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/2.0.1...2.0.2
 [2.0.1]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/2.0.0...2.0.1
 [2.0.0]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/1.0.1...2.0.0
 [1.0.1]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/1.0.0...1.0.1
