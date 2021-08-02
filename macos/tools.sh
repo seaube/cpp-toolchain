@@ -82,7 +82,7 @@ compiler_args() {
     FLAGS=""
     while(($#)) ; do
         case $1 in
-            -c|-S|-E)
+            -c|-S|-E|-M|-MM)
                 # We aren't linking, so don't use any link flags
                 LINK=false
                 FLAGS="$FLAGS $1"
