@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.1] - 2021-07-19
+## [2.0.1] - 2021-08-02
+### Fixed
+- Don't pass linker flags when running preprocessor (-E flag)
+
+## [2.0.1] - 2021-07-30
 ### Changed
 - Updated to LLVM 12.0.1
 ### Fixed
