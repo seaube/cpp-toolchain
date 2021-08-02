@@ -45,7 +45,7 @@ compiler_args() {
     FLAGS=""
     while(($#)) ; do
         case $1 in
-            -c|-S)
+            -c|-S|-E)
                 # We aren't linking, so don't use any link flags
                 LINK_FLAGS=""
                 FLAGS="$FLAGS $1"
