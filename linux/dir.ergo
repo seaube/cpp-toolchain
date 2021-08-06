@@ -1,4 +1,5 @@
-^std:
+std:import { cache, env, exec, fs, net, source, task } = std:
+std:import { Path, String } = std:
 
 targets = [
     x86_64-unknown-linux-gnu
@@ -8,19 +9,14 @@ targets = [
 
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
 
-per-target-sequenced = fn :f -> {
-    map = per-target :f
-    seq ^(Array:from <| Iter:from :map) :map
-}
-
 ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/94b98a4cc96ff6c4ca982ea19db953447e802919.tar.gz"
-ct-ng-src = net:unarchive-remote :ct-ng-url
+ct-ng-src = cache <| task "Downloading crosstool-NG" <| net:unarchive :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-zlib-src = net:unarchive-remote :zlib-url
+zlib-src = cache <| task "Downloading zlib" <| net:unarchive :zlib-url
 
 # CMake flags for using a particular GCC toolchain
-use-gcc-cmake-flags = fn :toolchain-dir :target -> {
+use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
     gcc-tool = fn :tool -> Path:join :toolchain-dir bin <| String:format "{}-{}" :target :tool
     [
         String:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
@@ -38,7 +34,7 @@ ct-ng = cache {
         env = { PATH = env:get PATH }
         pwd = workspace:remove-top-dir :ct-ng-src
     }
-    out = seq ^[
+    out = {
         build-dir = Path:new:
         install-dir = Path:new:
         fs:create-dir :build-dir
@@ -51,8 +47,8 @@ ct-ng = cache {
         exec ^:args make |>:complete
         exec ^:args make install |>:complete
         Path:join :install-dir bin ct-ng
-    ]
-    task "building crosstool-NG" :out
+    }
+    task "Building crosstool-NG" :out
 }
 
 # Build bootstrap GCC with crosstool-NG
@@ -64,12 +60,12 @@ gcc = {
             env = { PATH = env:get PATH }
             pwd = :out
         }
-        toolchain = seq ^[
+        toolchain = {
             fs:create-dir <| Path:join :out tarballs
-            fs:copy (Path:join script:dir: :config) (Path:join :out ".config")
+            fs:copy (Path:join (source:dir ()) :config) (Path:join :out ".config")
             exec ^:args :ct-ng build |>:complete
             Path:join :out toolchain
-        ]
+        }
         task (String:format "building gcc ({})" :target) :toolchain
     }
     per-target :build
@@ -81,7 +77,7 @@ zlib = {
         build-args = {
             src = workspace:remove-top-dir :zlib-src
             extra-flags = use-gcc-cmake-flags gcc::target :target
-            message = String:format "building zlib ({})" :target
+            message = String:format "Building zlib ({})" :target
         }
         workspace:build:cmake-project :build-args
     }
@@ -92,12 +88,12 @@ zlib = {
 gcc-with-deps = {
     build = fn :target -> cache {
         out = Path:new:
-        toolchain = seq ^[
+        toolchain = {
             fs:copy gcc::target :out
             workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
-        ]
-        task (String:format "assembling bootstrap toolchain ({})" :target) :toolchain
+        }
+        task (String:format "Assembling bootstrap toolchain ({})" :target) :toolchain
     }
     per-target :build
 }
@@ -105,7 +101,7 @@ gcc-with-deps = {
 # Build LLVM with bootstrap toolchain
 llvm = {
     host = workspace:target-triple:host
-    workspace:build:llvm "building llvm" [clang, lld, lldb] [
+    workspace:build:llvm "Building LLVM" [clang, lld, lldb] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
         "-DLLDB_ENABLE_PYTHON=OFF"
@@ -119,7 +115,7 @@ llvm = {
 # Build compiler-rt
 compiler-rt = {
     build = fn :target -> cache {
-        workspace:build:compiler-rt (String:format "building compiler-rt ({})" :target) [
+        workspace:build:compiler-rt (String:format "Building compiler-rt ({})" :target) [
             # We are not using LLVM's builtins
             "-DCOMPILER_RT_BUILD_BUILTINS=OFF"
 
@@ -169,40 +165,30 @@ openmp = {
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
-        [
-            exec rm "-rf" (Path:join :dir :target build.log.bz2) |>:complete
-            exec rm "-rf" (Path:join :dir :target bin) |>:complete
-            exec rm "-rf" (Path:join :dir :target libexec) |>:complete
-            exec rm "-rf" (Path:join :dir :target :target bin) |>:complete
-        ]
+        exec rm -rf (Path:join :dir :target build.log.bz2) |>:complete
+        exec rm -rf (Path:join :dir :target bin) |>:complete
+        exec rm -rf (Path:join :dir :target libexec) |>:complete
+        exec rm -rf (Path:join :dir :target :target bin) |>:complete
     }
     per-target :delete-target
 }
 
 # Assemble the toolchain
-script-dir = script:dir:
 {
-    build = fn: -> seq ^[
+    toolchain = {
         dir = Path:new:
-        [
-            fs:create-dir <| Path:join :dir libexec wut gcc
-            fs:create-dir <| Path:join :dir bin
-        ]
-        [
-            per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
-            fs:copy :llvm (Path:join :dir libexec wut llvm)
-            fs:copy (Path:join :script-dir tools.sh) (Path:join :dir libexec wut tools.sh)
-        ]
-        [
-            delete-unused-gcc-components <| Path:join :dir libexec wut gcc
-            workspace:prepare-toolchain :dir :targets
-        ]
+        fs:create-dir <| Path:join :dir libexec wut gcc
+        fs:create-dir <| Path:join :dir bin
+        per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
+        fs:copy :llvm (Path:join :dir libexec wut llvm)
+        fs:copy (Path:join (source:dir ()) tools.sh) (Path:join :dir libexec wut tools.sh)
+        delete-unused-gcc-components <| Path:join :dir libexec wut gcc
+        workspace:prepare-toolchain :dir :targets
 
-        # Sequence targets to avoid a race condition in `cp`
-        per-target-sequenced (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1)
-        per-target-sequenced (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
+        per-target (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1)
+        per-target (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
         :dir
-    ]
+    }
 
     ct-ng = :ct-ng
 

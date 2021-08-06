@@ -15,8 +15,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ERGO_LINUX=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-beta.9-linux.tar.gz
-ERGO_MACOS=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-beta.9-mac.tar.gz
+ERGO_LINUX=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.0-linux.tar.gz
+ERGO_MACOS=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.0-mac.tar.gz
 
 
 case `uname` in
@@ -46,7 +46,7 @@ else
     if [ ! -f ergo/ergo.tar.gz ]; then
         mkdir -p ergo
         curl -L $ERGO_URL -o ergo/ergo.tar.gz
-        tar -xf ergo/ergo.tar.gz -C ergo --strip-components 1
+        tar -xf ergo/ergo.tar.gz -C ergo
     fi
-    ergo/bin/ergo --log debug build
+    ergo/bin/ergo --backtrace --log info build
 fi
