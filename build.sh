@@ -33,7 +33,7 @@ if [ "$USE_DOCKER" -eq 1 ]; then
 
     cp ~/.config/wipal-artifactory-key docker
     docker build --tag wipal-toolchain-env --build-arg CONFIG_UID=`id -u` --build-arg CONFIG_GID=`id -g` docker
-    docker run --rm --net=host -v `pwd`:/host -w /host --env XDG_CACHE_HOME=/host/.cache wipal-toolchain-env ergo --log debug build
+    docker run --rm --net=host -v `pwd`:/host -w /host --env XDG_CACHE_HOME=/host/.cache wipal-toolchain-env ergo --backtrace --log info build
 else
     case `uname` in
         Linux)

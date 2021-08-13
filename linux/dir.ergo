@@ -7,7 +7,7 @@ targets = [
     arm-unknown-linux-gnueabihf
 ]
 
-per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
+per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets
 
 ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/94b98a4cc96ff6c4ca982ea19db953447e802919.tar.gz"
 ct-ng-src = cache <| task "Downloading crosstool-NG" <| net:unarchive :ct-ng-url
@@ -43,7 +43,7 @@ ct-ng = cache {
         # Run this, since we aren't using a delivered version of crostool-NG
         exec ^:args ./bootstrap |>:complete
 
-        exec ^:args sh ./configure <| String:format "--prefix={}" :install-dir |>:complete
+        exec ^:args sh ./configure (String:format "--prefix={}" :install-dir) |>:complete
         exec ^:args make |>:complete
         exec ^:args make install |>:complete
         Path:join :install-dir bin ct-ng
@@ -100,7 +100,7 @@ gcc-with-deps = {
 
 # Build LLVM with bootstrap toolchain
 llvm = {
-    host = workspace:target-triple:host
+    String :host = workspace:target-triple:host
     workspace:build:llvm "Building LLVM" [clang, lld, lldb] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"

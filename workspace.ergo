@@ -70,21 +70,19 @@ build = {
 }
 
 target-triple = {
-    arch = fn :target -> by-content <| (String:split - :target):0
-    vendor = fn :target -> by-content <| (String:split - :target):1
-    os = fn :target -> by-content <| (String:split - :target):2
+    arch = fn :target -> (String:split - :target):0
+    vendor = fn :target -> (String:split - :target):1
+    os = fn :target -> (String:split - :target):2
 
-    host = by-content {
-        # Get the OS (values are "Linux", "Darwin")
-        os = exec uname |>:stdout | String:from | String:trim | by-content
-
-        # Get the architecture ("x86_64", "aarch64", etc)
-        arch = exec uname -m |>:stdout | String:from | String:trim | by-content
-
-        match (by-content :os) [
-            Linux -> String:format "{}-unknown-linux-gnu" :arch
-            Darwin -> String:format "{}-apple-macos" :arch
+    host = {
+        triple = match env:os [
+            linux -> String:format "{}-unknown-linux-gnu" env:arch
+            macos -> String:format "{}-apple-macos" env:arch
         ]
+ 
+        std:log:info <| String:format "Detected host triple: {}" :triple    
+        
+        :triple
     }
 }
 
