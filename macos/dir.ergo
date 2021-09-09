@@ -1,4 +1,5 @@
 std:import { fs, match, source, Path, String } = std:
+std:import { merge-dir } = workspace:
 
 targets = [
     arm64-apple-macos
@@ -67,8 +68,8 @@ llvm-runtime = {
             String:format "-DLLVM_TABLEGEN={}" <| Path:join :tablegen bin llvm-tblgen
             "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
 
-            "-DLIBCXX_ENABLE_SHARED=NO"
-            "-DLIBCXX_ENABLE_STATIC=YES"
+            "-DLIBCXX_ENABLE_SHARED=OFF"
+            "-DLIBCXX_ENABLE_STATIC=ON"
             "-DLIBCXX_HERMETIC_STATIC_LIBRARY=ON"
             "-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON"
             "-DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON"
@@ -95,6 +96,8 @@ llvm-runtime = {
 # Build OpenMP
 openmp = per-target <| fn :target -> workspace:build:openmp (String:format "Building OpenMP ({})" :target) <| :cross-compile-flags :target
 
+tools-sh = fs:track <| Path:join (source:dir ()) tools.sh
+
 # Assemble the toolchain
 {
     toolchain = {
@@ -102,10 +105,14 @@ openmp = per-target <| fn :target -> workspace:build:openmp (String:format "Buil
         fs:create-dir <| Path:join :dir libexec wut
         fs:create-dir <| Path:join :dir bin
         fs:copy :llvm (Path:join :dir libexec wut llvm)
-        fs:copy (Path:join (source:dir ()) tools.sh) (Path:join :dir libexec wut tools.sh)
+        fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         workspace:prepare-toolchain :dir :targets
-        per-target (fn :target -> fs:copy (Path:join llvm-runtime::target lib) <| Path:join :dir libexec wut runtime :target)
-        per-target (fn :target -> fs:copy (Path:join openmp::target lib) <| Path:join :dir libexec wut openmp :target)
+        per-target <| fn :target -> {
+            dir = Path:join :dir libexec wut runtime :target
+            fs:create-dir :dir
+            merge-dir (Path:join llvm-runtime::target lib) :dir
+            merge-dir (Path:join openmp::target lib) :dir
+        }
         :dir
     }
 

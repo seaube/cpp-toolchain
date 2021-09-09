@@ -70,8 +70,8 @@ sysroot() {
     xcrun --sdk $1 --show-sdk-path
 }
 
-openmp() {
-    echo "${BINDIR}/../libexec/wut/openmp/$1"
+runtime() {
+    echo "${BINDIR}/../libexec/wut/runtime/$1"
 }
 
 compiler_args() {
@@ -112,11 +112,11 @@ compiler_args() {
 
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
-    OPENMP_FLAGS="-isystem $(openmp ${TARGET})/include -L $(openmp ${TARGET})/lib"
-    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) ${OPENMP_FLAGS} -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
+    RUNTIME=$(runtime ${TARGET})
+    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib -Wl,-lSystem -L${RUNTIME} -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
     if [ "$LINK" = true ]; then
         LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} $FLAGS"
+        FLAGS="-B${LD_PATH} ${RUNTIME}/libc++.a ${RUNTIME}/libc++abi.a ${RUNTIME}/libunwind.a $FLAGS"
     fi
 
     echo "$FLAGS"
@@ -150,7 +150,8 @@ linker_args() {
         esac
     done
     SDK_NAME=$(sdk_name $TARGET)
-    echo "-syslibroot $(sysroot $SDK_NAME) -L$(openmp ${TARGET})/lib -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0 $@"
+    RUNTIME=$(runtime ${TARGET})
+    echo "-syslibroot $(sysroot $SDK_NAME) -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0 $@"
 }
 
 case $TOOL in
