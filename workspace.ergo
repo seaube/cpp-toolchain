@@ -165,13 +165,6 @@ prepare-toolchain = fn :dir :targets -> {
 
     keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
 
-    # Delete unusued llvm binaries
-    exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
-    exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
-
-    # Delete headers, other than libc++ if present
-    exec find (Path:join :dir libexec wut llvm include) ^(String:split " " "! -name c++ -mindepth 1 -maxdepth 1 -exec rm -rf {} +") |>:complete
-
     # Link `as` because LLVM doesn't, for some reason
     link llvm-as <| Path:join :dir libexec wut llvm bin as
 

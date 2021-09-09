@@ -19,33 +19,81 @@ min-supported-version = fn :target -> match (workspace:target-triple:os :target)
     ]
 ]
 
+common-flags = [
+    "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON"
+    "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF" # llvm.org/PR37398
+
+    "-DLLVM_ENABLE_LIBCXX=ON"
+    "-DLLVM_INCLUDE_DOCS=OFF"
+    "-DLLVM_INCLUDE_TESTS=OFF"
+    "-DLLVM_INCLUDE_EXAMPLES=OFF"
+    "-DLLVM_ENABLE_TERMINFO=OFF"
+    "-DLLVM_BUILD_LLVM_DYLIB=ON"
+    "-DLLVM_LINK_LLVM_DYLIB=ON"
+
+    "-DLLDB_ENABLE_PYTHON=OFF"
+    "-DLLDB_ENABLE_LIBEDIT=OFF"
+    "-DLLDB_ENABLE_CURSES=OFF"
+    "-DLLDB_USE_SYSTEM_DEBUGSERVER=ON"
+
+    String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+]
+
+cross-compile-flags = fn :target -> [
+    String:format "-DCMAKE_OSX_ARCHITECTURES={}" <| workspace:target-triple:arch :target
+    String:format "-DCMAKE_OSX_SYSROOT={}" <| match (workspace:target-triple:os :target) [macos -> macosx, ios -> iphoneos]
+    String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+]
+
 # Build LLVM
 llvm = {
     flags = [
-        "-DLIBCXX_INSTALL_LIBRARY=OFF",
-        "-DLIBCXX_INSTALL_HEADERS=ON",
-        "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON",
-        "-DLIBCXX_HAS_MERGED_TYPEINFO_NAMES_DEFAULT=OFF", # llvm.org/PR37398
-        "-DLLDB_ENABLE_PYTHON=OFF"
-        "-DLLDB_ENABLE_LIBEDIT=OFF"
-        "-DLLDB_ENABLE_CURSES=OFF"
-        "-DLLVM_ENABLE_TERMINFO=OFF"
-        String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+        "-DLIBCXX_INSTALL_LIBRARY=OFF"
+        "-DLIBCXX_INSTALL_HEADERS=ON"
+        "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
+
+        ^:common-flags
     ]
     workspace:build:llvm "Building LLVM" [clang, lldb, libcxx, libcxxabi, compiler-rt] :flags
 }
 
-# Build OpenMP
-openmp = {
+# Build tablegen
+tablegen = workspace:build:llvm "Building TableGen" [clang] :common-flags
+
+# Build runtime
+llvm-runtime = {
     build = fn :target -> {
-        workspace:build:openmp (String:format "Building OpenMP ({})" :target) [
-            String:format "-DCMAKE_OSX_ARCHITECTURES={}" <| workspace:target-triple:arch :target
-            String:format "-DCMAKE_OSX_SYSROOT={}" <| match (workspace:target-triple:os :target) [macos -> macosx, ios -> iphoneos]
-            String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+        flags = [
+            String:format "-DLLVM_TABLEGEN={}" <| Path:join :tablegen bin llvm-tblgen
+            "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
+
+            "-DLIBCXX_ENABLE_SHARED=NO"
+            "-DLIBCXX_ENABLE_STATIC=YES"
+            "-DLIBCXX_HERMETIC_STATIC_LIBRARY=ON"
+            "-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON"
+            "-DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON"
+            "-DLIBCXX_USE_COMPILER_RT=ON"
+            "-DLIBCXX_HAS_ATOMIC_LIB=OFF"
+            "-DLIBCXX_INSTALL_LIBRARY=ON"
+            "-DLIBCXX_INSTALL_HEADERS=OFF"
+
+            "-DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON"
+            "-DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON"
+            "-DLIBCXXABI_USE_COMPILER_RT=ON"
+            "-DLIBCXXABI_USE_LLVM_UNWINDER=ON"
+
+            "-DLIBUNWIND_USE_COMPILER_RT=ON"
+
+            ^:common-flags
+            ^:cross-compile-flags :target
         ]
+        workspace:build:llvm (String:format "Building LLVM runtime ({})" :target) [libcxx, libcxxabi, libunwind] :flags
     }
     per-target :build
 }
+
+# Build OpenMP
+openmp = per-target <| fn :target -> workspace:build:openmp (String:format "Building OpenMP ({})" :target) <| :cross-compile-flags :target
 
 # Assemble the toolchain
 {
@@ -56,7 +104,8 @@ openmp = {
         fs:copy :llvm (Path:join :dir libexec wut llvm)
         fs:copy (Path:join (source:dir ()) tools.sh) (Path:join :dir libexec wut tools.sh)
         workspace:prepare-toolchain :dir :targets
-        per-target (fn :target -> fs:copy openmp::target <| Path:join :dir libexec wut openmp :target)
+        per-target (fn :target -> fs:copy (Path:join llvm-runtime::target lib) <| Path:join :dir libexec wut runtime :target)
+        per-target (fn :target -> fs:copy (Path:join openmp::target lib) <| Path:join :dir libexec wut openmp :target)
         :dir
     }
 
