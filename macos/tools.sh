@@ -112,11 +112,11 @@ compiler_args() {
 
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
-    RUNTIME=$(runtime ${TARGET})
-    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib -Wl,-lSystem -L${RUNTIME} -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
+    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib++ -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
     if [ "$LINK" = true ]; then
+        RUNTIME=$(runtime ${TARGET})
         LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} ${RUNTIME}/libc++.a ${RUNTIME}/libc++abi.a ${RUNTIME}/libunwind.a $FLAGS"
+        FLAGS="-B${LD_PATH} -L${RUNTIME} ${RUNTIME}/libc++.a ${RUNTIME}/libc++abi.a ${RUNTIME}/libunwind.a $FLAGS"
     fi
 
     echo "$FLAGS"

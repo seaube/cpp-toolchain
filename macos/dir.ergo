@@ -49,9 +49,13 @@ cross-compile-flags = fn :target -> [
 # Build LLVM
 llvm = {
     flags = [
-        "-DLIBCXX_INSTALL_LIBRARY=OFF"
-        "-DLIBCXX_INSTALL_HEADERS=ON"
         "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
+
+        # libc++ used by sanitizers
+        "-DLIBCXX_INSTALL_LIBRARY=ON"
+        "-DLIBCXX_INSTALL_HEADERS=ON"
+        "-DLIBCXX_ENABLE_SHARED=ON"
+        "-DLIBCXX_ENABLE_STATIC=OFF"
 
         ^:common-flags
     ]
@@ -78,6 +82,8 @@ llvm-runtime = {
             "-DLIBCXX_INSTALL_LIBRARY=ON"
             "-DLIBCXX_INSTALL_HEADERS=OFF"
 
+            "-DLIBCXXABI_ENABLE_SHARED=OFF"
+            "-DLIBCXXABI_ENABLE_STATIC=ON"
             "-DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON"
             "-DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON"
             "-DLIBCXXABI_USE_COMPILER_RT=ON"

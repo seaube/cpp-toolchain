@@ -200,7 +200,7 @@ install-toolchain = fn :toolchain -> {
         pwd = Path:parent :toolchain
         env = { PATH = env:get PATH }
     }
-    package = cache <| {
+    package = {
         fs:remove :dist
         fs:create-dir :dist
         upkg = wipal:fetch:upkg 0.3.4-rc0
@@ -262,20 +262,22 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
 
         fs:create-dir :out
 
+        build-flags = [-fPIC, -Werror, -Wall, -Wextra, -Wpedantic]
+
         # Build library
-        cc -fPIC -Wall -c -o :bar.o bar.c
-        cc -fPIC -Wall -c -o :foo.o foo.c
+        cc ^:build-flags -c -o :bar.o bar.c
+        cc ^:build-flags -c -o :foo.o foo.c
         ar rc :bar.a :bar.o
         ranlib :bar.a
         ld ^:link-flags -o :foo-lib :foo.o :bar.a
         strip --strip-all :foo-lib
   
         # Build C program
-        cc -Wall -o :test-c main.c :foo-lib
+        cc ^:build-flags -o :test-c main.c :foo-lib
         strip --strip-all :test-c
 
         # Test C++ compiler
-        c++ -Wall -o :test-c++ main.cpp :foo-lib
+        c++ ^:build-flags -o :test-c++ main.cpp :foo-lib
         strip --strip-all :test-c++
 
         # Run tests (if correct target)
