@@ -104,10 +104,16 @@ llvm = {
     workspace:build:llvm "Building LLVM" [clang, lld, lldb] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
+        "-DLLVM_INCLUDE_DOCS=OFF"
+        "-DLLVM_INCLUDE_TESTS=OFF"
+        "-DLLVM_INCLUDE_EXAMPLES=OFF"
+        "-DLLVM_ENABLE_TERMINFO=OFF"
+        "-DLLVM_BUILD_LLVM_DYLIB=ON"
+        "-DLLVM_LINK_LLVM_DYLIB=ON"
+
         "-DLLDB_ENABLE_PYTHON=OFF"
         "-DLLDB_ENABLE_LIBEDIT=OFF"
         "-DLLDB_ENABLE_CURSES=OFF"
-        "-DLLVM_ENABLE_TERMINFO=OFF"
         String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join gcc-with-deps::host :host sysroot
     ]
 }
