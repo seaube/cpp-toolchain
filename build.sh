@@ -46,7 +46,7 @@ else
     if [ ! -f ergo/ergo.tar.gz ]; then
         mkdir -p ergo
         curl -L $ERGO_URL -o ergo/ergo.tar.gz
-        tar -xf ergo/ergo.tar.gz -C ergo
+        tar -xf ergo/ergo.tar.gz -C ergo --strip-components 1
     fi
     ergo/bin/ergo --backtrace --log info build
 fi
