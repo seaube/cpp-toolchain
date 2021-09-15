@@ -179,6 +179,8 @@ delete-unused-gcc-components = fn :dir -> {
     per-target :delete-target
 }
 
+tools-sh = fs:track <| Path:join (source:dir ()) tools.sh
+
 # Assemble the toolchain
 {
     toolchain = {
@@ -187,7 +189,7 @@ delete-unused-gcc-components = fn :dir -> {
         fs:create-dir <| Path:join :dir bin
         per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
         fs:copy :llvm (Path:join :dir libexec wut llvm)
-        fs:copy (Path:join (source:dir ()) tools.sh) (Path:join :dir libexec wut tools.sh)
+        fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets
 
