@@ -55,6 +55,7 @@ ct-ng = cache {
 gcc = {
     build = fn :target -> cache {
         config = String:format "{}.config" :target
+        config-source = !fs:track <| Path:join (source:dir ()) :config
         out = Path:new:
         args = {
             env = { PATH = env:get PATH }
@@ -62,7 +63,7 @@ gcc = {
         }
         toolchain = {
             fs:create-dir <| Path:join :out tarballs
-            fs:copy (Path:join (source:dir ()) :config) (Path:join :out ".config")
+            fs:copy :config-source (Path:join :out ".config")
             exec ^:args :ct-ng build |>:complete
             Path:join :out toolchain
         }
