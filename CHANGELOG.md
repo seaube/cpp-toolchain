@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Changed macOS toolchains to link libc++ statically, allowing newer C++ standards than supported by the system
+### Fixed
+- Fixed broken `c++filt` tool
+- Fixed unused argument warnings on macOS
 
 ## [2.0.3] - 2021-08-02
 ### Fixed
