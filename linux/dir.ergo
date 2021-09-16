@@ -179,7 +179,7 @@ delete-unused-gcc-components = fn :dir -> {
     per-target :delete-target
 }
 
-tools-sh = fs:track <| Path:join (source:dir ()) tools.sh
+tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
 
 # Assemble the toolchain
 {

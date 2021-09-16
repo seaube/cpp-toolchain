@@ -102,7 +102,7 @@ llvm-runtime = {
 # Build OpenMP
 openmp = per-target <| fn :target -> workspace:build:openmp (String:format "Building OpenMP ({})" :target) <| :cross-compile-flags :target
 
-tools-sh = fs:track <| Path:join (source:dir ()) tools.sh
+tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
 
 # Assemble the toolchain
 {
