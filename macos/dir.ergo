@@ -115,9 +115,12 @@ tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
         workspace:prepare-toolchain :dir :targets
         per-target <| fn :target -> {
             dir = Path:join :dir libexec wut runtime :target
-            fs:create-dir :dir
-            merge-dir (Path:join llvm-runtime::target lib) :dir
-            merge-dir (Path:join openmp::target lib) :dir
+            fs:create-dir <| Path:join :dir lib
+            fs:create-dir <| Path:join :dir include
+            merge-dir (Path:join llvm-runtime::target lib) (Path:join :dir lib)
+            merge-dir (Path:join llvm-runtime::target include) (Path:join :dir include)
+            merge-dir (Path:join openmp::target lib) (Path:join :dir lib)
+            merge-dir (Path:join openmp::target include) (Path:join :dir include)
         }
         :dir
     }
