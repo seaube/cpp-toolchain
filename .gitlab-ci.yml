@@ -32,9 +32,9 @@ linux:
                 echo "default ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/default &&
                 exec su default -c bash
     before_script:
+        - sudo docker/setup.sh
         - sudo cp docker/*.crt /usr/local/share/ca-certificates
         - sudo update-ca-certificates
-        - sudo docker/setup.sh
         - export XDG_CACHE_HOME=$CI_PROJECT_DIR/.config
 
 apple:
