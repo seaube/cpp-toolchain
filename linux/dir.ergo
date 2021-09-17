@@ -1,5 +1,5 @@
 std:import { cache, env, exec, fs, net, source, task } = std:
-std:import { Path, String } = std:
+std:import { Array, Iter, Map, Path, String } = std:
 
 targets = [
     x86_64-unknown-linux-gnu
@@ -174,15 +174,20 @@ openmp = {
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
-        exec rm -rf (Path:join :dir :target build.log.bz2) |>:complete
-        exec rm -rf (Path:join :dir :target bin) |>:complete
-        exec rm -rf (Path:join :dir :target libexec) |>:complete
-        exec rm -rf (Path:join :dir :target :target bin) |>:complete
+        fs:remove <| Path:join :dir :target build.log.bz2
+        fs:remove <| Path:join :dir :target bin
+        fs:remove <| Path:join :dir :target libexec
+        fs:remove <| Path:join :dir :target :target bin
     }
     per-target :delete-target
 }
 
 tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
+
+map-seq = fn (Map :m) -> {
+    ^Array:from <| Iter:map (fn :e -> e:value) :m
+    :m
+}
 
 # Assemble the toolchain
 {
@@ -196,8 +201,11 @@ tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets
 
-        per-target (fn :target -> workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1)
-        per-target (fn :target -> workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot)
+        # Write sequentially to avoid a race condition in `cp`
+        map-seq <| per-target <| fn :target -> {
+            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1
+            workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
+        }
         :dir
     }
 
