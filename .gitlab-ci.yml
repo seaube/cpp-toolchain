@@ -8,7 +8,9 @@ stages:
     artifacts:
         paths: ["dist-$CI_JOB_NAME"]
     script:
-        - mkdir -p "$HOME/.config" && echo "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
+        - mkdir -p "$HOME/.config"
+        - echo "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" > "$HOME/.config/wipal-artifactory-key"
+        - echo "$GITLAB_READ_API_TOKEN" > "$HOME/.config/wipal-gitlab-key"
         - ./build.sh
         - mv dist "dist-$CI_JOB_NAME"
     cache:
