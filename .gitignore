@@ -1,5 +1,6 @@
 docker/ergo.tar.gz
 docker/wipal-artifactory-key
+docker/wipal-gitlab-key
 ergo
 .ergo_work
 .cache
