@@ -1,0 +1,14 @@
+diff --git a/compiler-rt/lib/scudo/standalone/memtag.h b/compiler-rt/lib/scudo/standalone/memtag.h
+index c48e228fbe44..c3e329a91e27 100644
+--- a/compiler-rt/lib/scudo/standalone/memtag.h
++++ b/compiler-rt/lib/scudo/standalone/memtag.h
+@@ -60,6 +60,9 @@ inline uint8_t extractTag(uptr Ptr) {
+ #if SCUDO_LINUX
+ 
+ inline bool systemSupportsMemoryTagging() {
++#ifndef AT_HWCAP2
++#define AT_HWCAP2 26
++#endif
+ #ifndef HWCAP2_MTE
+ #define HWCAP2_MTE (1 << 18)
+ #endif

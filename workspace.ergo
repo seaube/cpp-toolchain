@@ -11,8 +11,15 @@ remove-top-dir = fn :dir -> {
     :only
 }
 
-llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz"
-llvm-src = cache <| task "Downloading LLVM" <| net:unarchive :llvm-url
+llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc3/llvm-project-13.0.0rc3.src.tar.xz"
+llvm-patches = Iter:map fs:track <| fs:glob "patches/*"
+llvm-src = cache {
+    dir = remove-top-dir <| task "Downloading LLVM" <| net:unarchive :llvm-url
+    Iter:map (fn :patch -> {
+        exec ^{env = { PATH = env:get PATH }, pwd = :dir} patch -p1 -i :patch |>:complete
+    }) :llvm-patches
+    :dir
+}
 
 build = {
     cmake-project = fn :build-args -> cache {
@@ -36,7 +43,7 @@ build = {
     llvm = fn :message :llvm-projects :flags -> cache {
         projects = Iter:fold (fn :acc :v -> String:format "{}{};" :acc :v) "-DLLVM_ENABLE_PROJECTS=" :llvm-projects
         build-args = {
-            src = Path:join (remove-top-dir :llvm-src) llvm
+            src = Path:join :llvm-src llvm
             extra-flags = [
                 ^:flags
                 :projects
@@ -52,7 +59,7 @@ build = {
 
     compiler-rt = fn :message :flags -> cache {
         build-args = {
-            src = Path:join (remove-top-dir :llvm-src) compiler-rt
+            src = Path:join :llvm-src compiler-rt
             extra-flags = :flags
             message = :message
         }
@@ -61,7 +68,7 @@ build = {
 
     openmp = fn :message :flags -> cache {
         build-args = {
-            src = Path:join (remove-top-dir :llvm-src) openmp
+            src = Path:join :llvm-src openmp
             extra-flags = :flags
             message = :message
         }

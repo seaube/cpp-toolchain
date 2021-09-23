@@ -164,6 +164,8 @@ compiler-rt = {
 openmp = {
     build = fn :target -> cache {
         workspace:build:openmp (String:format "building openmp ({})" :target) [
+            String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
+            "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
             ^(use-gcc-cmake-flags gcc-with-deps::target :target)
             String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join gcc-with-deps::target :target sysroot
         ]
@@ -203,7 +205,7 @@ map-seq = fn (Map :m) -> {
 
         # Write sequentially to avoid a race condition in `cp`
         map-seq <| per-target <| fn :target -> {
-            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 12.0.1
+            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 13.0.0
             workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
         }
         :dir
