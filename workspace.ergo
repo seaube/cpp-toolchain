@@ -15,7 +15,8 @@ llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.
 llvm-patches = Iter:map fs:track <| fs:glob "patches/*"
 llvm-src = cache {
     dir = remove-top-dir <| task "Downloading LLVM" <| net:unarchive :llvm-url
-    Iter:map (fn :patch -> {
+    # sequentially apply patches
+    ^Array:from <| Iter:map (fn :patch -> {
         exec ^{env = { PATH = env:get PATH }, pwd = :dir} patch -p1 -i :patch |>:complete
     }) :llvm-patches
     :dir
@@ -174,7 +175,7 @@ prepare-toolchain = fn :dir :targets -> {
 
     # Delete unusued llvm binaries
     exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
-    exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a -exec rm -f {} +") |>:complete
+    exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a ! -name clang -exec rm -f {} +") |>:complete
 
     # Delete headers, other than libc++ if present
     exec find (Path:join :dir libexec wut llvm include) ^(String:split " " "! -name c++ -mindepth 1 -maxdepth 1 -exec rm -rf {} +") |>:complete

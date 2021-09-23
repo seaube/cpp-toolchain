@@ -117,8 +117,7 @@ compiler_args() {
     RUNTIME=$(runtime ${TARGET})
     FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib++ -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
     if [ "$LINK" = true ]; then
-        LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib ${RUNTIME}/lib/libc++.a ${RUNTIME}/lib/libc++abi.a ${RUNTIME}/lib/libunwind.a $FLAGS"
+        FLAGS="-fuse-ld=lld.darwinnew -L${RUNTIME}/lib ${RUNTIME}/lib/libc++.a ${RUNTIME}/lib/libc++abi.a ${RUNTIME}/lib/libunwind.a $FLAGS"
     fi
 
     echo "$FLAGS"

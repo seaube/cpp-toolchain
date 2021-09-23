@@ -59,7 +59,7 @@ llvm = {
 
         ^:common-flags
     ]
-    workspace:build:llvm "Building LLVM" [clang, lldb, libcxx, libcxxabi, compiler-rt] :flags
+    workspace:build:llvm "Building LLVM" [clang, lld, lldb, libcxx, libcxxabi, compiler-rt] :flags
 }
 
 # Build tablegen
