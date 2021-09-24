@@ -3,7 +3,7 @@ std:import { Array, Bool, Iter, Path, String } = std:
 
 version = 3.0.0rc0
 
-wipal = ergo wipal 0.7.3b0
+wipal = ergo wipal 0.8.1
 
 # Step into the only directory in another directory
 remove-top-dir = fn :dir -> {
@@ -12,12 +12,12 @@ remove-top-dir = fn :dir -> {
 }
 
 llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc3/llvm-project-13.0.0rc3.src.tar.xz"
-llvm-patches = Iter:map fs:track <| fs:glob "patches/*"
+Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| fs:glob "patches/*"
 llvm-src = cache {
     dir = remove-top-dir <| task "Downloading LLVM" <| net:unarchive :llvm-url
     # sequentially apply patches
     ^Array:from <| Iter:map (fn :patch -> {
-        exec ^{env = { PATH = env:get PATH }, pwd = :dir} patch -p1 -i :patch |>:complete
+        exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete
     }) :llvm-patches
     :dir
 }
