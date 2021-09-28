@@ -14,10 +14,10 @@ remove-top-dir = fn :dir -> {
 llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc3/llvm-project-13.0.0rc3.src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
 llvm-src = cache {
-    dir = remove-top-dir <| task "Downloading LLVM" <| net:unarchive :llvm-url
+    dir = remove-top-dir <| task "downloading LLVM" <| net:unarchive :llvm-url
     # sequentially apply patches
     ^Array:from <| Iter:map (fn :patch -> {
-        task (String:format "applying llvm patch {}" :patch) <| exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete
+        task (String:format "applying LLVM patch {}" <| Path:name :patch) <| exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete
     }) :llvm-patches
     :dir
 }

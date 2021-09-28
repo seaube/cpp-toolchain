@@ -48,7 +48,7 @@ ct-ng = cache {
         exec ^:args make install |>:complete
         Path:join :install-dir bin ct-ng
     }
-    task "Building crosstool-NG" :out
+    task "building crosstool-NG" :out
 }
 
 # Build bootstrap GCC with crosstool-NG
@@ -78,7 +78,7 @@ zlib = {
         build-args = {
             src = workspace:remove-top-dir :zlib-src
             extra-flags = use-gcc-cmake-flags gcc::target :target
-            message = String:format "Building zlib ({})" :target
+            message = String:format "building zlib ({})" :target
         }
         workspace:build:cmake-project :build-args
     }
@@ -94,7 +94,7 @@ gcc-with-deps = {
             workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
         }
-        task (String:format "Assembling bootstrap toolchain ({})" :target) :toolchain
+        task (String:format "assembling bootstrap toolchain ({})" :target) :toolchain
     }
     per-target :build
 }
@@ -102,7 +102,7 @@ gcc-with-deps = {
 # Build LLVM with bootstrap toolchain
 llvm = {
     String :host = workspace:target-triple:host
-    workspace:build:llvm "Building LLVM" [clang, lld, lldb] [
+    workspace:build:llvm "building LLVM" [clang, lld, lldb] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
         "-DLLVM_INCLUDE_DOCS=OFF"
@@ -124,7 +124,7 @@ llvm = {
 # Build compiler-rt
 compiler-rt = {
     build = fn :target -> cache {
-        workspace:build:compiler-rt (String:format "Building compiler-rt ({})" :target) [
+        workspace:build:compiler-rt (String:format "building compiler-rt ({})" :target) [
             # We are not using LLVM's builtins
             "-DCOMPILER_RT_BUILD_BUILTINS=OFF"
 

@@ -59,11 +59,11 @@ llvm = {
 
         ^:common-flags
     ]
-    workspace:build:llvm "Building LLVM" [clang, lld, lldb, libcxx, libcxxabi, compiler-rt] :flags
+    workspace:build:llvm "building LLVM" [clang, lld, lldb, libcxx, libcxxabi, compiler-rt] :flags
 }
 
 # Build tablegen
-tablegen = workspace:build:llvm "Building TableGen" [clang] :common-flags
+tablegen = workspace:build:llvm "building TableGen" [clang] :common-flags
 
 # Build runtime
 llvm-runtime = {
@@ -94,13 +94,13 @@ llvm-runtime = {
             ^:common-flags
             ^:cross-compile-flags :target
         ]
-        workspace:build:llvm (String:format "Building LLVM runtime ({})" :target) [libcxx, libcxxabi, libunwind] :flags
+        workspace:build:llvm (String:format "building LLVM runtime ({})" :target) [libcxx, libcxxabi, libunwind] :flags
     }
     per-target :build
 }
 
 # Build OpenMP
-openmp = per-target <| fn :target -> workspace:build:openmp (String:format "Building OpenMP ({})" :target) <| :cross-compile-flags :target
+openmp = per-target <| fn :target -> workspace:build:openmp (String:format "building OpenMP ({})" :target) <| :cross-compile-flags :target
 
 tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
 
