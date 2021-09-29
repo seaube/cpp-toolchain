@@ -11,7 +11,7 @@ remove-top-dir = fn :dir -> {
     :only
 }
 
-llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc3/llvm-project-13.0.0rc3.src.tar.xz"
+llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc4/llvm-project-13.0.0rc4.src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
 llvm-src = cache {
     dir = remove-top-dir <| task "downloading LLVM" <| net:unarchive :llvm-url

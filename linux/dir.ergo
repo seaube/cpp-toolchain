@@ -10,10 +10,10 @@ targets = [
 per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets
 
 ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/94b98a4cc96ff6c4ca982ea19db953447e802919.tar.gz"
-ct-ng-src = cache <| task "Downloading crosstool-NG" <| net:unarchive :ct-ng-url
+ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-zlib-src = cache <| task "Downloading zlib" <| net:unarchive :zlib-url
+zlib-src = cache <| task "downloading zlib" <| net:unarchive :zlib-url
 
 # CMake flags for using a particular GCC toolchain
 use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
@@ -25,6 +25,7 @@ use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
         String:format "-DCMAKE_C_COMPILER_TARGET={}" :target
         String:format "-DCMAKE_CXX_COMPILER_TARGET={}" :target
         String:format "-DCMAKE_ASM_COMPILER_TARGET={}" :target
+        String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join :toolchain-dir :target sysroot
     ]
 }
 
@@ -117,7 +118,6 @@ llvm = {
         "-DLLDB_ENABLE_PYTHON=OFF"
         "-DLLDB_ENABLE_LIBEDIT=OFF"
         "-DLLDB_ENABLE_CURSES=OFF"
-        String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join gcc-with-deps::host :host sysroot
     ]
 }
 
@@ -167,7 +167,6 @@ openmp = {
             String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
             "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
             ^(use-gcc-cmake-flags gcc-with-deps::target :target)
-            String:format "-DCMAKE_FIND_ROOT_PATH={}" <| Path:join gcc-with-deps::target :target sysroot
         ]
     }
     per-target :build
