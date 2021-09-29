@@ -2,10 +2,15 @@
 set -e
 
 USE_DOCKER=0
+CT_NG_CONFIG=0
 while [[ $# -gt 0 ]]; do
     case $1 in
         --use-docker)
             USE_DOCKER=1
+            shift
+            ;;
+        --ct-ng-config)
+            CT_NG_CONFIG=1
             shift
             ;;
         *)
@@ -34,7 +39,15 @@ if [ "$USE_DOCKER" -eq 1 ]; then
     cp ~/.config/wipal-artifactory-key docker
     cp ~/.config/wipal-gitlab-key docker
     docker build --tag wipal-toolchain-env --build-arg CONFIG_UID=`id -u` --build-arg CONFIG_GID=`id -g` docker
-    docker run --rm --net=host -v `pwd`:/host -w /host --env XDG_CACHE_HOME=/host/.cache wipal-toolchain-env ergo --backtrace --log info build
+
+    if [ "$CT_NG_CONFIG" -eq 1 ]; then
+        FLAGS="-it"
+        COMMAND='$(ergo ct-ng) menuconfig $@'
+    else
+        FLAGS=""
+        COMMAND='ergo --backtrace --log info build'
+    fi
+    docker run $FLAGS --rm --net=host -v `pwd`:/host -w /host --env XDG_CACHE_HOME=/host/.cache wipal-toolchain-env bash -c "$COMMAND"
 else
     case `uname` in
         Linux)
