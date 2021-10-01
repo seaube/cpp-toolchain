@@ -4,7 +4,7 @@ stages:
 
 .build:
     stage: build
-    timeout: 4h
+    timeout: 6h
     artifacts:
         paths: ["dist-$CI_JOB_NAME"]
     script:
