@@ -1,7 +1,7 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = std:
 std:import { Array, Bool, Iter, Path, String } = std:
 
-version = 3.0.0rc0
+version = 3.0.0rc1
 
 wipal = ergo wipal 0.8.1
 
@@ -11,7 +11,7 @@ remove-top-dir = fn :dir -> {
     :only
 }
 
-llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0-rc4/llvm-project-13.0.0rc4.src.tar.xz"
+llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/llvm-project-13.0.0.src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
 llvm-src = cache {
     dir = remove-top-dir <| task "downloading LLVM" <| net:unarchive :llvm-url

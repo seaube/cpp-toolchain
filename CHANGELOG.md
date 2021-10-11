@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Updated to LLVM 13 and libstdc++ 11
 - Changed macOS toolchains to link libc++ statically, allowing newer C++ standards than supported by the system
+- Use LLD for linking on macOS
 ### Fixed
 - Fixed broken `c++filt` tool
 - Fixed unused argument warnings on macOS
