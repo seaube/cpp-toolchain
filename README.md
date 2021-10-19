@@ -21,9 +21,9 @@ Tools are provided that target both the host platform (e.g. `c++`) and particula
 
 | Platform | Compiler | Linker | C++ standard library |
 |----------|----------|--------|----------------------|
-| Linux    | Clang 12 | LLD 12 | libstdc++ 10.1²      |
-| Apple¹   | Clang 12 | ld64   | libc++ 12            |
+| Linux    | Clang 13 | LLD 13 | libstdc++ 11.2²      |
+| Apple¹   | Clang 13 | ld64   | libc++ 13²           |
 
 ¹ the toolchain also requires an [Xcode](https://developer.apple.com/xcode/) installation
 
-² libstdc++ is statically linked into binaries, since it is not backward-compatible with older versions
+² libstdc++ and libc++ are statically linked into binaries to maximize compatibility with older operating systems
