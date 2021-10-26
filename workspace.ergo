@@ -207,6 +207,9 @@ prepare-toolchain = fn :dir :targets -> {
 # Merge a directory into another directory
 merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rf {}/* {}" :src :dst) |>:complete)
 
+# Copy a directory
+copy-dir = fn :source :dest -> { exec (env:path-search cp) -av :source :dest |>:complete }
+
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn :toolchain -> {
     [^_, :basename] = Path:split :toolchain
@@ -323,9 +326,8 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
     build
     prepare-toolchain
     merge-dir
+    copy-dir
     target-triple
-
-    copy-dir = fn :source :dest -> { exec (env:path-search cp) -avr :source :dest |>:complete }
 
     command = fn :cmd ^:args -> match :cmd [
         build -> {
