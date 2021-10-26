@@ -1,5 +1,6 @@
 std:import { cache, env, exec, fs, net, source, task } = std:
 std:import { Array, Iter, Map, Path, String } = std:
+std:import { copy-dir } = workspace:
 
 targets = [
     x86_64-unknown-linux-gnu
@@ -91,7 +92,7 @@ gcc-with-deps = {
     build = fn :target -> cache {
         out = Path:new:
         toolchain = {
-            fs:copy gcc::target :out
+            copy-dir gcc::target :out
             workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
         }
@@ -196,8 +197,8 @@ map-seq = fn (Map :m) -> {
         dir = Path:new:
         fs:create-dir <| Path:join :dir libexec wut gcc
         fs:create-dir <| Path:join :dir bin
-        per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
-        fs:copy :llvm (Path:join :dir libexec wut llvm)
+        per-target (fn :target -> copy-dir gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
+        copy-dir :llvm (Path:join :dir libexec wut llvm)
         fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets

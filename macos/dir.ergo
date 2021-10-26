@@ -1,5 +1,5 @@
 std:import { fs, match, source, Path, String } = std:
-std:import { merge-dir } = workspace:
+std:import { merge-dir, copy-dir } = workspace:
 
 targets = [
     arm64-apple-macos
@@ -110,7 +110,7 @@ tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
         dir = Path:new:
         fs:create-dir <| Path:join :dir libexec wut
         fs:create-dir <| Path:join :dir bin
-        fs:copy :llvm (Path:join :dir libexec wut llvm)
+        copy-dir :llvm (Path:join :dir libexec wut llvm)
         fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         workspace:prepare-toolchain :dir :targets
         per-target <| fn :target -> {
