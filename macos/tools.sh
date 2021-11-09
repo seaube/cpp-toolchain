@@ -118,7 +118,8 @@ compiler_args() {
     FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib++ -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
     if [ "$LINK" = true ]; then
         LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib ${RUNTIME}/lib/libc++.a ${RUNTIME}/lib/libc++abi.a ${RUNTIME}/lib/libunwind.a $FLAGS"
+        CLANG_RT=${BINDIR}/../libexec/wut/llvm/lib/clang/13.0.0/lib/darwin/libclang_rt.osx.a
+        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib ${RUNTIME}/lib/libc++.a ${RUNTIME}/lib/libc++abi.a ${RUNTIME}/lib/libunwind.a $CLANG_RT $FLAGS"
     fi
 
     echo "$FLAGS"

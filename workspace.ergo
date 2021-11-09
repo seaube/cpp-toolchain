@@ -175,7 +175,7 @@ prepare-toolchain = fn :dir :targets -> {
 
     # Delete unusued llvm binaries
     exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
-    exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-name *.a ! -name clang -exec rm -f {} +") |>:complete
+    exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-maxdepth 1 -name *.a -exec rm -f {} +") |>:complete
 
     # Delete headers, other than libc++ if present
     exec find (Path:join :dir libexec wut llvm include) ^(String:split " " "! -name c++ -mindepth 1 -maxdepth 1 -exec rm -rf {} +") |>:complete
