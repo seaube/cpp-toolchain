@@ -19,8 +19,8 @@ default_target() {
         aarch64-unknown-linux-gnu-*)
             echo aarch64-unknown-linux-gnu
             ;;
-        arm-unknown-linux-gnueabihf-*)
-            echo arm-unknown-linux-gnueabihf
+        armv7-unknown-linux-gnueabihf-*)
+            echo armv7-unknown-linux-gnueabihf
             ;;
         *)
             # Use the host if unspecified
