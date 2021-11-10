@@ -75,6 +75,12 @@ compiler_args() {
         shift 1
     done
 
+    # Handle target-specific flags
+    if [ $TARGET == armv7-unknown-linux-gnu ]; then
+        # put these flags first, so they can be overriden
+        FLAGS="-march=armv7-a -mfpu=vfpv3-d16 $FLAGS"
+    fi
+
     echo "--target=$TARGET --sysroot=$(sysroot $TARGET) -gcc-toolchain $BINDIR/../libexec/wut/gcc/$TARGET $LINK_FLAGS $FLAGS"
 }
 

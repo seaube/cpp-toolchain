@@ -11,8 +11,10 @@ The following targets and versions are supported:
 
 | Platform    | Minimum supported version | Targets |
 | ----------- | ------------------------- |---------|
-| Linux       | Linux 3.10.108<br>glibc 2.17 | `aarch64-unknown-linux-gnu`<br>`arm-unknown-linux-gnueabihf`<br>`x86_64-unknown-linux-gnu`|
+| Linux       | Linux 3.10.108<br>glibc 2.17 | `aarch64-unknown-linux-gnu`<br>`armv7-unknown-linux-gnueabihf`¹<br>`x86_64-unknown-linux-gnu`|
 | Apple       | macOS 10.13 (x86-64)<br> macOS 11.0 (arm64)<br>iOS 12.5 | `arm64-apple-macos`<br>`arm64e-apple-macos`<br>`x86_64-apple-macos`<br>`arm64-apple-ios`<br>`arm64e-apple-ios`
+
+¹ the `armv7-unknown-linux-gnueabihf` target is for ARMv7-A with NEON. If necessary, NEON can be disabled with `-mfpu=vfpv3-d16`.
 
 ## Tools
 
