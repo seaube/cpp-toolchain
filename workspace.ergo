@@ -1,9 +1,9 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = std:
 std:import { Array, Bool, Iter, Path, String } = std:
 
-version = 3.1.0
+version = 3.1.1
 
-wipal = ergo wipal 0.8.1
+wipal = ergo wipal 0.11.2
 
 # Step into the only directory in another directory
 remove-top-dir = fn :dir -> {
