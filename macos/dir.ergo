@@ -1,5 +1,5 @@
-std:import { fs, match, source, Path, String } = std:
-std:import { merge-dir } = workspace:
+std:import { fs, match, source, Path, String } = :std
+std:import { merge-dir } = :workspace
 
 targets = [
     arm64-apple-macos
