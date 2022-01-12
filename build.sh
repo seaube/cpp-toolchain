@@ -20,8 +20,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ERGO_LINUX=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.0-linux.tar.gz
-ERGO_MACOS=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.0-mac.tar.gz
+ERGO_LINUX=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.3-linux.tar.gz
+ERGO_MACOS=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.3-mac.tar.gz
 
 
 case `uname` in
@@ -36,8 +36,7 @@ if [ "$USE_DOCKER" -eq 1 ]; then
         curl -L $ERGO_LINUX -o docker/ergo.tar.gz
     fi
 
-    cp ~/.config/wipal-artifactory-key docker
-    cp ~/.config/wipal-gitlab-key docker
+    cp ~/.config/ergo/http/defaults.ergo docker
     docker build --tag wipal-toolchain-env --build-arg CONFIG_UID=`id -u` --build-arg CONFIG_GID=`id -g` docker
 
     if [ "$CT_NG_CONFIG" -eq 1 ]; then
@@ -45,7 +44,7 @@ if [ "$USE_DOCKER" -eq 1 ]; then
         COMMAND='$(ergo ct-ng) menuconfig $@'
     else
         FLAGS=""
-        COMMAND='ergo --backtrace --log info build'
+        COMMAND='ergo --log info build'
     fi
     docker run $FLAGS --rm --net=host -v `pwd`:/host -w /host --env XDG_CACHE_HOME=/host/.cache wipal-toolchain-env bash -c "$COMMAND"
 else
@@ -62,5 +61,5 @@ else
         curl -L $ERGO_URL -o ergo/ergo.tar.gz
         tar -xf ergo/ergo.tar.gz -C ergo --strip-components 1
     fi
-    ergo/bin/ergo --backtrace --log info build
+    ergo/bin/ergo --log info build
 fi

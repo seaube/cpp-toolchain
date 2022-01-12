@@ -12,8 +12,7 @@ RUN cd /usr && tar -xf /ergo.tar.gz --strip-components 1
 
 RUN groupadd -g $CONFIG_GID default
 RUN useradd -ms /bin/bash --uid $CONFIG_UID --gid $CONFIG_GID default
-COPY wipal-artifactory-key /home/default/.config/wipal-artifactory-key
-COPY wipal-gitlab-key /home/default/.config/wipal-gitlab-key
+COPY defaults.ergo /home/default/.config/ergo/http/defaults.ergo
 
 COPY lgs-gitlab.crt /usr/local/share/ca-certificates/
 COPY lgs-rootca.crt /usr/local/share/ca-certificates/

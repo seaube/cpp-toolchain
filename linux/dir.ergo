@@ -1,6 +1,5 @@
-std:import { cache, env, exec, fs, net, source, task } = std:
-std:import { Array, Iter, Map, Path, String } = std:
-std:import { copy-dir } = workspace:
+std:import { cache, env, exec, fs, net, source, task } = :std
+std:import { Array, Iter, Map, Path, String } = :std
 
 targets = [
     x86_64-unknown-linux-gnu
@@ -8,13 +7,13 @@ targets = [
     armv7-unknown-linux-gnueabihf
 ]
 
-per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets
+per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets
 
 ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/25f6dae85e0fa95fdb16dcc84d8e033626319610.tar.gz"
-ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive :ct-ng-url
+ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive ^enter :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
-zlib-src = cache <| task "downloading zlib" <| net:unarchive :zlib-url
+zlib-src = cache <| task "downloading zlib" <| net:unarchive ^enter :zlib-url
 
 # CMake flags for using a particular GCC toolchain
 use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
@@ -34,11 +33,11 @@ use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
 ct-ng = cache {
     args = {
         env = { PATH = env:get PATH }
-        pwd = workspace:remove-top-dir :ct-ng-src
+        pwd = :ct-ng-src
     }
     out = {
-        build-dir = Path:new:
-        install-dir = Path:new:
+        build-dir = Path:new ()
+        install-dir = Path:new ()
         fs:create-dir :build-dir
         fs:create-dir :install-dir
 
@@ -58,7 +57,7 @@ gcc = {
     build = fn :target -> cache {
         config = String:format "{}.config" :target
         config-source = !fs:track <| Path:join (source:dir ()) :config
-        out = Path:new:
+        out = Path:new ()
         args = {
             env = { PATH = env:get PATH }
             pwd = :out
@@ -78,7 +77,7 @@ gcc = {
 zlib = {
     build = fn :target -> {
         build-args = {
-            src = workspace:remove-top-dir :zlib-src
+            src = :zlib-src
             extra-flags = use-gcc-cmake-flags gcc::target :target
             message = String:format "building zlib ({})" :target
         }
@@ -90,9 +89,9 @@ zlib = {
 # Assemble bootstrap toolchain containing zlib
 gcc-with-deps = {
     build = fn :target -> cache {
-        out = Path:new:
+        out = Path:new ()
         toolchain = {
-            copy-dir gcc::target :out
+            fs:copy gcc::target :out
             workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
         }
@@ -194,11 +193,11 @@ map-seq = fn (Map :m) -> {
 # Assemble the toolchain
 {
     toolchain = {
-        dir = Path:new:
+        dir = Path:new ()
         fs:create-dir <| Path:join :dir libexec wut gcc
         fs:create-dir <| Path:join :dir bin
-        per-target (fn :target -> copy-dir gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
-        copy-dir :llvm (Path:join :dir libexec wut llvm)
+        per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
+        fs:copy :llvm (Path:join :dir libexec wut llvm)
         fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets

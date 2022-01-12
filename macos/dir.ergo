@@ -1,5 +1,5 @@
 std:import { fs, match, source, Path, String } = std:
-std:import { merge-dir, copy-dir } = workspace:
+std:import { merge-dir } = workspace:
 
 targets = [
     arm64-apple-macos
@@ -9,7 +9,7 @@ targets = [
     arm64e-apple-ios
 ]
 
-per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry: :i (f :i)) :targets)
+per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets)
 
 min-supported-version = fn :target -> match (workspace:target-triple:os :target) [
     ios -> 12.5
@@ -100,10 +100,10 @@ tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
 # Assemble the toolchain
 {
     toolchain = {
-        dir = Path:new:
+        dir = Path:new ()
         fs:create-dir <| Path:join :dir libexec wut
         fs:create-dir <| Path:join :dir bin
-        copy-dir :llvm (Path:join :dir libexec wut llvm)
+        fs:copy :llvm (Path:join :dir libexec wut llvm)
         fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         workspace:prepare-toolchain :dir :targets
         per-target <| fn :target -> {
