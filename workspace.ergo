@@ -152,6 +152,7 @@ prepare-toolchain = fn :dir :targets -> {
         addr2line 
         strings
         readelf
+        llvm-symbolizer
         ^match target-vendor [
             apple -> [install_name_tool, lipo]
             _ -> []
