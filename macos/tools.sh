@@ -115,10 +115,10 @@ compiler_args() {
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
     RUNTIME=$(runtime ${TARGET})
-    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -nostdlib++ -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
+    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
     if [ "$LINK" = true ]; then
         LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib ${RUNTIME}/lib/libc++.a $FLAGS"
+        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib $FLAGS"
     fi
 
     echo "$FLAGS"
