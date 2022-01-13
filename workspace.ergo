@@ -11,7 +11,7 @@ llvm-src = cache {
     dir = task "downloading LLVM" <| net:unarchive ^enter :llvm-url
     # sequentially apply patches
     ^Array:from <| Iter:map (fn :patch -> {
-        task (String:format "applying LLVM patch {}" <| Path:name :patch) <| exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete
+        task "applying LLVM patch ^(Path:name :patch)" <| exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete
     }) :llvm-patches
     :dir
 }
@@ -24,10 +24,9 @@ build = {
             env = { PATH = env:get PATH }
             pwd = :build
         }
-        install-prefix = String:format "-DCMAKE_INSTALL_PREFIX={}" :install
         out = {
             fs:create-dir :build
-            exec ^:args cmake build-args:src ^build-args:extra-flags :install-prefix "-DCMAKE_BUILD_TYPE=Release" |>:complete
+            exec ^:args cmake build-args:src ^build-args:extra-flags "-DCMAKE_INSTALL_PREFIX=^(:install)" "-DCMAKE_BUILD_TYPE=Release" |>:complete
             exec ^:args cmake --build :build -- -j4 |>:complete
             exec ^:args cmake -P cmake_install.cmake |>:complete
             :install
@@ -98,33 +97,13 @@ use-gcc-cmake-flags = fn :toolchain-dir :target -> {
 
 # Make toolchain binary links to the appropriate implementation (either script or binary)
 prepare-toolchain = fn :dir :targets -> {
-    binaries-to-keep = [
+    extra-keep-tools = [
         clang
         clang++
         clang-13
         ld.lld
         ld64.lld.darwinnew
         lld
-        ar, llvm-ar
-        ranlib, llvm-ranlib
-        as, llvm-as 
-        size, llvm-size
-        nm, llvm-nm
-        strip, llvm-strip
-        objcopy, llvm-objcopy 
-        objdump, llvm-objdump 
-        c++filt, llvm-cxxfilt 
-        addr2line, llvm-addr2line 
-        symbolizer, llvm-symbolizer 
-        strings, llvm-strings
-        readelf, llvm-readelf 
-        readobj, llvm-readobj
-        install_name_tool, llvm-install-name-tool
-        lipo, llvm-lipo
-        clang-format 
-        scan-build
-        lldb
-        lldb-server
     ]
 
     prefixed-tools = [
@@ -135,56 +114,55 @@ prepare-toolchain = fn :dir :targets -> {
         ld
     ]
 
-    non-prefixed-tools = [
-        lldb
-        lldb-server
-        clang-format 
-        scan-build
-        ar
-        as 
-        ranlib
-        size
-        nm
-        strip
-        objcopy
-        objdump 
-        c++filt 
-        addr2line 
-        strings
-        readelf
+    link-tools = [
+        clangd, clang-include-fixer, clang-tidy
+        lldb, lldb-argdumper, lldb-instr, lldb-server, lldb-vscode
+        clang-format, git-clang-format
+        analyze-build, intercept-build, scan-build, scan-build-py, scan-view
+        ar, llvm-ar
+        ranlib, llvm-ranlib
+        size, llvm-size
+        nm, llvm-nm
+        strip, llvm-strip
+        objcopy, llvm-objcopy
+        objdump, llvm-objdump
+        c++filt, llvm-cxxfilt
+        addr2line, llvm-addr2line
+        strings, llvm-strings
         llvm-symbolizer
-        ^match target-vendor [
-            apple -> [install_name_tool, lipo]
-            _ -> []
-        ]
+
+        # Linux tooling, but may be useful on macOS
+        readelf, llvm-readelf, llvm-readobj
+
+        # Apple tooling, but may be useful on Linux
+        install_name_tool, llvm-install-name-tool
+        lipo, llvm-lipo
+        libtool, llvm-libtool-darwin,
+        llvm-otool
     ]
 
     link = fn :source :target -> (exec ln -sf :source :target |>:complete)
 
-    make-script-tools = fn :target -> {
-        prefix = fn :file -> Path:join :dir bin (String:format "{}-{}" :target :file)
-        Iter:map (fn :file -> link "../libexec/wut/tools.sh" (prefix :file)) :prefixed-tools
-    }
+    # Link tools
+    Iter:map (fn :file -> link (Path:join .. libexec wut llvm bin :file) (Path:join :dir bin :file)) :link-tools
 
-    keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] :binaries-to-keep
+    # Copy prefixed tools
+    Iter:map (fn :file -> {
+        tools.sh = Path:join (std:source:dir ()) (target-triple:os target-triple:host) tools.sh
+        fs:copy :tools.sh <| Path:join :dir bin :file
+        Iter:map (fn :target -> fs:copy :tools.sh <| Path:join :dir bin "^(:target)-^(:file)") :targets
+    }) :prefixed-tools
 
     # Delete unusued llvm binaries
+    keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] [^:link-tools, ^:extra-keep-tools]
     exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
     exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-maxdepth 1 -name *.a -exec rm -f {} +") |>:complete
 
     # Delete headers, other than libc++ if present
     exec find (Path:join :dir libexec wut llvm include) ^(String:split " " "! -name c++ -mindepth 1 -maxdepth 1 -exec rm -rf {} +") |>:complete
 
-    # Link `as` because LLVM doesn't, for some reason
-    link llvm-as <| Path:join :dir libexec wut llvm bin as
-
-    # Link the various tools into the bin directory
-    Iter:map :make-script-tools :targets
-    Iter:map (fn :file -> link (String:format "{}-{}" target-triple:host :file) (Path:join :dir bin :file)) :prefixed-tools
-    Iter:map (fn :file -> link (Path:join .. libexec wut llvm bin :file) (Path:join :dir bin :file)) :non-prefixed-tools
-
     # Make a file in the toolchain that contains the host triple
-    exec sh -c (String:format "echo {} > {}" target-triple:host (Path:join :dir libexec wut host)) |>:complete
+    exec sh -c "echo ^(target-triple:host) > ^(Path:join :dir libexec wut host)" |>:complete
 
     # Create package info
     {
@@ -200,7 +178,7 @@ prepare-toolchain = fn :dir :targets -> {
 }
 
 # Merge a directory into another directory
-merge-dir = fn :src :dst -> (exec sh -c (String:format "cp -rf {}/* {}" :src :dst) |>:complete)
+merge-dir = fn :src :dst -> (exec sh -c "cp -rf ^(:src)/* ^(:dst)" |>:complete)
 
 # Archives a toolchain and installs it into the working directory
 install-toolchain = fn :toolchain -> {
@@ -223,19 +201,19 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
     test-target = fn (optional <| String :target) (Bool :use-clang-executable) -> {
         prefix-tool = fn (String :tool) -> fn ^:args -> {
             kwargs = {
-                env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
+                env = { PATH = "^(Path:join :toolchain bin):^(env:get PATH)" }
                 pwd = Path:join (source:dir ()) test
             }
             prefix = match :target [
                 :unset -> ""
-                _ -> String:format "{}-" :target
+                _ -> "^(:target)-"
             ]
-            tool = String:format "{}{}" :prefix :tool
+            tool = "^(:prefix)^(:tool)"
             exec ^:kwargs :tool ^:args |>:complete
         }
         tool = fn :tool -> fn ^:args -> {
             kwargs = {
-                env = { PATH = String:format "{}:{}" (Path:join :toolchain bin) (env:get PATH) }
+                env = { PATH = "^(Path:join :toolchain bin):^(env:get PATH)" }
                 pwd = Path:join (source:dir ()) test
             }
             exec ^:kwargs :tool ^:args |>:complete

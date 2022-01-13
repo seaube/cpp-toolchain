@@ -87,15 +87,13 @@ llvm-runtime = {
             ^:common-flags
             ^:cross-compile-flags :target
         ]
-        workspace:build:llvm (String:format "building LLVM runtime ({})" :target) [libcxx, libcxxabi, libunwind] :flags
+        workspace:build:llvm "building LLVM runtime (^(:target))" [libcxx, libcxxabi, libunwind] :flags
     }
     per-target :build
 }
 
 # Build OpenMP
-openmp = per-target <| fn :target -> workspace:build:openmp (String:format "building OpenMP ({})" :target) <| :cross-compile-flags :target
-
-tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
+openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(:target))" <| :cross-compile-flags :target
 
 # Assemble the toolchain
 {
@@ -104,7 +102,6 @@ tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
         fs:create-dir <| Path:join :dir libexec wut
         fs:create-dir <| Path:join :dir bin
         fs:copy :llvm (Path:join :dir libexec wut llvm)
-        fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         workspace:prepare-toolchain :dir :targets
         per-target <| fn :target -> {
             dir = Path:join :dir libexec wut runtime :target

@@ -17,7 +17,7 @@ zlib-src = cache <| task "downloading zlib" <| net:unarchive ^enter :zlib-url
 
 # CMake flags for using a particular GCC toolchain
 use-gcc-cmake-flags = fn (Path :toolchain-dir) (String :target) -> {
-    gcc-tool = fn :tool -> Path:join :toolchain-dir bin <| String:format "{}-{}" :target :tool
+    gcc-tool = fn :tool -> Path:join :toolchain-dir bin "^(:target)-^(:tool)"
     [
         String:format "-DCMAKE_C_COMPILER={}" <| gcc-tool cc
         String:format "-DCMAKE_CXX_COMPILER={}" <| gcc-tool c++
@@ -44,7 +44,7 @@ ct-ng = cache {
         # Run this, since we aren't using a delivered version of crostool-NG
         exec ^:args ./bootstrap |>:complete
 
-        exec ^:args sh ./configure (String:format "--prefix={}" :install-dir) |>:complete
+        exec ^:args sh ./configure "--prefix=^(:install-dir)" |>:complete
         exec ^:args make |>:complete
         exec ^:args make install |>:complete
         Path:join :install-dir bin ct-ng
@@ -55,7 +55,7 @@ ct-ng = cache {
 # Build bootstrap GCC with crosstool-NG
 gcc = {
     build = fn :target -> cache {
-        config = String:format "{}.config" :target
+        config = "^(:target).config"
         config-source = !fs:track <| Path:join (source:dir ()) :config
         out = Path:new ()
         args = {
@@ -68,7 +68,7 @@ gcc = {
             exec ^:args :ct-ng build |>:complete
             Path:join :out toolchain
         }
-        task (String:format "building gcc ({})" :target) :toolchain
+        task "building gcc (^(:target))" :toolchain
     }
     per-target :build
 }
@@ -79,7 +79,7 @@ zlib = {
         build-args = {
             src = :zlib-src
             extra-flags = use-gcc-cmake-flags gcc::target :target
-            message = String:format "building zlib ({})" :target
+            message = "building zlib (^(:target))"
         }
         workspace:build:cmake-project :build-args
     }
@@ -95,7 +95,7 @@ gcc-with-deps = {
             workspace:merge-dir zlib::target <| Path:join :out :target sysroot usr
             :out
         }
-        task (String:format "assembling bootstrap toolchain ({})" :target) :toolchain
+        task "assembling bootstrap toolchain (^(:target))" :toolchain
     }
     per-target :build
 }
@@ -103,7 +103,7 @@ gcc-with-deps = {
 # Build LLVM with bootstrap toolchain
 llvm = {
     String :host = workspace:target-triple:host
-    workspace:build:llvm "building LLVM" [clang, lld, lldb] [
+    workspace:build:llvm "building LLVM" [clang, lld, lldb, clang-tools-extra] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
         "-DLLVM_INCLUDE_DOCS=OFF"
@@ -124,7 +124,7 @@ llvm = {
 # Build compiler-rt
 compiler-rt = {
     build = fn :target -> cache {
-        workspace:build:compiler-rt (String:format "building compiler-rt ({})" :target) [
+        workspace:build:compiler-rt "building compiler-rt (^(:target))" [
             # We are not using LLVM's builtins
             "-DCOMPILER_RT_BUILD_BUILTINS=OFF"
 
@@ -163,7 +163,7 @@ compiler-rt = {
 # Build OpenMP
 openmp = {
     build = fn :target -> cache {
-        workspace:build:openmp (String:format "building openmp ({})" :target) [
+        workspace:build:openmp "building openmp (^(:target))" [
             String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
             "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
             ^(use-gcc-cmake-flags gcc-with-deps::target :target)
@@ -183,8 +183,6 @@ delete-unused-gcc-components = fn :dir -> {
     per-target :delete-target
 }
 
-tools-sh = !fs:track <| Path:join (source:dir ()) tools.sh
-
 map-seq = fn (Map :m) -> {
     ^Array:from <| Iter:map (fn :e -> e:value) :m
     :m
@@ -198,7 +196,6 @@ map-seq = fn (Map :m) -> {
         fs:create-dir <| Path:join :dir bin
         per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
         fs:copy :llvm (Path:join :dir libexec wut llvm)
-        fs:copy :tools-sh (Path:join :dir libexec wut tools.sh)
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets
 
