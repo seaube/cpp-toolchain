@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- macOS has been reverted to dynamic linking libc++, which avoids some bugs in static libc++
+### Added
+- Added some extra tools such as clangd and clang-tidy
+- Added some llvm-prefixed tools
+### Fixed
+- Fixed incompatibility with CodeChecker due to symlinks
 
 ## [3.1.2] - 2021-12-02
 ### Fixed
