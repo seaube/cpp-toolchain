@@ -8,7 +8,7 @@ stages:
     artifacts:
         paths: ["dist-$CI_JOB_NAME"]
     script:
-        - mkdir -p "$HOME/.config/ergo/http/defaults.ergo"
+        - mkdir -p "$HOME/.config/ergo/http"
         - echo "lgs-gitlab.redacted.invalid = { bearer-auth = $GITLAB_READ_API_TOKEN }, ws-apps.redacted.invalid/artifactory = { basic-auth = \"$ARTIFACTORY_USER:$ARTIFACTORY_KEY\" }" > "$HOME/.config/ergo/http/defaults.ergo"
         - ./build.sh
         - mv dist "dist-$CI_JOB_NAME"
