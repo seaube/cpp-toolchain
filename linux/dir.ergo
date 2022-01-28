@@ -103,7 +103,7 @@ gcc-with-deps = {
 # Build LLVM with bootstrap toolchain
 llvm = {
     String :host = workspace:target-triple:host
-    workspace:build:llvm "building LLVM" [clang, openmp, lld, lldb, clang-tools-extra] [
+    workspace:build:llvm "building LLVM" [clang, lld, lldb, clang-tools-extra] [
         ^(use-gcc-cmake-flags gcc-with-deps::host :host)
         "-DLLVM_STATIC_LINK_CXX_STDLIB=ON"
         "-DLLVM_INCLUDE_DOCS=OFF"
@@ -160,6 +160,18 @@ compiler-rt = {
     per-target :build
 }
 
+# Build OpenMP
+openmp = {
+    build = fn :target -> cache {
+        workspace:build:openmp "building openmp (^(:target))" [
+            String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
+            "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
+            ^(use-gcc-cmake-flags gcc-with-deps::target :target)
+        ]
+    }
+    per-target :build
+}
+
 # Delete remnants of GCC build
 delete-unused-gcc-components = fn :dir -> {
     delete-target = fn :target -> {
@@ -190,6 +202,7 @@ map-seq = fn (Map :m) -> {
         # Write sequentially to avoid a race condition in `cp`
         map-seq <| per-target <| fn :target -> {
             workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 13.0.0
+            workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
         }
         :dir
     }
