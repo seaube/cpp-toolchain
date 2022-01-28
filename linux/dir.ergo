@@ -166,6 +166,8 @@ openmp = {
         workspace:build:openmp "building openmp (^(:target))" [
             String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
             "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
+            "-DLIBOMP_ENABLE_SHARED=OFF"
+            "-DLIBOMP_CXXFLAGS=-fPIC -fvisibility=hidden -fvisibility-inlines-hidden"
             ^(use-gcc-cmake-flags gcc-with-deps::target :target)
         ]
     }
