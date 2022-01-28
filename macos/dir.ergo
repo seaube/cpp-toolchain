@@ -95,7 +95,11 @@ llvm-runtime = {
 }
 
 # Build OpenMP
-openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(:target))" <| :cross-compile-flags :target
+openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(:target))" <| [
+    ^:cross-compile-flags :target
+    "-DLIBOMP_ENABLE_SHARED=OFF"
+    "-DLIBOMP_CXXFLAGS=-fPIC -fvisibility=hidden -fvisibility-inlines-hidden"
+]
 
 # Assemble the toolchain
 {
