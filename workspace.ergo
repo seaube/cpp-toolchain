@@ -1,7 +1,7 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Path, String } = :std
 
-version = 3.2.4
+version = 3.2.5
 
 wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.14.4"
 
@@ -41,6 +41,7 @@ build = {
             extra-flags = [
                 ^:flags
                 :projects
+                "-DCLANG_REPOSITORY_STRING=wipal-universal-toolchain"
                 "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64"
                 "-DLLVM_ENABLE_ZLIB=FORCE_ON"
                 "-DLLVM_INSTALL_BINUTILS_SYMLINKS=ON"
