@@ -81,13 +81,11 @@ compiler_args() {
 
     # Handle flags
     LINK=true
-    FLAGS=""
     while(($#)) ; do
         case $1 in
             -c|-S|-E|-M|-MM)
                 # We aren't linking, so don't use any link flags
                 LINK=false
-                FLAGS="$FLAGS $1"
                 ;;
             --target=*)
                 TARGET=${1#--target=}
@@ -97,16 +95,15 @@ compiler_args() {
                 shift 1
                 ;;
             -fuse-ld*)
-                unsupported $ARG
+                unsupported $1
                 ;;
             --sysroot|--sysroot=*)
-                unsupported $ARG
+                unsupported $1
                 ;;
             -gcc-toolchain)
-                unsupported $ARG
+                unsupported $1
                 ;;
             *)
-                FLAGS="$FLAGS $1"
                 ;;
         esac
         shift 1
@@ -115,13 +112,14 @@ compiler_args() {
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
     RUNTIME=$(runtime ${TARGET})
-    FLAGS="--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $FLAGS"
+
+    LINK_FLAGS=""
     if [ "$LINK" = true ]; then
         LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        FLAGS="-B${LD_PATH} -L${RUNTIME}/lib $FLAGS"
+        LINK_FLAGS="-B${LD_PATH} -L${RUNTIME}/lib $FLAGS"
     fi
 
-    echo "$FLAGS"
+    echo "--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
 }
 
 linker_args() {
@@ -153,18 +151,21 @@ linker_args() {
     done
     SDK_NAME=$(sdk_name $TARGET)
     RUNTIME=$(runtime ${TARGET})
-    echo "-syslibroot $(sysroot $SDK_NAME) -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0 $@"
+    echo "-syslibroot $(sysroot $SDK_NAME) -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0"
 }
 
 case $TOOL in
     c++|clang++|*-c++|*-clang++)
-        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args "$@") "$@"
         ;;
     cc|clang|*-cc|*-clang)
-        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args "$@") "$@"
         ;;
     ld|*-ld)
-        xcrun ld $(linker_args $@)
+        xcrun ld $(linker_args "$@") "$@"
+        ;;
+    clang-tidy|*-clang-tidy)
+        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $(tidy_args "$@") "$@"
         ;;
     *)
         echo "Invalid tool" >&2

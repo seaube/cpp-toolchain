@@ -33,6 +33,10 @@ sysroot() {
     echo "$BINDIR/../libexec/wut/gcc/$1/$1/sysroot"
 }
 
+gcc() {
+    echo "$BINDIR/../libexec/wut/gcc/$1"
+}
+
 compiler_args() {
     # set language-specific flags
     case $1 in
@@ -44,13 +48,11 @@ compiler_args() {
     TARGET=$(default_target)
 
     # Handle flags
-    FLAGS=""
     while(($#)) ; do
         case $1 in
             -c|-S|-E|-M|-MM)
                 # We aren't linking, so don't use any link flags
                 LINK_FLAGS=""
-                FLAGS="$FLAGS $1"
                 ;;
             --target=*)
                 TARGET=${1#--target=}
@@ -60,28 +62,28 @@ compiler_args() {
                 shift 1
                 ;;
             -fuse-ld*)
-                unsupported $ARG
+                unsupported $1
                 ;;
             --sysroot|--sysroot=*)
-                unsupported $ARG
+                unsupported $1
                 ;;
             -gcc-toolchain)
-                unsupported $ARG
+                unsupported $1
                 ;;
             *)
-                FLAGS="$FLAGS $1"
                 ;;
         esac
         shift 1
     done
 
     # Handle target-specific flags
+    TARGET_FLAGS=""
     if [ $TARGET == armv7-unknown-linux-gnu ]; then
         # put these flags first, so they can be overriden
-        FLAGS="-march=armv7-a -mfpu=vfpv3-d16 $FLAGS"
+        TARGET_FLAGS="-march=armv7-a -mfpu=vfpv3-d16"
     fi
 
-    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) -gcc-toolchain $BINDIR/../libexec/wut/gcc/$TARGET $LINK_FLAGS $FLAGS"
+    echo "--sysroot=$(sysroot $TARGET) -gcc-toolchain $(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {
@@ -96,51 +98,55 @@ linker_args() {
         esac
     done
     TARGET=$(default_target)
-    echo "--sysroot=$(sysroot $TARGET) $@"
+    echo "--sysroot=$(sysroot $TARGET)"
+}
+
+tidy_args() {
+    TARGET=$(default_target)
+
+    # clang-tidy arguments
+    while (($#)); do
+        case $1 in
+            --)
+                shift 1
+                break
+                ;;
+            *)
+                ;;
+        esac
+        shift 1
+    done
+
+    # compiler arguments
+    while (($#)); do
+        case $1 in
+            --target=*)
+                TARGET=${1#--target=}
+                ;;
+            -target)
+                TARGET=$2
+                shift 1
+                ;;
+            *)
+                ;;
+        esac
+        shift 1
+    done
+    echo "--extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=-gcc-toolchain --extra-arg-before=$(gcc $TARGET)"
 }
 
 case $TOOL in
     c++|clang++|*-c++|*-clang++)
-        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args c++ $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args c++ "$@") "$@"
         ;;
     cc|clang|*-cc|*-clang)
-        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args c $@)
+        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args c "$@") "$@"
         ;;
     ld|*-ld)
-        $BINDIR/../libexec/wut/llvm/bin/ld.lld $(linker_args $@)
+        $BINDIR/../libexec/wut/llvm/bin/ld.lld $(linker_args "$@") "$@"
         ;;
-    ar)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-ar $@
-        ;;
-    ranlib)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-ar s $@
-        ;;
-    strip)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-strip $@
-        ;;
-    nm)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-nm $@
-        ;;
-    objcopy)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-objcopy $@
-        ;;
-    objdump)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-objdump $@
-        ;;
-    c++filt)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-cxxfilt $@
-        ;;
-    addr2line)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-addr2line $@
-        ;;
-    strings)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-strings $@
-        ;;
-    readelf)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
-        ;;
-    size)
-        $BINDIR/../libexec/wut/llvm/bin/llvm-readelf $@
+    clang-tidy|*-clang-tidy)
+        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $(tidy_args "$@") "$@"
         ;;
     *)
         echo "Invalid tool" >&2
