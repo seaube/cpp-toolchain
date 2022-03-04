@@ -18,10 +18,25 @@ llvm-src = cache {
 
 build = {
     cmake-project = fn :build-args -> cache {
+        # This is a bit of a hack.
+        # On linux, we're usually running through docker, so just use the system CMake etc.
+        # On macOS, pull CMake from conda.
+        #
+        # I would use conda everywhere, except LLDB requires liblzma, which would need to be added to the sysroot.
+        cmake-path = match env:os [
+            macos -> {
+                conda-env = wipal:conda:make-env {}
+                conda-env:run install cmake make
+                "^(Path:join conda-env:path bin):"
+            }
+            _ -> ""
+        ]
+
+        # Invoke CMake
         build = Path:new ()
         install = Path:new ()
         args = {
-            env = { PATH = env:get PATH }
+            env = { PATH = "^(cmake-path)^(env:get PATH)" }
             pwd = :build
         }
         out = {
@@ -295,6 +310,7 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
 }
 
 {
+    wipal
     build
     prepare-toolchain
     merge-dir
