@@ -154,6 +154,45 @@ linker_args() {
     echo "-syslibroot $(sysroot $SDK_NAME) -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0"
 }
 
+tidy_args() {
+    TARGET=$(default_target)
+
+    # clang-tidy arguments
+    while (($#)); do
+        case $1 in
+            --)
+                shift 1
+                break
+                ;;
+            *)
+                ;;
+        esac
+        shift 1
+    done
+
+    # compiler arguments
+    while (($#)); do
+        case $1 in
+            --target=*)
+                TARGET=${1#--target=}
+                ;;
+            -target)
+                TARGET=$2
+                shift 1
+                ;;
+            *)
+                ;;
+        esac
+        shift 1
+    done
+
+    SDK_NAME=$(sdk_name $TARGET)
+    MIN_VERSION=$(min_version $TARGET)
+    RUNTIME=$(runtime ${TARGET})
+
+    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $SDK_NAME) --extra-arg-before=-isystem --extra-arg-before=${RUNTIME}/include --extra-arg-before=-m${SDK_NAME}-version-min=${MIN_VERSION}"
+}
+
 case $TOOL in
     c++|clang++|*-c++|*-clang++)
         $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args "$@") "$@"

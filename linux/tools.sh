@@ -78,12 +78,12 @@ compiler_args() {
 
     # Handle target-specific flags
     TARGET_FLAGS=""
-    if [ $TARGET == armv7-unknown-linux-gnu ]; then
+    if [ $TARGET == armv7-unknown-linux-gnueabihf ]; then
         # put these flags first, so they can be overriden
         TARGET_FLAGS="-march=armv7-a -mfpu=vfpv3-d16"
     fi
 
-    echo "--sysroot=$(sysroot $TARGET) -gcc-toolchain $(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
+    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) -gcc-toolchain $(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {
@@ -132,7 +132,7 @@ tidy_args() {
         esac
         shift 1
     done
-    echo "--extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=-gcc-toolchain --extra-arg-before=$(gcc $TARGET)"
+    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=-gcc-toolchain --extra-arg-before=$(gcc $TARGET)"
 }
 
 case $TOOL in
