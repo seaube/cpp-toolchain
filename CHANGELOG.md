@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.2.6] - 2022-03-02
+## [3.3.0] - 2022-03-02
 ### Fixed
 - Fix handling of command line arguments with whitespace
 - Use correct sysroot with clang-tidy
