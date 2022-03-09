@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] - 2022-03-09
+### Fixed
+- Fix target-prefixed tools broken in previous release.
+- Fix clang-tidy on macOS
+
 ## [3.3.0] - 2022-03-02
 ### Fixed
 - Fix handling of command line arguments with whitespace
@@ -100,7 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial toolchain
 
-[Unreleased]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.3.0...master
+[Unreleased]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.3.1...master
+[3.3.1]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.3.0...3.3.1
 [3.3.0]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.2.5...3.3.0
 [3.2.5]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.2.4...3.2.5
 [3.2.4]: https://lgs-gitlab.redacted.invalid/wipal/tools/wipal-universal-toolchain/-/compare/3.2.3...3.2.4
