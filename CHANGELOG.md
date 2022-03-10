@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix target-prefixed tools broken in previous release.
 - Fix clang-tidy on macOS
+- Fix armv7 target missing floating point and NEON features
 
 ## [3.3.0] - 2022-03-02
 ### Fixed
