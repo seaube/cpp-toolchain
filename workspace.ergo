@@ -1,11 +1,13 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Path, String } = :std
 
-version = 3.3.2
+version = 4.0.0rc0
 
-wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.14.4"
+llvm-version = 14.0.0
 
-llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/llvm-project-13.0.0.src.tar.xz"
+wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.16.3"
+
+llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-^(llvm-version)/llvm-project-^(llvm-version).src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
 llvm-src = cache {
     dir = task "downloading LLVM" <| net:unarchive ^enter :llvm-url
@@ -42,7 +44,7 @@ build = {
         out = {
             fs:create-dir :build
             exec ^:args cmake build-args:src ^build-args:extra-flags "-DCMAKE_INSTALL_PREFIX=^(:install)" "-DCMAKE_BUILD_TYPE=Release" |>:complete
-            exec ^:args cmake --build :build -- -j4 |>:complete
+            exec ^:args cmake --build :build -- -j16 |>:complete
             exec ^:args cmake -P cmake_install.cmake |>:complete
             :install
         }
@@ -116,7 +118,7 @@ prepare-toolchain = fn :dir :targets -> {
     extra-keep-tools = [
         clang
         clang++
-        clang-13
+        "clang-^(String:split . :llvm-version |>:0)"
         ld.lld
         ld64.lld.darwinnew
         lld
@@ -315,6 +317,7 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
     prepare-toolchain
     merge-dir
     target-triple
+    llvm-version
 
     command = fn :cmd ^:args -> match :cmd [
         build -> {

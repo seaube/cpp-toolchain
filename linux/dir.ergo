@@ -45,7 +45,7 @@ ct-ng = cache {
         exec ^:args ./bootstrap |>:complete
 
         exec ^:args sh ./configure "--prefix=^(:install-dir)" |>:complete
-        exec ^:args make |>:complete
+        exec ^:args make -j16 |>:complete
         exec ^:args make install |>:complete
         Path:join :install-dir bin ct-ng
     }
@@ -65,7 +65,7 @@ gcc = {
         toolchain = {
             fs:create-dir <| Path:join :out tarballs
             fs:copy :config-source (Path:join :out ".config")
-            exec ^:args :ct-ng build |>:complete
+            exec ^:args :ct-ng build.16 |>:complete
             Path:join :out toolchain
         }
         task "building gcc (^(:target))" :toolchain
@@ -155,6 +155,9 @@ compiler-rt = {
 
             # Workaround for GNU libstdc++
             "-DCMAKE_CXX_FLAGS=-D__STDC_FORMAT_MACROS=1"
+
+            # Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
+            "-DCMAKE_ASM_COMPILER_VERSION=^(workspace:llvm-version)"
         ]
     }
     per-target :build
@@ -203,7 +206,7 @@ map-seq = fn (Map :m) -> {
 
         # Write sequentially to avoid a race condition in `cp`
         map-seq <| per-target <| fn :target -> {
-            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang 13.0.0
+            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang workspace:llvm-version
             workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
         }
         :dir

@@ -67,7 +67,7 @@ compiler_args() {
             --sysroot|--sysroot=*)
                 unsupported $1
                 ;;
-            -gcc-toolchain)
+            --gcc-toolchain=*)
                 unsupported $1
                 ;;
             *)
@@ -83,7 +83,7 @@ compiler_args() {
         TARGET_FLAGS="-march=armv7-a -mfpu=neon"
     fi
 
-    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) -gcc-toolchain $(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
+    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) --gcc-toolchain=$(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {
@@ -132,7 +132,7 @@ tidy_args() {
         esac
         shift 1
     done
-    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=-gcc-toolchain --extra-arg-before=$(gcc $TARGET)"
+    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=--gcc-toolchain=$(gcc $TARGET)"
 }
 
 case $TOOL in
