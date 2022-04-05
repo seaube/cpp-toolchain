@@ -22,6 +22,7 @@ done
 
 ERGO_LINUX=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.3-linux.tar.gz
 ERGO_MACOS=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.3-mac.tar.gz
+ERGO_MACOS_ARM64=https://ws-apps.redacted.invalid/artifactory/BOB/ergo/ergo-1.0.0-rc.3-mac-arm64.tar.gz
 
 
 case `uname` in
@@ -53,7 +54,14 @@ else
             ERGO_URL=$ERGO_LINUX
             ;;
         Darwin)
-            ERGO_URL=$ERGO_MACOS
+            case `uname -m` in
+                x86_64)
+                    ERGO_URL=$ERGO_MACOS
+                    ;;
+                arm64)
+                    ERGO_URL=$ERGO_MACOS_ARM64
+                    ;;
+            esac
             ;;
     esac
     if [ ! -f ergo/ergo.tar.gz ]; then

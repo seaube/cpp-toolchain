@@ -5,7 +5,7 @@ version = 4.0.0rc0
 
 llvm-version = 14.0.0
 
-wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.16.3"
+wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.16.5"
 
 llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-^(llvm-version)/llvm-project-^(llvm-version).src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
@@ -96,7 +96,7 @@ target-triple = {
     host = {
         triple = match env:os [
             linux -> String:format "{}-unknown-linux-gnu" env:arch
-            macos -> String:format "{}-apple-macos" env:arch
+            macos -> String:format "{}-apple-macos" (match env:arch [aarch64 -> arm64, :a -> :a])
         ]
  
         std:log:info <| String:format "Detected host triple: {}" :triple    
@@ -188,7 +188,9 @@ prepare-toolchain = fn :dir :targets -> {
     {
         target = match target-triple:host [
             x86_64-unknown-linux-gnu -> linux-x86_64
+            aarch64-unknown-linux-gnu -> linux-aarch64
             x86_64-apple-macos -> macos-x86_64
+            arm64-apple-macos -> macos-arm64
         ]
         fmt = String:from <| fs:read <| Path:join (source:dir ()) package.json
         package = String:format ^{ version, target } :fmt
@@ -211,7 +213,7 @@ install-toolchain = fn :toolchain -> {
     package = {
         fs:remove :dist
         fs:create-dir :dist
-        upkg = wipal:fetch:upkg 0.4.1
+        upkg = wipal:fetch:upkg 0.6.1
         upkg:package :toolchain
     }
     fs:copy :package <| Path:join :dist (Path:name :package)

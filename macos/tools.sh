@@ -151,7 +151,7 @@ linker_args() {
     done
     SDK_NAME=$(sdk_name $TARGET)
     RUNTIME=$(runtime ${TARGET})
-    echo "-syslibroot $(sysroot $SDK_NAME) -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0"
+    echo "-syslibroot $(sysroot $SDK_NAME) -lSystem -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0"
 }
 
 tidy_args() {

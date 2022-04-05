@@ -39,18 +39,20 @@ linux:
 apple:
     tags: [macos]
     extends: .build
-    cache:
-        when: always
-        paths: [.ergo_work/]
+
+apple-arm64:
+    tags: [macos-arm64]
+    extends: .build
 
 deploy:
     stage: deploy
     rules:
         - if: "$CI_COMMIT_TAG"
-    dependencies: [apple, linux]
+    dependencies: [apple, apple-arm64, linux]
     image: ubuntu:20.04
     script:
         - apt-get update && apt-get install -y curl
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64/" -T dist-linux/*.tar.bz2
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64-cxx03/" -T dist-linux/*.tar.bz2
         - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-64/" -T dist-apple/*.tar.bz2
+        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-arm64/" -T dist-apple-arm64/*.tar.bz2
