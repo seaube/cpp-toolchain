@@ -59,7 +59,7 @@ build = {
                 ^:flags
                 :projects
                 "-DCLANG_REPOSITORY_STRING=wipal-universal-toolchain"
-                "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64"
+                "-DLLVM_TARGETS_TO_BUILD=X86;ARM;AArch64;NVPTX"
                 "-DLLVM_ENABLE_ZLIB=FORCE_ON"
                 "-DLLVM_INSTALL_BINUTILS_SYMLINKS=ON"
                 "-DLLVM_INSTALL_CCTOOLS_SYMLINKS=ON"
