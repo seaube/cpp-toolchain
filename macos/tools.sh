@@ -6,7 +6,7 @@ BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
 
 unsupported () {
-    echo "Invalid flag for this toolchain ($1)" >&2
+    echo "invalid flag for this toolchain: $1" >&2
     exit 1
 }
 
@@ -76,6 +76,25 @@ runtime() {
     echo "${BINDIR}/../libexec/wut/runtime/$1"
 }
 
+verify_target() {
+    case $1 in
+        arm64-apple-macos)
+            ;;
+        arm64e-apple-macos)
+            ;;
+        x86_64-apple-macos)
+            ;;
+        arm64-apple-ios)
+            ;;
+        arm64e-apple-ios)
+            ;;
+        *)
+            echo "invalid target: $1" >&2
+            exit 1
+            ;;
+    esac
+}
+
 compiler_args() {
     TARGET=$(default_target)
 
@@ -108,6 +127,8 @@ compiler_args() {
         esac
         shift 1
     done
+
+    verify_target $TARGET
 
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
@@ -186,6 +207,8 @@ tidy_args() {
         shift 1
     done
 
+    verify_target $TARGET
+
     SDK_NAME=$(sdk_name $TARGET)
     MIN_VERSION=$(min_version $TARGET)
     RUNTIME=$(runtime ${TARGET})
@@ -195,19 +218,23 @@ tidy_args() {
 
 case $TOOL in
     c++|clang++|*-c++|*-clang++)
-        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args "$@") "$@"
+        ARGS=$(compiler_args "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $ARGS "$@"
         ;;
     cc|clang|*-cc|*-clang)
-        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args "$@") "$@"
+        ARGS=$(compiler_args "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang $ARGS "$@"
         ;;
     ld|*-ld)
-        xcrun ld $(linker_args "$@") "$@"
+        ARGS=$(linker_args "$@")
+        xcrun ld $ARGS "$@"
         ;;
     clang-tidy|*-clang-tidy)
-        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $(tidy_args "$@") "$@"
+        ARGS=$(tidy_args "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $ARGS "$@"
         ;;
     *)
         echo "Invalid tool" >&2
-        exit -1
+        exit 1
         ;;
 esac

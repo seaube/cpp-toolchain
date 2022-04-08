@@ -6,7 +6,7 @@ BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
 
 unsupported () {
-    echo "Invalid flag for this toolchain ($1)" >&2
+    echo "invalid flag for this toolchain: $1" >&2
     exit 1
 }
 
@@ -35,6 +35,21 @@ sysroot() {
 
 gcc() {
     echo "$BINDIR/../libexec/wut/gcc/$1"
+}
+
+verify_target() {
+    case $1 in
+        x86_64-unknown-linux-gnu)
+            ;;
+        aarch64-unknown-linux-gnu)
+            ;;
+        armv7-unknown-linux-gnueabihf)
+            ;;
+        *)
+            echo "invalid target: $1" >&2
+            exit 1
+            ;;
+    esac
 }
 
 compiler_args() {
@@ -75,6 +90,8 @@ compiler_args() {
         esac
         shift 1
     done
+
+    verify_target $TARGET
 
     # Handle target-specific flags
     TARGET_FLAGS=""
@@ -132,24 +149,31 @@ tidy_args() {
         esac
         shift 1
     done
+
+    verify_target $TARGET
+
     echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=--gcc-toolchain=$(gcc $TARGET)"
 }
 
 case $TOOL in
     c++|clang++|*-c++|*-clang++)
-        $BINDIR/../libexec/wut/llvm/bin/clang++ $(compiler_args c++ "$@") "$@"
+        ARGS=$(compiler_args c++ "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang++ $ARGS "$@"
         ;;
     cc|clang|*-cc|*-clang)
-        $BINDIR/../libexec/wut/llvm/bin/clang $(compiler_args c "$@") "$@"
+        ARGS=$(compiler_args c "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang $ARGS "$@"
         ;;
     ld|*-ld)
-        $BINDIR/../libexec/wut/llvm/bin/ld.lld $(linker_args "$@") "$@"
+        ARGS=$(linker_args "$@")
+        $BINDIR/../libexec/wut/llvm/bin/ld.lld $ARGS "$@"
         ;;
     clang-tidy|*-clang-tidy)
-        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $(tidy_args "$@") "$@"
+        ARGS=$(tidy_args "$@")
+        $BINDIR/../libexec/wut/llvm/bin/clang-tidy $ARGS "$@"
         ;;
     *)
         echo "Invalid tool" >&2
-        exit -1
+        exit 1
         ;;
 esac
