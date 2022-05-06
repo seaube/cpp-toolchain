@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added arm64 macOS host support
 - Added NVPTX backend
+### Fixed
+- Improved error handling
 
 ## [3.3.2] - 2022-03-10
 ### Changed
