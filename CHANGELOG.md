@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Updated to LLVM 14
+- Updated to libstdc++ 11.3
 ### Added
 - Added arm64 macOS host support
 - Added NVPTX backend
