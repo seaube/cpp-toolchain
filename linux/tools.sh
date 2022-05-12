@@ -55,11 +55,16 @@ verify_target() {
 compiler_args() {
     # set language-specific flags
     case $1 in
-        c)  LINK_FLAGS="-fuse-ld=lld -static-libgcc" ;;
-        c++) LINK_FLAGS="-fuse-ld=lld -static-libstdc++ -static-libgcc" ;;
+        c)
+            LIB_FLAGS="-static-libgcc"
+            ;;
+        c++)
+            LIB_FLAGS="-static-libgcc -static-libstdc++"
+            ;;
     esac
     shift 1
 
+    LINK_FLAGS="-fuse-ld=lld"
     TARGET=$(default_target)
 
     # Handle flags
@@ -68,6 +73,10 @@ compiler_args() {
             -c|-S|-E|-M|-MM)
                 # We aren't linking, so don't use any link flags
                 LINK_FLAGS=""
+                LIB_FLAGS=""
+                ;;
+            -nodefaultlibs|-nostdlib)
+                LIB_FLAGS=""
                 ;;
             --target=*)
                 TARGET=${1#--target=}
@@ -100,7 +109,7 @@ compiler_args() {
         TARGET_FLAGS="-march=armv7-a -mfpu=neon"
     fi
 
-    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) --gcc-toolchain=$(gcc $TARGET) $LINK_FLAGS $TARGET_FLAGS"
+    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) --gcc-toolchain=$(gcc $TARGET) $LINK_FLAGS $LIB_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {
