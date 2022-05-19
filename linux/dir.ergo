@@ -9,7 +9,7 @@ targets = [
 
 per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets
 
-ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/1b6ad7cd48e0849072e2372826498c01b56b7fc9.tar.gz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/db6f703f52e33a5791c5c2728fa1e3a330a08e98.tar.gz"
 ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive ^enter :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
