@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Updated to LLVM 14.0.3
+- Updated to LLVM 14.0.5
 - Updated to libstdc++ 12.1
 ### Added
 - Added arm64 macOS host support
