@@ -1,7 +1,7 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Path, String } = :std
 
-version = 4.0.0rc6
+version = 4.0.0rc5
 
 llvm-version = 14.0.5
 
