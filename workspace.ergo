@@ -1,9 +1,9 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Path, String } = :std
 
-version = 4.0.0rc5
+version = 4.0.0rc6
 
-llvm-version = 14.0.5
+llvm-version = 14.0.6
 
 wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.17.2"
 
