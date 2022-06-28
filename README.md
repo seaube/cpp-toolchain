@@ -23,8 +23,8 @@ Tools are provided that target both the host platform (e.g. `c++`) and particula
 
 | Platform | Compiler | Linker | C++ standard library |
 |----------|----------|--------|----------------------|
-| Linux    | Clang 13 | LLD 13 | libstdc++ 11.2²      |
-| Apple¹   | Clang 13 | ld64   | libc++ 13³           |
+| Linux    | Clang 14 | LLD 14 | libstdc++ 12.1²      |
+| Apple¹   | Clang 14 | ld64   | libc++ 14³           |
 
 ¹ the toolchain also requires an [Xcode](https://developer.apple.com/xcode/) installation
 
