@@ -1,5 +1,5 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
-std:import { Array, Bool, Iter, Path, String } = :std
+std:import { Array, Bool, Iter, Map, MapEntry, Path, String } = :std
 
 version = 4.0.0
 
@@ -17,6 +17,31 @@ llvm-src = cache {
     }) :llvm-patches
     :dir
 }
+
+llvm-tools = [
+    llvm-ar
+    llvm-ranlib
+    llvm-size
+    llvm-nm
+    llvm-strip
+    llvm-objcopy
+    llvm-objdump
+    llvm-cxxfilt
+    llvm-addr2line
+    llvm-strings
+    llvm-symbolizer
+    llvm-cov
+
+    # Linux tooling, but may be useful on macOS
+    llvm-readelf
+    llvm-readobj
+
+    # Apple tooling, but may be useful on Linux
+    llvm-install-name-tool
+    llvm-lipo
+    llvm-libtool-darwin,
+    llvm-otool
+]
 
 build = {
     cmake-project = fn :build-args -> cache {
@@ -63,6 +88,8 @@ build = {
                 "-DLLVM_ENABLE_ZLIB=FORCE_ON"
                 "-DLLVM_INSTALL_BINUTILS_SYMLINKS=ON"
                 "-DLLVM_INSTALL_CCTOOLS_SYMLINKS=ON"
+                "-DLLVM_TOOLCHAIN_TOOLS=^(String:join ";" :llvm-tools)"
+                "-DLLVM_TOOLCHAIN_ONLY=ON"
             ]
             message = :message
         }
@@ -115,16 +142,6 @@ use-gcc-cmake-flags = fn :toolchain-dir :target -> {
 
 # Make toolchain binary links to the appropriate implementation (either script or binary)
 prepare-toolchain = fn :dir :targets -> {
-    extra-keep-tools = [
-        clang
-        clang++
-        "clang-^(String:split . :llvm-version |>:0)"
-        ld.lld
-        ld64.lld.darwinnew
-        lld
-        clang-tidy
-    ]
-
     prefixed-tools = [
         clang
         clang++
@@ -134,37 +151,15 @@ prepare-toolchain = fn :dir :targets -> {
         clang-tidy
     ]
 
-    link-tools = [
-        clangd, clang-include-fixer
-        lldb, lldb-argdumper, lldb-instr, lldb-server, lldb-vscode
-        clang-format, git-clang-format
-        analyze-build, intercept-build, scan-build, scan-build-py, scan-view
-        ar, llvm-ar
-        ranlib, llvm-ranlib
-        size, llvm-size
-        nm, llvm-nm
-        strip, llvm-strip
-        objcopy, llvm-objcopy
-        objdump, llvm-objdump
-        c++filt, llvm-cxxfilt
-        addr2line, llvm-addr2line
-        strings, llvm-strings
-        llvm-symbolizer
-
-        # Linux tooling, but may be useful on macOS
-        readelf, llvm-readelf, llvm-readobj
-
-        # Apple tooling, but may be useful on Linux
-        install_name_tool, llvm-install-name-tool
-        lipo, llvm-lipo
-        libtool, llvm-libtool-darwin,
-        llvm-otool
+    no-link-tools = [
+        ld.lld
+        ld64.lld
+        "clang-^(String:split . :llvm-version |>:0)"
+        clang-cpp
+        clang-cl
     ]
 
     link = fn :source :target -> (exec ln -sf :source :target |>:complete)
-
-    # Link tools
-    Iter:map (fn :file -> link (Path:join .. libexec wut llvm bin :file) (Path:join :dir bin :file)) :link-tools
 
     # Copy prefixed tools
     Iter:map (fn :file -> {
@@ -173,9 +168,17 @@ prepare-toolchain = fn :dir :targets -> {
         Iter:map (fn :target -> fs:copy :tools.sh <| Path:join :dir bin "^(:target)-^(:file)") :targets
     }) :prefixed-tools
 
-    # Delete unusued llvm binaries
-    keep-binary-patterns = Iter:fold (fn :acc :v -> [^:acc, "!", -name, :v]) [] [^:link-tools, ^:extra-keep-tools]
-    exec find (Path:join :dir libexec wut llvm bin) ^:keep-binary-patterns ^(String:split " " "-type f -exec rm -f {} +") |>:complete
+    # Link the rest of the tools
+    Iter:map (fn :file -> {
+        source = Path:join .. <| Path:relative :dir :file
+        target = Path:join :dir bin <| Path:name :file
+        if (Bool:not <| fs:exists :target) (link :source :target)
+    }) <| std:fs:glob "^dir/libexec/wut/llvm/bin/*"
+
+    # Delete tools that shouldn't be linked
+    Iter:map (fn :tool -> fs:remove (Path:join :dir bin :tool)) :no-link-tools
+
+    # Delete unusued llvm libraries
     exec find (Path:join :dir libexec wut llvm lib) ^(String:split " " "-maxdepth 1 -name *.a -exec rm -f {} +") |>:complete
 
     # Delete headers, other than libc++ if present

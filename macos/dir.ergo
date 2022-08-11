@@ -48,8 +48,6 @@ cross-compile-flags = fn :target -> [
 # Build LLVM
 llvm = {
     flags = [
-        "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
-
         # libc++ used by sanitizers
         "-DLIBCXX_INSTALL_LIBRARY=ON"
         "-DLIBCXX_INSTALL_HEADERS=ON"
@@ -69,7 +67,6 @@ llvm-runtime = {
     build = fn :target -> {
         flags = [
             String:format "-DLLVM_TABLEGEN={}" <| Path:join :tablegen bin llvm-tblgen
-            "-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON"
 
             "-DLIBCXX_ENABLE_SHARED=ON"
             "-DLIBCXX_ENABLE_STATIC=OFF"

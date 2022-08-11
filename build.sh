@@ -38,7 +38,7 @@ if [ "$USE_DOCKER" -eq 1 ]; then
     fi
 
     cp ~/.config/ergo/http/defaults.ergo docker
-    docker build --tag wipal-toolchain-env --build-arg CONFIG_UID=`id -u` --build-arg CONFIG_GID=`id -g` docker
+    docker build --network=host --tag wipal-toolchain-env --build-arg CONFIG_UID=`id -u` --build-arg CONFIG_GID=`id -g` docker
 
     if [ "$CT_NG_CONFIG" -eq 1 ]; then
         FLAGS="-it"
