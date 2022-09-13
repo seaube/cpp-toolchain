@@ -53,7 +53,7 @@ build = {
         cmake-path = match env:os [
             macos -> {
                 conda-env = wipal:conda:make-env {}
-                conda-env:run install cmake make
+                conda-env:run install cmake make zstd
                 "^(Path:join conda-env:path bin):"
             }
             _ -> ""
