@@ -9,7 +9,7 @@ targets = [
 
 per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets
 
-ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/618affc78902e86815c908e08a1d0c51832ce7ce.tar.gz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/d9c9bfcc8d207792d7d916e2fc1e4eef0041260d.tar.gz"
 ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive ^enter :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
@@ -158,6 +158,9 @@ compiler-rt = {
 
             # Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
             "-DCMAKE_ASM_COMPILER_VERSION=^(workspace:llvm-version)"
+
+            # Workaround for https://github.com/llvm/llvm-project/issues/57717
+            "-DCOMPILER_RT_BUILD_GWP_ASAN=OFF"
         ]
     }
     per-target :build

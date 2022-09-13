@@ -1,11 +1,11 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Map, MapEntry, Path, String } = :std
 
-version = 4.1.0rc0
+version = 5.0.0rc0
 
-llvm-version = 14.0.6
+llvm-version = 15.0.0
 
-wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.17.2"
+wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.17.7"
 
 llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-^(llvm-version)/llvm-project-^(llvm-version).src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*

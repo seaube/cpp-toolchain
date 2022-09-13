@@ -1,2 +1,2 @@
-int bar();
-int foo() { return bar(); }
+int bar(void);
+int foo(void) { return bar(); }
