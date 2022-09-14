@@ -36,6 +36,9 @@ common-flags = [
     "-DLLDB_ENABLE_CURSES=OFF"
     "-DLLDB_USE_SYSTEM_DEBUGSERVER=ON"
 
+    # TODO enable zstd compression in the future, maybe with a static link.
+    "-DLLVM_ENABLE_ZSTD=OFF"
+
     String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
 ]
 
