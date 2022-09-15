@@ -169,8 +169,8 @@ prepare-toolchain = fn :dir :targets -> {
     }) :prefixed-tools
 
     # Link the rest of the tools
-    # Use map-lazy to avoid opening too many files
-    Iter:map-lazy (fn :file -> {
+    # Merge each command into this map to enforce they run in order, to avoid opening too many files simultaneously
+    ^Array:from <| Iter:map (fn :file -> {
         source = Path:join .. <| Path:relative :dir :file
         target = Path:join :dir bin <| Path:name :file
         if (Bool:not <| fs:exists :target) (link :source :target)
