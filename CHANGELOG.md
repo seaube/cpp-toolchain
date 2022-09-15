@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated to LLVM 15.0.0
 - Updated to libstdc++ 12.2
+- Switch linker to LLD on macOS
 ### Fixed
 - Added many missing tools (some of which had broken soft links)
 

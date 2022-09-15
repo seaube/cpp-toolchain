@@ -136,8 +136,7 @@ compiler_args() {
 
     LINK_FLAGS=""
     if [ "$LINK" = true ]; then
-        LD_PATH=$(dirname $(xcrun --sdk ${SDK_NAME} -f ld))
-        LINK_FLAGS="-B${LD_PATH} -L${RUNTIME}/lib"
+        LINK_FLAGS="-fuse-ld=lld -L${RUNTIME}/lib"
     fi
 
     echo "--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
@@ -227,7 +226,7 @@ case $TOOL in
         ;;
     ld|*-ld)
         ARGS=$(linker_args "$@")
-        xcrun ld $ARGS "$@"
+        $BINDIR/../libexec/wut/llvm/bin/ld64.lld $ARGS "$@"
         ;;
     clang-tidy|*-clang-tidy)
         ARGS=$(tidy_args "$@")
