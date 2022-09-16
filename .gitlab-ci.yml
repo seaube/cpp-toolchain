@@ -61,7 +61,7 @@ deploy:
     image: ubuntu:22.04
     script:
         - apt-get update && apt-get install -y curl
-        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64/" -T dist-linux/*.tar.bz2
-        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64-cxx03/" -T dist-linux/*.tar.bz2
-        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-64/" -T dist-apple/*.tar.bz2
-        - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-arm64/" -T dist-apple-arm64/*.tar.bz2
+        - curl --fail-with-body -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64/" -T dist-linux/*.tar.bz2
+        - curl --fail-with-body -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/linux-64-cxx03/" -T dist-linux/*.tar.bz2
+        - curl --fail-with-body -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-64/" -T dist-apple/*.tar.bz2
+        - curl --fail-with-body -u "$ARTIFACTORY_USER:$ARTIFACTORY_KEY" -X PUT "https://ws-apps.redacted.invalid/artifactory/wipal-staging-conda/osx-arm64/" -T dist-apple-arm64/*.tar.bz2
