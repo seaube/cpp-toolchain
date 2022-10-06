@@ -5,6 +5,7 @@ targets = [
     arm64-apple-macos
     arm64e-apple-macos
     x86_64-apple-macos
+    x86_64-apple-darwin # synonym for x86_64-apple-macos
     arm64-apple-ios
     arm64e-apple-ios
 ]

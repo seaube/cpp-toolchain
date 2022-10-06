@@ -13,13 +13,13 @@ unsupported () {
 default_target () {
     # Determine the tool prefix
     case $TOOL in
-        arm64-apple-macos-*)
+        arm64-apple-macos-*|arm64-apple-darwin-*)
             echo arm64-apple-macos
             ;;
-        arm64e-apple-macos-*)
+        arm64e-apple-macos-*|arm64e-apple-darwin-*)
             echo arm64e-apple-macos
             ;;
-        x86_64-apple-macos-*)
+        x86_64-apple-macos-*|x86_64-apple-darwin-*)
             echo x86_64-apple-macos
             ;;
         arm64-apple-ios-*)
