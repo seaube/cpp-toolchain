@@ -127,7 +127,7 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
         :dir
     }
 
-    [
+    targets = [
         ^:targets
         ^:target-aliases
     ]
