@@ -5,9 +5,14 @@ targets = [
     arm64-apple-macos
     arm64e-apple-macos
     x86_64-apple-macos
-    x86_64-apple-darwin # synonym for x86_64-apple-macos
     arm64-apple-ios
     arm64e-apple-ios
+]
+
+# only used for testing
+target-aliases = [
+    arm64-apple-darwin
+    x86_64-apple-darwin
 ]
 
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets)
@@ -122,5 +127,8 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
         :dir
     }
 
-    targets
+    [
+        ^:targets
+        ^:target-aliases
+    ]
 }
