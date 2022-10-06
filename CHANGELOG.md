@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Updated to LLVM 15.0.1
+- Updated to LLVM 15.0.2
 - Updated to libstdc++ 12.2
 - Switch linker to LLD on macOS
 ### Fixed
