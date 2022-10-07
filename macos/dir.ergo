@@ -9,12 +9,6 @@ targets = [
     arm64e-apple-ios
 ]
 
-# only used for testing
-target-aliases = [
-    arm64-apple-darwin
-    x86_64-apple-darwin
-]
-
 per-target = fn :f -> (std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets)
 
 min-supported-version = fn :target -> match (workspace:target-triple:os :target) [
@@ -127,8 +121,5 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
         :dir
     }
 
-    targets = [
-        ^:targets
-        ^:target-aliases
-    ]
+    targets
 }

@@ -1,16 +1,11 @@
 #!/bin/bash
 
 set -euo pipefail
+shopt -s extglob
 
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
-
-unsupported () {
-    echo "invalid flag for this toolchain: $1" >&2
-    exit 1
-}
-
-default_target() {
+TARGET="$(
     # Determine the tool prefix
     case $TOOL in
         x86_64-unknown-linux-gnu-*)
@@ -27,29 +22,32 @@ default_target() {
             cat ${BINDIR}/../libexec/wut/host
             ;;
     esac
-}
-
-sysroot() {
-    echo "$BINDIR/../libexec/wut/gcc/$1/$1/sysroot"
-}
-
-gcc() {
-    echo "$BINDIR/../libexec/wut/gcc/$1"
-}
+)"
 
 verify_target() {
-    case $1 in
-        x86_64-unknown-linux-gnu)
+    case $TARGET in
+        x86_64?(-unknown|-pc)-linux?(-gnu))
+            TARGET=x86_64-unknown-linux-gnu
             ;;
-        aarch64-unknown-linux-gnu)
+        aarch64?(-unknown|-pc)-linux-gnu)
+            TARGET=aarch64-unknown-linux-gnu
             ;;
-        armv7-unknown-linux-gnueabihf)
+        armv7?(-unknown|-pc)-linux-gnueabihf)
+            TARGET=armv7-unknown-linux-gnueabihf
             ;;
         *)
-            echo "invalid target: $1" >&2
+            echo "invalid target: $TARGET" >&2
             exit 1
             ;;
     esac
+
+    SYSROOT="$BINDIR/../libexec/wut/gcc/$TARGET/$TARGET/sysroot"
+    GCC="$BINDIR/../libexec/wut/gcc/$TARGET"
+}
+
+unsupported () {
+    echo "invalid flag for this toolchain: $1" >&2
+    exit 1
 }
 
 compiler_args() {
@@ -65,7 +63,6 @@ compiler_args() {
     shift 1
 
     LINK_FLAGS="-fuse-ld=lld"
-    TARGET=$(default_target)
 
     # Handle flags
     while(($#)) ; do
@@ -100,7 +97,7 @@ compiler_args() {
         shift 1
     done
 
-    verify_target $TARGET
+    verify_target
 
     # Handle target-specific flags
     TARGET_FLAGS=""
@@ -109,7 +106,7 @@ compiler_args() {
         TARGET_FLAGS="-march=armv7-a -mfpu=neon"
     fi
 
-    echo "--target=$TARGET --sysroot=$(sysroot $TARGET) --gcc-toolchain=$(gcc $TARGET) $LINK_FLAGS $LIB_FLAGS $TARGET_FLAGS"
+    echo "--target=$TARGET --sysroot=$SYSROOT --gcc-toolchain=$GCC $LINK_FLAGS $LIB_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {
@@ -123,13 +120,13 @@ linker_args() {
                 ;;
         esac
     done
-    TARGET=$(default_target)
-    echo "--sysroot=$(sysroot $TARGET)"
+
+    verify_target
+
+    echo "--sysroot=$SYSROOT"
 }
 
 tidy_args() {
-    TARGET=$(default_target)
-
     # clang-tidy arguments
     while (($#)); do
         case $1 in
@@ -159,9 +156,9 @@ tidy_args() {
         shift 1
     done
 
-    verify_target $TARGET
+    verify_target
 
-    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $TARGET) --extra-arg-before=--gcc-toolchain=$(gcc $TARGET)"
+    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$SYSROOT --extra-arg-before=--gcc-toolchain=$GCC"
 }
 
 case $TOOL in

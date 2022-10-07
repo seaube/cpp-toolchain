@@ -1,25 +1,20 @@
 #!/bin/bash
 
 set -euo pipefail
+shopt -s extglob
 
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
-
-unsupported () {
-    echo "invalid flag for this toolchain: $1" >&2
-    exit 1
-}
-
-default_target () {
+TARGET="$(
     # Determine the tool prefix
     case $TOOL in
-        arm64-apple-macos-*|arm64-apple-darwin-*)
+        arm64-apple-macos-*)
             echo arm64-apple-macos
             ;;
-        arm64e-apple-macos-*|arm64e-apple-darwin-*)
+        arm64e-apple-macos-*)
             echo arm64e-apple-macos
             ;;
-        x86_64-apple-macos-*|x86_64-apple-darwin-*)
+        x86_64-apple-macos-*)
             echo x86_64-apple-macos
             ;;
         arm64-apple-ios-*)
@@ -33,71 +28,51 @@ default_target () {
             cat ${BINDIR}/../libexec/wut/host
             ;;
     esac
-}
-
-os () {
-    cut -d - -f 3 <(echo $1)
-}
-
-min_version () {
-    case $(os $1) in
-        macos)
-            case $1 in
-                arm64*)
-                    echo 11.0
-                    ;;
-                x86_64*)
-                    echo 10.13
-                    ;;
-            esac
-            ;;
-        ios)
-            echo 12.5
-            ;;
-    esac
-}
-
-sdk_name () {
-    case $(os $1) in
-        macos)
-            echo macosx
-            ;;
-        ios)
-            echo iphoneos
-            ;;
-    esac
-}
-
-sysroot() {
-    xcrun --sdk $1 --show-sdk-path
-}
-
-runtime() {
-    echo "${BINDIR}/../libexec/wut/runtime/$1"
-}
+)"
 
 verify_target() {
-    case $1 in
-        arm64-apple-macos)
+    case $TARGET in
+        arm64?(-apple)-@(macos|darwin))
+            TARGET=arm64-apple-macos
+            MIN_VERSION=11.0
+            SDK_NAME=macosx
             ;;
-        arm64e-apple-macos)
+        arm64e?(-apple)-@(macos|darwin))
+            TARGET=arm64e-apple-macos
+            MIN_VERSION=11.0
+            SDK_NAME=macosx
             ;;
-        x86_64-apple-macos)
+        x86_64?(-apple)-@(macos|darwin))
+            TARGET=x86_64-apple-macos
+            MIN_VERSION=10.13
+            SDK_NAME=macosx
             ;;
-        arm64-apple-ios)
+        arm64?(-apple)-ios)
+            TARGET=arm64-apple-ios
+            MIN_VERSION=12.5
+            SDK_NAME=iphoneos
             ;;
-        arm64e-apple-ios)
+        arm64e?(-apple)-ios)
+            TARGET=arm64e-apple-ios
+            MIN_VERSION=12.5
+            SDK_NAME=iphoneos
             ;;
         *)
-            echo "invalid target: $1" >&2
+            echo "invalid target: $TARGET" >&2
             exit 1
             ;;
     esac
+
+    RUNTIME="${BINDIR}/../libexec/wut/runtime/$TARGET"
+    SYSROOT=$(xcrun --sdk $SDK_NAME --show-sdk-path)
+}
+
+unsupported () {
+    echo "invalid flag for this toolchain: $1" >&2
+    exit 1
 }
 
 compiler_args() {
-    TARGET=$(default_target)
-
     # Handle flags
     LINK=true
     while(($#)) ; do
@@ -128,22 +103,17 @@ compiler_args() {
         shift 1
     done
 
-    verify_target $TARGET
-
-    SDK_NAME=$(sdk_name $TARGET)
-    MIN_VERSION=$(min_version $TARGET)
-    RUNTIME=$(runtime ${TARGET})
+    verify_target
 
     LINK_FLAGS=""
     if [ "$LINK" = true ]; then
         LINK_FLAGS="-fuse-ld=lld -L${RUNTIME}/lib"
     fi
 
-    echo "--target=$TARGET --sysroot=$(sysroot $SDK_NAME) -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
+    echo "--target=$TARGET --sysroot=$SYSROOT -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
 }
 
 linker_args() {
-    TARGET=$(default_target)
     case $TARGET in
         arm64e*)
             ARCH=arm64e
@@ -169,14 +139,13 @@ linker_args() {
                 ;;
         esac
     done
-    SDK_NAME=$(sdk_name $TARGET)
-    RUNTIME=$(runtime ${TARGET})
-    echo "-syslibroot $(sysroot $SDK_NAME) -lSystem -L${RUNTIME} -arch $ARCH -platform_version $(os $TARGET) $(min_version $TARGET) 0.0"
+
+    verify_target
+
+    echo "-syslibroot $SYSROOT -lSystem -L${RUNTIME} -arch $ARCH -platform_version $OS $MIN_VERSION 0.0"
 }
 
 tidy_args() {
-    TARGET=$(default_target)
-
     # clang-tidy arguments
     while (($#)); do
         case $1 in
@@ -206,13 +175,9 @@ tidy_args() {
         shift 1
     done
 
-    verify_target $TARGET
+    verify_target
 
-    SDK_NAME=$(sdk_name $TARGET)
-    MIN_VERSION=$(min_version $TARGET)
-    RUNTIME=$(runtime ${TARGET})
-
-    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$(sysroot $SDK_NAME) --extra-arg-before=-isystem --extra-arg-before=${RUNTIME}/include --extra-arg-before=-m${SDK_NAME}-version-min=${MIN_VERSION}"
+    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$SYSROOT --extra-arg-before=-isystem --extra-arg-before=${RUNTIME}/include --extra-arg-before=-m${SDK_NAME}-version-min=${MIN_VERSION}"
 }
 
 case $TOOL in
