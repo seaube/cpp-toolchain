@@ -5,7 +5,8 @@ shopt -s extglob
 
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
-TARGET="$(
+
+default_target() {
     # Determine the tool prefix
     case $TOOL in
         x86_64-unknown-linux-gnu-*)
@@ -22,7 +23,9 @@ TARGET="$(
             cat ${BINDIR}/../libexec/wut/host
             ;;
     esac
-)"
+}
+
+TARGET="$(default_target)"
 
 verify_target() {
     case $TARGET in

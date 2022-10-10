@@ -5,7 +5,8 @@ shopt -s extglob
 
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL="$(basename "$0")"
-TARGET="$(
+
+default_target() {
     # Determine the tool prefix
     case $TOOL in
         arm64-apple-macos-*)
@@ -28,7 +29,9 @@ TARGET="$(
             cat ${BINDIR}/../libexec/wut/host
             ;;
     esac
-)"
+}
+
+TARGET="$(default_target)"
 
 verify_target() {
     case $TARGET in
@@ -36,26 +39,31 @@ verify_target() {
             TARGET=arm64-apple-macos
             MIN_VERSION=11.0
             SDK_NAME=macosx
+            OS=macos
             ;;
         arm64e?(-apple)-@(macos|darwin))
             TARGET=arm64e-apple-macos
             MIN_VERSION=11.0
             SDK_NAME=macosx
+            OS=macos
             ;;
         x86_64?(-apple)-@(macos|darwin))
             TARGET=x86_64-apple-macos
             MIN_VERSION=10.13
             SDK_NAME=macosx
+            OS=macos
             ;;
         arm64?(-apple)-ios)
             TARGET=arm64-apple-ios
             MIN_VERSION=12.5
             SDK_NAME=iphoneos
+            OS=ios
             ;;
         arm64e?(-apple)-ios)
             TARGET=arm64e-apple-ios
             MIN_VERSION=12.5
             SDK_NAME=iphoneos
+            OS=ios
             ;;
         *)
             echo "invalid target: $TARGET" >&2
