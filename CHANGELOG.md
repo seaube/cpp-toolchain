@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch linker to LLD on macOS
 ### Fixed
 - Added many missing tools (some of which had broken soft links)
+- Allow more flexibility in target triples passed to `--target`
 
 ## [4.0.0] - 2022-06-28
 ### Changed
