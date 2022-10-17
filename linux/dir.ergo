@@ -198,7 +198,7 @@ map-seq = fn (Map :m) -> {
 
 # Assemble the toolchain
 {
-    toolchain = {
+    toolchain = Path:with-output (fn :dir -> {
         dir = Path:new ()
         fs:create-dir <| Path:join :dir libexec wut gcc
         fs:create-dir <| Path:join :dir bin
@@ -215,8 +215,7 @@ map-seq = fn (Map :m) -> {
             workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang workspace:llvm-version
             workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
         }
-        :dir
-    }
+    })
 
     ct-ng = :ct-ng
 

@@ -10,7 +10,7 @@ wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:n
 llvm-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-^(llvm-version)/llvm-project-^(llvm-version).src.tar.xz"
 Array:Of :Path |> :llvm-patches = Array:from <| Iter:map fs:track <| wipal:glob patches/*
 llvm-src = cache {
-    dir = task "downloading LLVM" <| net:unarchive ^enter :llvm-url
+    dir = task "downloading LLVM" <| Path:join (net:unarchive :llvm-url) "llvm-project-^(llvm-version).src"
     # sequentially apply patches
     ^Array:from <| Iter:map (fn :patch -> {
         task "applying LLVM patch ^(Path:name :patch)" <| exec ^{pwd = :dir} (env:path-search patch) -p1 -i :patch |>:complete

@@ -37,23 +37,33 @@ verify_target() {
     case $TARGET in
         arm64?(-apple)-@(macos|darwin))
             TARGET=arm64-apple-macos
+            MIN_VERSION=11.0
             SDK_NAME=macosx
+            OS=macos
             ;;
         arm64e?(-apple)-@(macos|darwin))
             TARGET=arm64e-apple-macos
+            MIN_VERSION=11.0
             SDK_NAME=macosx
+            OS=macos
             ;;
         x86_64?(-apple)-@(macos|darwin))
             TARGET=x86_64-apple-macos
+            MIN_VERSION=10.13
             SDK_NAME=macosx
+            OS=macos
             ;;
         arm64?(-apple)-ios)
             TARGET=arm64-apple-ios
+            MIN_VERSION=12.5
             SDK_NAME=iphoneos
+            OS=ios
             ;;
         arm64e?(-apple)-ios)
             TARGET=arm64e-apple-ios
+            MIN_VERSION=12.5
             SDK_NAME=iphoneos
+            OS=ios
             ;;
         *)
             echo "invalid target: $TARGET" >&2

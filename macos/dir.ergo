@@ -105,24 +105,23 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
 
 # Assemble the toolchain
 {
-    toolchain = {
-        dir = Path:new ()
+    toolchain = Path:with-output (fn :dir -> {
         fs:create-dir <| Path:join :dir libexec wut
         fs:create-dir <| Path:join :dir bin
         fs:copy :llvm (Path:join :dir libexec wut llvm)
         workspace:prepare-toolchain :dir :targets
         per-target <| fn :target -> {
-            dir = Path:join :dir libexec wut runtime :target
-            fs:create-dir <| Path:join :dir lib
-            fs:create-dir <| Path:join :dir include
-            merge-dir (Path:join llvm-runtime::target lib) (Path:join :dir lib)
-            merge-dir (Path:join llvm-runtime::target include) (Path:join :dir include)
-            merge-dir (Path:join openmp::target lib) (Path:join :dir lib)
-            merge-dir (Path:join openmp::target include) (Path:join :dir include)
             fs:copy (!fs:track <| Path:join (source:dir ()) "^(target).cfg") <| Path:join :dir libexec wut
+
+            runtime-dir = Path:join :dir libexec wut runtime :target
+            fs:create-dir <| Path:join :runtime-dir lib
+            fs:create-dir <| Path:join :runtime-dir include
+            merge-dir (Path:join llvm-runtime::target lib) (Path:join :runtime-dir lib)
+            merge-dir (Path:join llvm-runtime::target include) (Path:join :runtime-dir include)
+            merge-dir (Path:join openmp::target lib) (Path:join :runtime-dir lib)
+            merge-dir (Path:join openmp::target include) (Path:join :runtime-dir include)
         }
-        :dir
-    }
+    })
 
     targets
 }
