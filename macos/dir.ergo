@@ -57,6 +57,8 @@ llvm = {
         "-DLIBCXX_ENABLE_SHARED=ON"
         "-DLIBCXX_ENABLE_STATIC=OFF"
 
+        "-DCLANG_DEFAULT_LINKER=lld"
+
         ^:common-flags
     ]
     workspace:build:llvm "building LLVM" [clang, lld, lldb, clang-tools-extra, libcxx, libcxxabi, compiler-rt] :flags

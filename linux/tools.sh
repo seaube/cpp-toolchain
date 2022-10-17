@@ -65,14 +65,11 @@ compiler_args() {
     esac
     shift 1
 
-    LINK_FLAGS="-fuse-ld=lld"
-
     # Handle flags
     while(($#)) ; do
         case $1 in
             -c|-S|-E|-M|-MM)
                 # We aren't linking, so don't use any link flags
-                LINK_FLAGS=""
                 LIB_FLAGS=""
                 ;;
             -nodefaultlibs|-nostdlib)
@@ -109,7 +106,7 @@ compiler_args() {
         TARGET_FLAGS="-march=armv7-a -mfpu=neon"
     fi
 
-    echo "--target=$TARGET --sysroot=$SYSROOT --gcc-toolchain=$GCC $LINK_FLAGS $LIB_FLAGS $TARGET_FLAGS"
+    echo "--target=$TARGET --sysroot=$SYSROOT --gcc-toolchain=$GCC $LIB_FLAGS $TARGET_FLAGS"
 }
 
 linker_args() {

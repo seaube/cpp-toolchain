@@ -118,6 +118,8 @@ llvm = {
         "-DLLDB_ENABLE_PYTHON=OFF"
         "-DLLDB_ENABLE_LIBEDIT=OFF"
         "-DLLDB_ENABLE_CURSES=OFF"
+
+        "-DCLANG_DEFAULT_LINKER=lld"
     ]
 }
 
@@ -150,8 +152,6 @@ compiler-rt = {
             String:format "-DCMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN={}" gcc-with-deps::target
             String:format "-DCMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN={}" gcc-with-deps::target
             String:format "-DCMAKE_ASM_FLAGS=--target={}" :target
-            "-DCMAKE_DYNAMIC_LINKER_FLAGS=-fuse-ld=lld"
-            "-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld"
 
             # Workaround for GNU libstdc++
             "-DCMAKE_CXX_FLAGS=-D__STDC_FORMAT_MACROS=1"

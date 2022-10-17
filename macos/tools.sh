@@ -115,7 +115,7 @@ compiler_args() {
 
     LINK_FLAGS=""
     if [ "$LINK" = true ]; then
-        LINK_FLAGS="-fuse-ld=lld -L${RUNTIME}/lib"
+        LINK_FLAGS="-L${RUNTIME}/lib"
     fi
 
     echo "--target=$TARGET --sysroot=$SYSROOT -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
