@@ -45,7 +45,6 @@ verify_target() {
     esac
 
     SYSROOT="$BINDIR/../libexec/wut/gcc/$TARGET/$TARGET/sysroot"
-    GCC="$BINDIR/../libexec/wut/gcc/$TARGET"
 }
 
 unsupported () {
@@ -54,42 +53,15 @@ unsupported () {
 }
 
 compiler_args() {
-    # set language-specific flags
-    case $1 in
-        c)
-            LIB_FLAGS="-static-libgcc"
-            ;;
-        c++)
-            LIB_FLAGS="-static-libgcc -static-libstdc++"
-            ;;
-    esac
-    shift 1
-
     # Handle flags
     while(($#)) ; do
         case $1 in
-            -c|-S|-E|-M|-MM)
-                # We aren't linking, so don't use any link flags
-                LIB_FLAGS=""
-                ;;
-            -nodefaultlibs|-nostdlib)
-                LIB_FLAGS=""
-                ;;
             --target=*)
                 TARGET=${1#--target=}
                 ;;
             -target)
                 TARGET=$2
                 shift 1
-                ;;
-            -fuse-ld*)
-                unsupported $1
-                ;;
-            --sysroot|--sysroot=*)
-                unsupported $1
-                ;;
-            --gcc-toolchain=*)
-                unsupported $1
                 ;;
             *)
                 ;;
@@ -99,14 +71,7 @@ compiler_args() {
 
     verify_target
 
-    # Handle target-specific flags
-    TARGET_FLAGS=""
-    if [ $TARGET == armv7-unknown-linux-gnueabihf ]; then
-        # put these flags first, so they can be overriden
-        TARGET_FLAGS="-march=armv7-a -mfpu=neon"
-    fi
-
-    echo "--target=$TARGET --sysroot=$SYSROOT --gcc-toolchain=$GCC $LIB_FLAGS $TARGET_FLAGS"
+    echo "--config $BINDIR/../libexec/wut/$TARGET.cfg"
 }
 
 linker_args() {
@@ -158,7 +123,7 @@ tidy_args() {
 
     verify_target
 
-    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$SYSROOT --extra-arg-before=--gcc-toolchain=$GCC"
+    echo "--extra-arg-before=--config --extra-arg-before=$BINDIR/../libexec/wut/$TARGET.cfg"
 }
 
 case $TOOL in

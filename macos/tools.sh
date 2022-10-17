@@ -37,33 +37,23 @@ verify_target() {
     case $TARGET in
         arm64?(-apple)-@(macos|darwin))
             TARGET=arm64-apple-macos
-            MIN_VERSION=11.0
             SDK_NAME=macosx
-            OS=macos
             ;;
         arm64e?(-apple)-@(macos|darwin))
             TARGET=arm64e-apple-macos
-            MIN_VERSION=11.0
             SDK_NAME=macosx
-            OS=macos
             ;;
         x86_64?(-apple)-@(macos|darwin))
             TARGET=x86_64-apple-macos
-            MIN_VERSION=10.13
             SDK_NAME=macosx
-            OS=macos
             ;;
         arm64?(-apple)-ios)
             TARGET=arm64-apple-ios
-            MIN_VERSION=12.5
             SDK_NAME=iphoneos
-            OS=ios
             ;;
         arm64e?(-apple)-ios)
             TARGET=arm64e-apple-ios
-            MIN_VERSION=12.5
             SDK_NAME=iphoneos
-            OS=ios
             ;;
         *)
             echo "invalid target: $TARGET" >&2
@@ -85,25 +75,12 @@ compiler_args() {
     LINK=true
     while(($#)) ; do
         case $1 in
-            -c|-S|-E|-M|-MM)
-                # We aren't linking, so don't use any link flags
-                LINK=false
-                ;;
             --target=*)
                 TARGET=${1#--target=}
                 ;;
             -target)
                 TARGET=$2
                 shift 1
-                ;;
-            -fuse-ld*)
-                unsupported $1
-                ;;
-            --sysroot|--sysroot=*)
-                unsupported $1
-                ;;
-            -gcc-toolchain)
-                unsupported $1
                 ;;
             *)
                 ;;
@@ -113,12 +90,7 @@ compiler_args() {
 
     verify_target
 
-    LINK_FLAGS=""
-    if [ "$LINK" = true ]; then
-        LINK_FLAGS="-L${RUNTIME}/lib"
-    fi
-
-    echo "--target=$TARGET --sysroot=$SYSROOT -isystem ${RUNTIME}/include -m${SDK_NAME}-version-min=${MIN_VERSION} $LINK_FLAGS"
+    echo "--config $BINDIR/../libexec/wut/$TARGET.cfg --sysroot=$SYSROOT"
 }
 
 linker_args() {
@@ -185,7 +157,7 @@ tidy_args() {
 
     verify_target
 
-    echo "--extra-arg-before=--target=$TARGET --extra-arg-before=--sysroot=$SYSROOT --extra-arg-before=-isystem --extra-arg-before=${RUNTIME}/include --extra-arg-before=-m${SDK_NAME}-version-min=${MIN_VERSION}"
+    echo "--extra-arg-before=--config --extra-arg-before=$BINDIR/../libexec/wut/$TARGET.cfg --extra-arg-before=--sysroot=$SYSROOT"
 }
 
 case $TOOL in

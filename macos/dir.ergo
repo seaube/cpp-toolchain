@@ -119,6 +119,7 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
             merge-dir (Path:join llvm-runtime::target include) (Path:join :dir include)
             merge-dir (Path:join openmp::target lib) (Path:join :dir lib)
             merge-dir (Path:join openmp::target include) (Path:join :dir include)
+            fs:copy (!fs:track <| Path:join (source:dir ()) "^(target).cfg") <| Path:join :dir libexec wut
         }
         :dir
     }

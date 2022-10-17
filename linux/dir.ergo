@@ -202,7 +202,10 @@ map-seq = fn (Map :m) -> {
         dir = Path:new ()
         fs:create-dir <| Path:join :dir libexec wut gcc
         fs:create-dir <| Path:join :dir bin
-        per-target (fn :target -> fs:copy gcc-with-deps::target (Path:join :dir libexec wut gcc :target))
+        per-target (fn :target -> {
+            fs:copy gcc-with-deps::target <| Path:join :dir libexec wut gcc :target
+            fs:copy (!fs:track <| Path:join (source:dir ()) "^(target).cfg") <| Path:join :dir libexec wut
+        })
         fs:copy :llvm (Path:join :dir libexec wut llvm)
         delete-unused-gcc-components <| Path:join :dir libexec wut gcc
         workspace:prepare-toolchain :dir :targets
