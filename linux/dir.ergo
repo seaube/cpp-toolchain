@@ -9,7 +9,7 @@ targets = [
 
 per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets
 
-ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/d9c9bfcc8d207792d7d916e2fc1e4eef0041260d.tar.gz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/cf9beb1e4fadda47a3251eaea2d701555dcdf957.tar.gz"
 ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive ^enter :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
@@ -198,8 +198,7 @@ map-seq = fn (Map :m) -> {
 
 # Assemble the toolchain
 {
-    toolchain = Path:with-output (fn :dir -> {
-        dir = Path:new ()
+    toolchain = cache <| Path:with-output (fn :dir -> {
         fs:create-dir <| Path:join :dir libexec wut gcc
         fs:create-dir <| Path:join :dir bin
         per-target (fn :target -> {
