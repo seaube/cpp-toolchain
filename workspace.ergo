@@ -3,7 +3,7 @@ std:import { Array, Bool, Iter, Map, MapEntry, Path, String } = :std
 
 version = 5.0.0rc5
 
-llvm-version = 15.0.2
+llvm-version = 15.0.3
 
 wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.17.7"
 
