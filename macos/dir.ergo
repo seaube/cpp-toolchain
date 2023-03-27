@@ -82,16 +82,13 @@ llvm-runtime = {
 
             "-DLIBCXXABI_ENABLE_SHARED=ON"
             "-DLIBCXXABI_ENABLE_STATIC=OFF"
-            "-DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON"
             "-DLIBCXXABI_USE_COMPILER_RT=ON"
-            "-DLIBCXXABI_USE_LLVM_UNWINDER=ON"
-
-            "-DLIBUNWIND_USE_COMPILER_RT=ON"
+            "-DLIBCXXABI_USE_LLVM_UNWINDER=OFF"
 
             ^:common-flags
             ^:cross-compile-flags :target
         ]
-        workspace:build:llvm "building LLVM runtime (^(:target))" [libcxx, libcxxabi, libunwind] :flags
+        workspace:build:llvm "building LLVM runtime (^(:target))" [libcxx, libcxxabi] :flags
     }
     per-target :build
 }
