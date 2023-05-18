@@ -9,7 +9,7 @@ targets = [
 
 per-target = fn :f -> std:Map:from <| std:Iter:map (fn :i -> std:MapEntry:@ :i (f :i)) :targets
 
-ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/cf9beb1e4fadda47a3251eaea2d701555dcdf957.tar.gz"
+ct-ng-url="https://github.com/crosstool-ng/crosstool-ng/archive/d3e77cd9d13f1f5d35f85f62af2c98fc6dfa8b1a.tar.gz"
 ct-ng-src = cache <| task "downloading crosstool-NG" <| net:unarchive ^enter :ct-ng-url
 
 zlib-url="https://www.zlib.net/fossils/zlib-1.2.7.3.tar.gz"
@@ -171,6 +171,7 @@ openmp = {
     build = fn :target -> cache {
         workspace:build:openmp "building openmp (^(:target))" [
             String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
+            "-DLIBOMP_OMPD_GDB_SUPPORT=OFF" # requires python
             "-DOPENMP_ENABLE_LIBOMPTARGET=OFF"
             "-DLIBOMP_ENABLE_SHARED=OFF"
             "-DLIBOMP_CXXFLAGS=-fPIC -fvisibility=hidden -fvisibility-inlines-hidden"
@@ -211,7 +212,7 @@ map-seq = fn (Map :m) -> {
 
         # Write sequentially to avoid a race condition in `cp`
         map-seq <| per-target <| fn :target -> {
-            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang workspace:llvm-version
+            workspace:merge-dir compiler-rt::target <| Path:join :dir libexec wut llvm lib clang workspace:llvm-major-version
             workspace:merge-dir openmp::target <| Path:join :dir libexec wut gcc :target :target sysroot
         }
     })

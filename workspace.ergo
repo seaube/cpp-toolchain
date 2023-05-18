@@ -1,9 +1,10 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Map, MapEntry, Path, String } = :std
 
-version = 5.0.2
+version = 6.0.0
 
-llvm-version = 15.0.7
+llvm-version = 16.0.4
+llvm-major-version = String:split . :llvm-version |>:0
 
 wipal = ergo-remote "https://lgs-gitlab.redacted.invalid/api/v4/projects/^(std:net:url-encode wipal/tools/ergo-wipal)/repository/archive.tar.gz?sha=0.17.7"
 
@@ -154,7 +155,7 @@ prepare-toolchain = fn :dir :targets -> {
     no-link-tools = [
         ld.lld
         ld64.lld
-        "clang-^(String:split . :llvm-version |>:0)"
+        "clang-^(llvm-major-version)"
         clang-cpp
         clang-cl
     ]
@@ -324,6 +325,7 @@ test-toolchain = fn (Path :toolchain) (Array:Of :String |> :targets) -> {
     merge-dir
     target-triple
     llvm-version
+    llvm-major-version
 
     command = fn :cmd ^:args -> match :cmd [
         build -> {
