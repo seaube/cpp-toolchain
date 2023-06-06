@@ -110,10 +110,8 @@ llvm = {
         "-DLLVM_INCLUDE_TESTS=OFF"
         "-DLLVM_INCLUDE_EXAMPLES=OFF"
         "-DLLVM_ENABLE_TERMINFO=OFF"
-
-        # Would like to use these options, but for now they break the compiler-rt build.
-        #"-DLLVM_BUILD_LLVM_DYLIB=ON"
-        #"-DLLVM_LINK_LLVM_DYLIB=ON"
+        "-DLLVM_BUILD_LLVM_DYLIB=ON"
+        "-DLLVM_LINK_LLVM_DYLIB=ON"
 
         "-DLLDB_ENABLE_PYTHON=OFF"
         "-DLLDB_ENABLE_LIBEDIT=OFF"
