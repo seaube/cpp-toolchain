@@ -1,7 +1,7 @@
 std:import { by-content, cache, default, env, ergo-remote, exec, fs, if, match, net, optional, source, task } = :std
 std:import { Array, Bool, Iter, Map, MapEntry, Path, String } = :std
 
-version = 6.0.0rc0
+version = 6.0.0
 
 llvm-version = 16.0.5
 llvm-major-version = String:split . :llvm-version |>:0
