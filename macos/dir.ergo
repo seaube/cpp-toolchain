@@ -20,79 +20,51 @@ min-supported-version = fn :target -> match (workspace:target-triple:os :target)
     ]
 ]
 
-common-flags = [
-    "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON"
-
-    "-DLLVM_ENABLE_LIBCXX=ON"
-    "-DLLVM_INCLUDE_DOCS=OFF"
-    "-DLLVM_INCLUDE_TESTS=OFF"
-    "-DLLVM_INCLUDE_EXAMPLES=OFF"
-    "-DLLVM_ENABLE_TERMINFO=OFF"
-    "-DLLVM_BUILD_LLVM_DYLIB=ON"
-    "-DLLVM_LINK_LLVM_DYLIB=ON"
-
-    "-DLLDB_ENABLE_PYTHON=OFF"
-    "-DLLDB_ENABLE_LIBEDIT=OFF"
-    "-DLLDB_ENABLE_CURSES=OFF"
-    "-DLLDB_USE_SYSTEM_DEBUGSERVER=ON"
-
-    # TODO enable zstd compression in the future, maybe with a static link.
-    "-DLLVM_ENABLE_ZSTD=OFF"
-
-    String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
-]
-
 cross-compile-flags = fn :target -> [
     String:format "-DCMAKE_OSX_ARCHITECTURES={}" <| workspace:target-triple:arch :target
     String:format "-DCMAKE_OSX_SYSROOT={}" <| match (workspace:target-triple:os :target) [macos -> macosx, ios -> iphoneos]
-    String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version workspace:target-triple:host
+    String:format "-DCMAKE_OSX_DEPLOYMENT_TARGET={}" <| min-supported-version :target
 ]
 
 # Build LLVM
 llvm = {
     flags = [
-        "-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi;compiler-rt"
+        "-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi"
+        "-DLLVM_ENABLE_LIBCXX=ON"
+        "-DLLVM_INCLUDE_DOCS=OFF"
+        "-DLLVM_INCLUDE_TESTS=OFF"
+        "-DLLVM_INCLUDE_EXAMPLES=OFF"
+        "-DLLVM_ENABLE_TERMINFO=OFF"
+        "-DLLVM_BUILD_LLVM_DYLIB=ON"
+        "-DLLVM_LINK_LLVM_DYLIB=ON"
 
-        # libc++ used by sanitizers
-        "-DLIBCXX_INSTALL_LIBRARY=ON"
+        # TODO enable zstd compression in the future, maybe with a static link.
+        "-DLLVM_ENABLE_ZSTD=OFF"
+
+        "-DLLDB_ENABLE_PYTHON=OFF"
+        "-DLLDB_ENABLE_LIBEDIT=OFF"
+        "-DLLDB_ENABLE_CURSES=OFF"
+        "-DLLDB_USE_SYSTEM_DEBUGSERVER=ON"
+
+        "-DLIBCXX_INSTALL_LIBRARY=OFF"
         "-DLIBCXX_INSTALL_HEADERS=ON"
         "-DLIBCXX_ENABLE_SHARED=ON"
         "-DLIBCXX_ENABLE_STATIC=OFF"
+        "-DLIBCXX_USE_COMPILER_RT=ON"
+        "-DLIBCXX_HAS_ATOMIC_LIB=OFF"
+        "-DLIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=ON"
+
+        "-DLIBCXXABI_INSTALL_LIBRARY=OFF"
+        "-DLIBCXXABI_ENABLE_SHARED=ON"
+        "-DLIBCXXABI_ENABLE_STATIC=OFF"
+        "-DLIBCXXABI_USE_COMPILER_RT=ON"
+        "-DLIBCXXABI_USE_LLVM_UNWINDER=OFF"
 
         "-DCLANG_DEFAULT_LINKER=lld"
 
-        ^:common-flags
+        ^:cross-compile-flags workspace:target-triple:host
     ]
-    workspace:build:llvm "building LLVM" [clang, lld, lldb, clang-tools-extra] :flags
-}
-
-# Build tablegen
-tablegen = workspace:build:llvm "building TableGen" [clang] :common-flags
-
-# Build runtime
-llvm-runtime = {
-    build = fn :target -> {
-        flags = [
-            String:format "-DLLVM_TABLEGEN={}" <| Path:join :tablegen bin llvm-tblgen
-
-            "-DLIBCXX_ENABLE_SHARED=ON"
-            "-DLIBCXX_ENABLE_STATIC=OFF"
-            "-DLIBCXX_USE_COMPILER_RT=ON"
-            "-DLIBCXX_HAS_ATOMIC_LIB=OFF"
-            "-DLIBCXX_INSTALL_LIBRARY=ON"
-            "-DLIBCXX_INSTALL_HEADERS=OFF"
-
-            "-DLIBCXXABI_ENABLE_SHARED=ON"
-            "-DLIBCXXABI_ENABLE_STATIC=OFF"
-            "-DLIBCXXABI_USE_COMPILER_RT=ON"
-            "-DLIBCXXABI_USE_LLVM_UNWINDER=OFF"
-
-            ^:common-flags
-            ^:cross-compile-flags :target
-        ]
-        workspace:build:llvm "building LLVM runtime (^(:target))" [libcxx, libcxxabi] :flags
-    }
-    per-target :build
+    workspace:build:llvm "building LLVM" [clang, lld, lldb, clang-tools-extra, compiler-rt] :flags
 }
 
 # Build OpenMP
@@ -115,8 +87,6 @@ openmp = per-target <| fn :target -> workspace:build:openmp "building OpenMP (^(
             runtime-dir = Path:join :dir libexec wut runtime :target
             fs:create-dir <| Path:join :runtime-dir lib
             fs:create-dir <| Path:join :runtime-dir include
-            merge-dir (Path:join llvm-runtime::target lib) (Path:join :runtime-dir lib)
-            merge-dir (Path:join llvm-runtime::target include) (Path:join :runtime-dir include)
             merge-dir (Path:join openmp::target lib) (Path:join :runtime-dir lib)
             merge-dir (Path:join openmp::target include) (Path:join :runtime-dir include)
         }
