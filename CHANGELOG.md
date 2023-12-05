@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.0] - 2023-06-06
 ### Changed
-- Updated to LLVM 16.0.5
-- Updated to libstdc++ 13.1
+- Updated to LLVM 17.0.6
+- Updated to libstdc++ 13.2
 ### Fixed
 - Dynamic link libLLVM on Linux to significantly decrease package size
 
