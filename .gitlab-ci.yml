@@ -10,6 +10,7 @@ stages:
     script:
         - ./build.sh
         - mv dist "dist-$CI_JOB_NAME"
+        - tree
     cache:
         when: always
         paths: [.ergo_work/]
