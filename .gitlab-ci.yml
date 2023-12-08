@@ -11,6 +11,7 @@ stages:
         - ./build.sh
         - mv dist "dist-$CI_JOB_NAME"
         - ls
+        - ls "dist-$CI_JOB_NAME"
     cache:
         when: always
         paths: [.ergo_work/]
