@@ -5,9 +5,9 @@ stages:
 .build:
     stage: build
     timeout: 6h
-    artifacts:
-        # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37204#note_1680606708
-        paths: ["./dist-${CI_JOB_NAME}"]
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37204#note_1680606708
+    # artifacts:
+    #   paths: ["./dist-${CI_JOB_NAME}"]
     script:
         - ./build.sh
         - mv dist "dist-$CI_JOB_NAME"
@@ -45,14 +45,20 @@ stages:
 linux:
     tags: [docker]
     extends: .linux
+    artifacts:
+      paths: ["dist-linux"]
 
 apple:
     tags: [macos]
     extends: .apple
+    artifacts:
+      paths: ["dist-apple"]
 
 apple-arm64:
     tags: [macos-arm64]
     extends: .apple
+    artifacts:
+      paths: ["dist-apple-arm64"]
 
 deploy:
     stage: deploy
