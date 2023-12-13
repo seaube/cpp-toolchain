@@ -72,7 +72,7 @@ verify_target() {
     esac
 
     RUNTIME="${BINDIR}/../libexec/wut/runtime/$TARGET"
-    SYSROOT=$(xcrun --sdk $SDK_NAME --show-sdk-path)
+    SYSROOT=$(/usr/bin/xcrun --sdk $SDK_NAME --show-sdk-path)
 }
 
 unsupported () {

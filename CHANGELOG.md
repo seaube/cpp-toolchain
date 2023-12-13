@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [6.0.0] - 2023-06-06
+## [6.0.0] - 2023-12-13
 ### Changed
 - Updated to LLVM 17.0.6
 - Updated to libstdc++ 13.2
