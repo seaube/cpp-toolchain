@@ -1,6 +1,1 @@
-docker/ergo.tar.gz
-docker/defaults.ergo
-ergo
-.ergo_work
-.cache
-dist
+bazel-*
