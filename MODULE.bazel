@@ -12,11 +12,11 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 http_archive(
     name = "crosstool-ng",
     build_file = "crosstool-ng.BUILD",
-    # integrity = "sha256-L96DuNLB1QMzZeFkE2ShC3bg0kP/WjqDH39BUd3/4OI=",
-    # strip_prefix = "crosstool-ng-cf6b1740a14634406bb3426309dd92af8faa06fb",
-    # url = "https://github.com/crosstool-ng/crosstool-ng/archive/cf6b1740a14634406bb3426309dd92af8faa06fb.tar.gz",
-    strip_prefix = "crosstool-ng-902fab451bdaf4a44f834becee3c3ba5a1894e05",
-    url = "https://github.com/crosstool-ng/crosstool-ng/archive/902fab451bdaf4a44f834becee3c3ba5a1894e05.tar.gz",
+    integrity = "sha256-L96DuNLB1QMzZeFkE2ShC3bg0kP/WjqDH39BUd3/4OI=",
+    strip_prefix = "crosstool-ng-cf6b1740a14634406bb3426309dd92af8faa06fb",
+    url = "https://github.com/crosstool-ng/crosstool-ng/archive/cf6b1740a14634406bb3426309dd92af8faa06fb.tar.gz",
+    # strip_prefix = "crosstool-ng-902fab451bdaf4a44f834becee3c3ba5a1894e05",
+    # url = "https://github.com/crosstool-ng/crosstool-ng/archive/902fab451bdaf4a44f834becee3c3ba5a1894e05.tar.gz",
 )
 
 http_archive(
@@ -25,4 +25,15 @@ http_archive(
     integrity = "sha256-C1hVem0yzu6XyNUzpZuSEth+D8TSgzkk62xhEkfbLyo=",
     strip_prefix = "llvm-project-18.1.8.src",
     url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/llvm-project-18.1.8.src.tar.xz",
+)
+
+register_toolchains(
+    "@rules_foreign_cc//toolchains:preinstalled_cmake_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_make_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_meson_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
 )

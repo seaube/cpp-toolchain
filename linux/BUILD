@@ -15,6 +15,7 @@ load("//:config.bzl", "LINUX_TARGETS")
         ],
         out_dirs = [target],
         tool = "build.sh",
+        use_default_shell_env = True,
     )
     for target in LINUX_TARGETS
 ]
