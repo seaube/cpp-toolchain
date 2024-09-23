@@ -9,11 +9,11 @@ load("//:config.bzl", "LINUX_TARGETS")
             "{}.config".format(target),
         ],
         args = [
-            target,
+            "$(@D)",
             "$(rootpath {}.config)".format(target),
             "$(execpaths @crosstool-ng)",
         ],
-        out_dirs = [target],
+        out_dirs = ["gcc-" + target + "/toolchain"],
         tool = "build.sh",
         use_default_shell_env = True,
     )
