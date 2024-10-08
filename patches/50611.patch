@@ -2,9 +2,10 @@ diff --git a/llvm/lib/CodeGen/AsmPrinter/CMakeLists.txt b/llvm/lib/CodeGen/AsmPr
 index eb924282a75e..c77c140b9eee 100644
 --- a/llvm/lib/CodeGen/AsmPrinter/CMakeLists.txt
 +++ b/llvm/lib/CodeGen/AsmPrinter/CMakeLists.txt
-@@ -44,3 +44,8 @@ add_llvm_component_library(LLVMAsmPrinter
+@@ -44,4 +44,9 @@ add_llvm_component_library(LLVMAsmPrinter
    Support
    Target
+   TargetParser
    )
 +
 +if (CMAKE_COMPILER_IS_GNUCXX)

@@ -1,5 +1,5 @@
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
-load("config.bzl", "CROSS_COMPILE_FLAGS", "LLVM_TOOLS")
+load("cmake.bzl", "cmake")
+load("config.bzl", "LLVM_TOOLS")
 
 common_llvm_flags = {
     "CLANG_REPOSITORY_STRING": "wipal-universal-toolchain",
@@ -7,11 +7,29 @@ common_llvm_flags = {
     "LLVM_ENABLE_ZLIB": "FORCE_ON",
     "LLVM_INSTALL_BINUTILS_SYMLINKS": "ON",
     "LLVM_INSTALL_CCTOOLS_SYMLINKS": "ON",
+    "LLVM_INSTALL_TOOLCHAIN_ONLY": "ON",
     "LLVM_TOOLCHAIN_TOOLS": ";".join(LLVM_TOOLS),
-    "LLVM_TOOLCHAIN_ONLY": "ON",
+    "LLVM_INCLUDE_DOCS": "OFF",
+    "LLVM_INCLUDE_TESTS": "OFF",
+    "LLVM_INCLUDE_EXAMPLES": "OFF",
+    "LLVM_ENABLE_TERMINFO": "OFF",
+    "LLVM_BUILD_LLVM_DYLIB": "ON",
+    "LLVM_LINK_LLVM_DYLIB": "ON",
+    "LLDB_ENABLE_PYTHON": "OFF",
+    "LLDB_ENABLE_LIBEDIT": "OFF",
+    "LLDB_ENABLE_CURSES": "OFF",
 }
 
-linux_llvm_flags = {}
+linux_llvm_flags = {
+    "LLVM_ENABLE_PROJECTS": ";".join([
+        "clang",
+        "lld",
+        "lldb",
+        "clang-tools-extra",
+    ]),
+    "LLVM_STATIC_LINK_CXX_STDLIB": "ON",
+    "CLANG_DEFAULT_LINKER": "lld",
+}
 
 macos_llvm_flags = {
     "LLVM_ENABLE_PROJECTS": ";".join([
@@ -23,18 +41,9 @@ macos_llvm_flags = {
     ]),
     "LLVM_ENABLE_RUNTIMES": "libcxx;libcxxabi",
     "LLVM_ENABLE_LIBCXX": "ON",
-    "LLVM_INCLUDE_DOCS": "OFF",
-    "LLVM_INCLUDE_TESTS": "OFF",
-    "LLVM_INCLUDE_EXAMPLES": "OFF",
-    "LLVM_ENABLE_TERMINFO": "OFF",
-    "LLVM_BUILD_LLVM_DYLIB": "ON",
-    "LLVM_LINK_LLVM_DYLIB": "ON",
 
     # TODO enable zstd compression in the future, maybe with a static link.
     "LLVM_ENABLE_ZSTD": "OFF",
-    "LLDB_ENABLE_PYTHON": "OFF",
-    "LLDB_ENABLE_LIBEDIT": "OFF",
-    "LLDB_ENABLE_CURSES": "OFF",
     "LLDB_USE_SYSTEM_DEBUGSERVER": "ON",
     "LIBCXX_INSTALL_LIBRARY": "OFF",
     "LIBCXX_INSTALL_HEADERS": "ON",
@@ -53,15 +62,26 @@ macos_llvm_flags = {
 
 cmake(
     name = "llvm",
-    build_args = ["-j32"],
+    build_args = ["-j16"],
+    build_data = select({
+        "@platforms//os:linux": ["//linux:zlib"],
+        "//conditions:default": [],
+    }),
     cache_entries = common_llvm_flags | select({
         "@platforms//os:linux": linux_llvm_flags,
         "@platforms//os:macos": macos_llvm_flags,
-    }) | CROSS_COMPILE_FLAGS,
+    }),
+    env = select({
+        "@platforms//os:linux": {
+            "ZLIB_ROOT": "$$EXT_BUILD_ROOT/$(location //linux:zlib)",
+        },
+        "//conditions:default": {},
+    }),
     lib_source = "@llvm-project",
     out_data_dirs = ["."],
     out_headers_only = True,
     out_include_dir = ".",
+    tags = ["local"],
     working_directory = "llvm",
 )
 
@@ -77,7 +97,7 @@ cmake(
             "OPENMP_ENABLE_LIBOMPTARGET": "OFF",
         },
         "//conditions:default": {},
-    }) | CROSS_COMPILE_FLAGS,
+    }),
     lib_source = "@llvm-project",
     out_data_dirs = ["."],
     out_headers_only = True,

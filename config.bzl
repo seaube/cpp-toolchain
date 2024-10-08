@@ -40,23 +40,3 @@ LLVM_TOOLS = [
     "llvm-libtool-darwin,",
     "llvm-otool",
 ]
-
-def _cross_compile_flags(target):
-    parts = target.split("-")
-    cpu = parts[0]
-    vendor = parts[1]
-    os = parts[2]
-
-    if os == "ios":
-        min_version = MIN_IOS_VERSION
-    elif os == "macos":
-        min_version = MIN_MACOS_ARM64_VERSION if cpu.startswith("arm64") else MIN_MACOS_X86_VERSION
-
-    sysroots = {"macos": "macosx", "ios": "iphoneos"}
-    return {
-        "CMAKE_OSX_ARCHITECTURES": cpu,
-        "CMAKE_OSX_SYSROOT": sysroots[os],
-        "CMAKE_OSX_DEPLOYMENT_TARGET": min_version,
-    }
-
-CROSS_COMPILE_FLAGS = select({"//platforms:config-" + triple: _cross_compile_flags(triple) for triple in APPLE_TARGETS} | {"//conditions:default": {}})
