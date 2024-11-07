@@ -21,21 +21,29 @@ def _cross_compile_flags(target, build_with_llvm = False):
             "CMAKE_OSX_DEPLOYMENT_TARGET": min_version,
         }, {})
     else:
+        compiler = "llvm" if build_with_llvm else "gcc"
         return ({
             "CMAKE_TOOLCHAIN_FILE": "$CMAKE_TOOLCHAIN_FILE",
         }, {
-            "CMAKE_TOOLCHAIN_FILE": "$(execpath //linux:gcc-toolchain-{}.cmake)".format(target),
+            "CMAKE_TOOLCHAIN_FILE": "$(execpath //linux:{}-toolchain-{}.cmake)".format(compiler, target),
         })
 
-_CROSS_COMPILE_GCC_FLAGS = select({"//platforms:config-" + triple: _cross_compile_flags(triple)[0] for triple in APPLE_TARGETS + LINUX_TARGETS})
-_CROSS_COMPILE_ENV_VARS = select({"//platforms:config-" + triple: _cross_compile_flags(triple)[1] for triple in APPLE_TARGETS + LINUX_TARGETS})
-_CROSS_COMPILE_BUILD_DATA = select({"//platforms:config-" + triple: ["//linux:gcc-{}".format(triple), "//linux:gcc-toolchain-{}.cmake".format(triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
-
 def cmake(build_data = [], cache_entries = {}, env = {}, build_with_llvm = False, **kwargs):
+    cache_entries = cache_entries | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[0] for triple in APPLE_TARGETS + LINUX_TARGETS})
+    env = env | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[1] for triple in APPLE_TARGETS + LINUX_TARGETS})
+
+    if build_with_llvm:
+        compiler = "llvm"
+        build_data = build_data + ["//:llvm"]
+    else:
+        compiler = "gcc"
+
+    build_data = build_data + select({"//platforms:config-" + triple: ["//linux:gcc-{}".format(triple), "//linux:{}-toolchain-{}.cmake".format(compiler, triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
+
     cmake_impl(
-        build_data = build_data + _CROSS_COMPILE_BUILD_DATA,
-        cache_entries = cache_entries | _CROSS_COMPILE_GCC_FLAGS,
-        env = env | _CROSS_COMPILE_ENV_VARS,
+        build_data = build_data,
+        cache_entries = cache_entries,
+        env = env,
         generate_crosstool_file = select({
             "@platforms//os:linux": False,
             "//conditions:default": True,

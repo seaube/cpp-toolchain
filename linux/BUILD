@@ -32,6 +32,17 @@ package(default_visibility = ["//visibility:public"])
             },
             template = "gcc-toolchain.cmake",
         ),
+        expand_template(
+            name = "llvm-toolchain-{}".format(target),
+            out = "llvm-toolchain-{}.cmake".format(target),
+	    data = ["//linux:gcc-{}".format(target), "//:llvm"],
+            substitutions = {
+                "%target%": target,
+		"%llvm%": "$(execpath //:llvm)",
+                "%gcc%": "$(execpath //linux:gcc-{})".format(target),
+            },
+            template = "llvm-toolchain.cmake",
+        ),
     )
     for target in LINUX_TARGETS
 ]

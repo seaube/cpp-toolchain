@@ -1,6 +1,8 @@
 load("cmake.bzl", "cmake")
 load("config.bzl", "LLVM_TOOLS")
 
+package(default_visibility = ["//visibility:public"])
+
 common_llvm_flags = {
     "CLANG_REPOSITORY_STRING": "wipal-universal-toolchain",
     "LLVM_TARGETS_TO_BUILD": "X86;ARM;AArch64;NVPTX",
@@ -92,7 +94,7 @@ cmake(
         "LIBOMP_CXXFLAGS": "-fPIC -fvisibility=hidden -fvisibility-inlines-hidden",
     } | select({
         "@platforms//os:linux": {
-            #    String:format "-DLLVM_DIR={}" <| Path:join :llvm lib cmake llvm
+            "LLVM_DIR": "$EXT_BUILD_ROOT/$(location //:llvm)/lib/cmake/llvm",
             "LIBOMP_OMPD_GDB_SUPPORT": "OFF",  # requires python
             "OPENMP_ENABLE_LIBOMPTARGET": "OFF",
         },
@@ -103,4 +105,26 @@ cmake(
     out_headers_only = True,
     out_include_dir = ".",
     working_directory = "openmp",
+)
+
+cmake(
+    name = "compiler-rt",
+    cache_entries = {
+        "COMPILER_RT_BUILD_BUILTINS": "OFF",
+	"COMPILER_RT_DEFAULT_TARGET_ONLY": "ON",
+	"COMPILER_RT_USE_LIBCXX": "OFF",
+
+	# Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
+	"CMAKE_ASM_COMPILER_VERSION": "17.0.6",
+
+	# Workaround for https://github.com/llvm/llvm-project/issues/57717
+	"COMPILER_RT_BUILD_GWP_ASAN": "OFF",
+    },
+    lib_source = "@llvm-project",
+    out_data_dirs = ["."],
+    out_headers_only = True,
+    out_include_dir = ".",
+    working_directory = "compiler-rt",
+    target_compatible_with = ["@platforms//os:linux"],
+    build_with_llvm = True,
 )
