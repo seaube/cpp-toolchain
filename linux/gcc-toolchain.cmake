@@ -1,4 +1,5 @@
-set(CMAKE_SYSTEM_NAME Linux)
+# Don't set this! It enables CMAKE_CROSSCOMPILING, which breaks the LLVM build.
+# set(CMAKE_SYSTEM_NAME Linux)
 
 set(CMAKE_C_COMPILER "$ENV{EXT_BUILD_ROOT}/%gcc%/bin/%target%-cc")
 set(CMAKE_CXX_COMPILER "$ENV{EXT_BUILD_ROOT}/%gcc%/bin/%target%-c++")
@@ -21,6 +22,13 @@ set(CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
 set(CMAKE_ASM_FLAGS "")
 set(CMAKE_SHARED_LINKER_FLAGS "")
 set(CMAKE_EXE_LINKER_FLAGS "")
+
+if(DEFINED ENV{ZLIB_ROOT})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I$ENV{ZLIB_ROOT}/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I$ENV{ZLIB_ROOT}/include")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath-link,$ENV{ZLIB_ROOT}/lib")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,$ENV{ZLIB_ROOT}/lib")
+endif()
 
 if("%target%" EQUAL "aarch64-unknown-linux-gnu")
     set(CMAKE_C_FLAGS "$CMAKE_C_FLAGS -DAT_HWCAP2=26")
