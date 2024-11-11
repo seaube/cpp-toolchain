@@ -1,5 +1,6 @@
 load("cmake.bzl", "cmake")
 load("config.bzl", "LLVM_TOOLS")
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -65,7 +66,7 @@ macos_llvm_flags = {
 cmake(
     name = "llvm",
     build_args = ["-j16"],
-    build_data = select({
+    data = select({
         "@platforms//os:linux": ["//linux:zlib"],
         "//conditions:default": [],
     }),
@@ -128,3 +129,11 @@ cmake(
     target_compatible_with = ["@platforms//os:linux"],
     build_with_llvm = True,
 )
+
+# copy_to_directory(
+#     name = "assembled",
+#     srcs = ["llvm", "openmp"] + select({
+#         "@platforms//os:linux": ["compiler-rt"],
+# 	"@platforms//os:macos": [],
+#     }),
+# 

@@ -4,7 +4,7 @@ set -euo pipefail
 
 builddir=$1/..
 config=$2
-ct_ng=$PWD/$3
+ct_ng=$(find $PWD -wholename '*/crosstool-ng/bin/ct-ng')
 
 if [[ $PWD == /Volumes/* ]]; then
     mkdir .tar
