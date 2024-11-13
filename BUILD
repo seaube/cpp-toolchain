@@ -1,5 +1,5 @@
 load("cmake.bzl", "cmake")
-load("config.bzl", "LLVM_TOOLS")
+load("config.bzl", "LLVM_TOOLS", "LLVM_VERSION")
 load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 
 package(default_visibility = ["//visibility:public"])
@@ -81,59 +81,6 @@ cmake(
         "//conditions:default": {},
     }),
     lib_source = "@llvm-project",
-    out_data_dirs = ["."],
-    out_headers_only = True,
-    out_include_dir = ".",
     tags = ["local"],
     working_directory = "llvm",
 )
-
-cmake(
-    name = "openmp",
-    cache_entries = {
-        "LIBOMP_ENABLE_SHARED": "OFF",
-        "LIBOMP_CXXFLAGS": "-fPIC -fvisibility=hidden -fvisibility-inlines-hidden",
-    } | select({
-        "@platforms//os:linux": {
-            "LLVM_DIR": "$EXT_BUILD_ROOT/$(location //:llvm)/lib/cmake/llvm",
-            "LIBOMP_OMPD_GDB_SUPPORT": "OFF",  # requires python
-            "OPENMP_ENABLE_LIBOMPTARGET": "OFF",
-        },
-        "//conditions:default": {},
-    }),
-    lib_source = "@llvm-project",
-    out_data_dirs = ["."],
-    out_headers_only = True,
-    out_include_dir = ".",
-    working_directory = "openmp",
-)
-
-cmake(
-    name = "compiler-rt",
-    cache_entries = {
-        "COMPILER_RT_BUILD_BUILTINS": "OFF",
-	"COMPILER_RT_DEFAULT_TARGET_ONLY": "ON",
-	"COMPILER_RT_USE_LIBCXX": "OFF",
-
-	# Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
-	"CMAKE_ASM_COMPILER_VERSION": "17.0.6",
-
-	# Workaround for https://github.com/llvm/llvm-project/issues/57717
-	"COMPILER_RT_BUILD_GWP_ASAN": "OFF",
-    },
-    lib_source = "@llvm-project",
-    out_data_dirs = ["."],
-    out_headers_only = True,
-    out_include_dir = ".",
-    working_directory = "compiler-rt",
-    target_compatible_with = ["@platforms//os:linux"],
-    build_with_llvm = True,
-)
-
-# copy_to_directory(
-#     name = "assembled",
-#     srcs = ["llvm", "openmp"] + select({
-#         "@platforms//os:linux": ["compiler-rt"],
-# 	"@platforms//os:macos": [],
-#     }),
-# 

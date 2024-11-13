@@ -30,7 +30,7 @@ if(DEFINED ENV{ZLIB_ROOT})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,$ENV{ZLIB_ROOT}/lib")
 endif()
 
-if("%target%" EQUAL "aarch64-unknown-linux-gnu")
+if("%target%" STREQUAL "aarch64-unknown-linux-gnu")
     set(CMAKE_C_FLAGS "$CMAKE_C_FLAGS -DAT_HWCAP2=26")
     set(CMAKE_CXX_FLAGS "$CMAKE_CXX_FLAGS -DAT_HWCAP2=26")
 endif()

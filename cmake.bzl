@@ -28,19 +28,24 @@ def _cross_compile_flags(target, build_with_llvm = False):
             "CMAKE_TOOLCHAIN_FILE": "$(execpath //linux:{}-toolchain-{}.cmake)".format(compiler, target),
         })
 
-def cmake(data = [], cache_entries = {}, env = {}, build_with_llvm = False, **kwargs):
-    cache_entries = cache_entries | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[0] for triple in APPLE_TARGETS + LINUX_TARGETS})
-    env = env | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[1] for triple in APPLE_TARGETS + LINUX_TARGETS})
-
+def cmake(build_args = [], data = [], cache_entries = {}, env = {}, build_with_llvm = False, target = "host", **kwargs):
     if build_with_llvm:
         compiler = "llvm"
         data = data + ["//:llvm"]
     else:
         compiler = "gcc"
 
-    data = data + select({"//platforms:config-" + triple: ["//linux:gcc-{}".format(triple), "//linux:{}-toolchain-{}.cmake".format(compiler, triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
+    if target == "host":
+        cache_entries = cache_entries | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[0] for triple in APPLE_TARGETS + LINUX_TARGETS})
+        env = env | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[1] for triple in APPLE_TARGETS + LINUX_TARGETS})
+        data = data + select({"//platforms:config-" + triple: ["//linux:gcc-{}".format(triple), "//linux:{}-toolchain-{}.cmake".format(compiler, triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
+    else:
+        cache_entries = cache_entries | _cross_compile_flags(target, build_with_llvm)[0]
+        env = env | _cross_compile_flags(target, build_with_llvm)[1]
+        data = data + ["//linux:gcc-{}".format(target), "//linux:{}-toolchain-{}.cmake".format(compiler, target)]
 
     cmake_impl(
+        build_args = build_args + ["-j8"],
         data = data,
         cache_entries = cache_entries,
         env = env,
@@ -49,5 +54,9 @@ def cmake(data = [], cache_entries = {}, env = {}, build_with_llvm = False, **kw
             "//conditions:default": True,
         }),
         generate_args = ["-DCMAKE_SHARED_LINKER_FLAGS=", "-DCMAKE_EXE_LINKER_FLAGS="],
+        # trick rules_foreign_cc into exposing all files
+        out_data_dirs = ["."],
+        out_headers_only = True,
+        out_include_dir = ".",
         **kwargs
     )
