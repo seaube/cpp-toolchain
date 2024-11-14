@@ -88,7 +88,7 @@ sh_binary(
         tar_package(
             "sysroot-package-{}".format(target),
             "sysroot-{}-{}".format(target, module_version()),
-            ["sysroot-{}".format(target)],
+            "sysroot-{}".format(target),
         ),
 
         # toolchain.cmake files for building with the GCC and LLVM cross-compilers
@@ -139,5 +139,5 @@ copy_to_directory(
 tar_package(
     "llvm-package",
     "llvm-{}-{}".format(HOST_TARGET, module_version()),
-    ["llvm"],
+    "llvm",
 )
