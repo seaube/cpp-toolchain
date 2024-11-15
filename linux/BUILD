@@ -1,10 +1,10 @@
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@aspect_bazel_lib//lib:run_binary.bzl", "run_binary")
-load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("//:cmake.bzl", "cmake")
 load("//:config.bzl", "LINUX_TARGETS")
-load("//:tar.bzl", "tar_package")
 load("//:host.bzl", "HOST_TARGET")
+load("//:tar.bzl", "tar_package")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,7 +23,7 @@ sh_binary(
         # Build GCC with crosstool-ng
         run_binary(
             name = "gcc-{}".format(target),
-            srcs = ["crosstool-ng/{}.config".format(target),],
+            srcs = ["crosstool-ng/{}.config".format(target)],
             args = [
                 "$(@D)",
                 "$(rootpath crosstool-ng/{}.config)".format(target),
@@ -44,34 +44,38 @@ sh_binary(
                 "OPENMP_ENABLE_LIBOMPTARGET": "OFF",
             },
             lib_source = "@llvm-project",
-            working_directory = "openmp",
             target = target,
+            working_directory = "openmp",
         ),
 
         # Build compiler-rt
         cmake(
             name = "compiler-rt-{}".format(target),
+            build_with_llvm = True,
             cache_entries = {
                 "COMPILER_RT_BUILD_BUILTINS": "OFF",
                 "COMPILER_RT_DEFAULT_TARGET_ONLY": "ON",
                 "COMPILER_RT_USE_LIBCXX": "OFF",
-        
+
                 # Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
                 "CMAKE_ASM_COMPILER_VERSION": LLVM_VERSION,
-        
+
                 # Workaround for https://github.com/llvm/llvm-project/issues/57717
                 "COMPILER_RT_BUILD_GWP_ASAN": "OFF",
             },
             lib_source = "@llvm-project",
+            target = target,
             working_directory = "compiler-rt",
-            build_with_llvm = True,
-	    target = target,
         ),
 
         # Arrange components into a sysroot
         copy_to_directory(
             name = "sysroot-{}".format(target),
-            srcs = ["gcc-{}".format(target), "openmp-{}".format(target), "targets/{}.cfg".format(target)],
+            srcs = [
+                "gcc-{}".format(target),
+                "openmp-{}".format(target),
+                "targets/{}.cfg".format(target),
+            ],
             exclude_srcs_patterns = [
                 "build.log.bz2",
                 "bin/**",
@@ -81,13 +85,20 @@ sh_binary(
             replace_prefixes = {
                 "**/openmp-*": "{}/sysroot/usr".format(target),
             },
-            root_paths = ["**/toolchain", "**/targets", "."],
+            root_paths = [
+                "**/toolchain",
+                "**/targets",
+                ".",
+            ],
         ),
 
         # Package the sysroot into a tar
         tar_package(
             "sysroot-package-{}".format(target),
-            "sysroot-{}-{}".format(target, module_version()),
+            "sysroot-{}-{}".format(
+                target,
+                module_version(),
+            ),
             "sysroot-{}".format(target),
         ),
 
@@ -106,7 +117,10 @@ sh_binary(
         expand_template(
             name = "llvm-toolchain-{}".format(target),
             out = "llvm-toolchain-{}.cmake".format(target),
-            data = ["//linux:gcc-{}".format(target), "//:llvm"],
+            data = [
+                "//linux:gcc-{}".format(target),
+                "//:llvm",
+            ],
             substitutions = {
                 "%target%": target,
                 "%llvm%": "$(execpath //:llvm)",
@@ -128,16 +142,22 @@ cmake(
 copy_to_directory(
     name = "llvm",
     srcs = ["//:llvm"] + ["compiler-rt-{}".format(target) for target in LINUX_TARGETS],
+    allow_overwrites = True,
     replace_prefixes = {
         "**/compiler-rt-*": "lib/clang/" + LLVM_VERSION.split(".")[0],
     },
-    root_paths = ["llvm", "."],
-    allow_overwrites = True,
+    root_paths = [
+        "llvm",
+        ".",
+    ],
 )
 
 # Package the compiler into a tar
 tar_package(
     "llvm-package",
-    "llvm-{}-{}".format(HOST_TARGET, module_version()),
+    "llvm-{}-{}".format(
+        HOST_TARGET,
+        module_version(),
+    ),
     "llvm",
 )

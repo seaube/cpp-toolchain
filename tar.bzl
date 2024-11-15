@@ -1,4 +1,4 @@
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "mtree_mutate", "tar")
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 
 def tar_package(name, out, src):
     mtree_spec(
@@ -13,7 +13,7 @@ def tar_package(name, out, src):
         owner = "1000",
         ownername = "default",
         mtime = "946684800",
-	strip_prefix = src_label.package + "/" + src_label.name,
+        strip_prefix = src_label.package + "/" + src_label.name,
     )
 
     tar(
