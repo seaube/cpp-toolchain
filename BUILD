@@ -81,6 +81,5 @@ cmake(
         "//conditions:default": {},
     }),
     lib_source = "@llvm-project",
-    tags = ["local"],
     working_directory = "llvm",
 )

@@ -53,7 +53,10 @@ def cmake(build_args = [], data = [], cache_entries = {}, env = {}, build_with_l
             "@platforms//os:linux": False,
             "//conditions:default": True,
         }),
-        generate_args = ["-DCMAKE_SHARED_LINKER_FLAGS=", "-DCMAKE_EXE_LINKER_FLAGS="],
+        generate_args = select({
+            "@platforms//os:linux": ["-DCMAKE_SHARED_LINKER_FLAGS=", "-DCMAKE_EXE_LINKER_FLAGS="],
+            "//conditions:default": [],
+        }),
         # trick rules_foreign_cc into exposing all files
         out_data_dirs = ["."],
         out_headers_only = True,

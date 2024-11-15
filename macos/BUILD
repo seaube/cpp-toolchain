@@ -1,12 +1,25 @@
-load("@rules_foreign_cc//foreign_cc:defs.bzl")
-load("defs.bzl", "TARGETS", "cross_compile_flags")
-load("@bazel_skylib//:selects.bzl", "selects")
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("//:host.bzl", "HOST_TARGET")
+load("//:tar.bzl", "tar_package")
 
-[
-    selects.config_setting_group(
-        name = target,
-        match_all = 
+package(default_visibility = ["//visibility:public"])
 
-[
-    for target in TARGETS
-]
+# Assemble LLVM package
+copy_to_directory(
+    name = "llvm",
+    srcs = ["//:llvm"],
+    root_paths = [
+        "llvm",
+        ".",
+    ],
+)
+
+# Package the compiler into a tar
+tar_package(
+    "llvm-package",
+    "llvm-{}-{}".format(
+        HOST_TARGET,
+        module_version(),
+    ),
+    "llvm",
+)
