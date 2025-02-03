@@ -17,7 +17,7 @@ fi
 
 TAG=wipal-toolchain-env
 
-$DOCKER build --quiet --tag $TAG --build-arg CONFIG_UID=`id -u` --arch arm64 docker
+$DOCKER build --tag $TAG --build-arg CONFIG_UID=`id -u` --arch arm64 docker
 
 if [ "$1" == "sync" ]; then
     $DOCKER run --rm -it -w $PWD \
