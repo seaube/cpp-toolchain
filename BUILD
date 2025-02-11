@@ -5,7 +5,6 @@ load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 package(default_visibility = ["//visibility:public"])
 
 common_llvm_flags = {
-    "CLANG_REPOSITORY_STRING": "wipal-universal-toolchain",
     "LLVM_TARGETS_TO_BUILD": "X86;ARM;AArch64;NVPTX",
     "LLVM_ENABLE_ZLIB": "FORCE_ON",
     "LLVM_INSTALL_BINUTILS_SYMLINKS": "ON",

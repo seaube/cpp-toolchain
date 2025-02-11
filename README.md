@@ -1,6 +1,6 @@
-# WiPAL Universal Toolchain
+# Portable C++ Toolchain
 
-The WiPAL Universal Toolchain is a complete C/C++ toolchain with the following goals:
+The Portable C++ Toolchain is a complete C/C++ toolchain with the following goals:
 * Create binaries compatible with a broad variety of Linux distributions and macOS versions
 * Support cross-compilation without necessitating specialty compilers
 * Provide a similar experience on Linux and macOS
