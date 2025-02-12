@@ -1,0 +1,4 @@
+crosstool-ng/
+targets/*/toolchain
+targets/*/.build
+targets/*/build.log

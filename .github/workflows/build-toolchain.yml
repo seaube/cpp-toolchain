@@ -1,0 +1,39 @@
+name: Build Toolchain
+
+on: push
+
+jobs:
+
+  build-gcc:
+    strategy:
+      matrix:
+        include:
+          - name: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - name: armv7-unknown-linux-gnueabihf
+            os: ubuntu-24.04
+          - name: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04
+    name: GCC ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y diffutils gawk libarchive-tools libtool-bin help2man ncurses-dev zlib1g-dev python3-dev
+      - name: Build toolchain
+        run: make -C gcc targets/${{ matrix.name }}/toolchain
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{ matrix.name }} log
+          path: gcc/targets/${{ matrix.name }}/build.log
+          if-no-files-found: error
+      - name: Upload built toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: gcc/targets/${{ matrix.name }}/toolchain
+          if-no-files-found: error
