@@ -1,6 +1,5 @@
 load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
-load("@aspect_bazel_lib//lib:run_binary.bzl", "run_binary")
 load("//:cmake.bzl", "cmake")
 load("//:config.bzl", "LINUX_TARGETS")
 load("//:host.bzl", "HOST_TARGET")
@@ -10,29 +9,9 @@ package(default_visibility = ["//visibility:public"])
 
 LLVM_VERSION = "17.0.6"
 
-# Wrapper script for invoking crosstool-ng
-sh_binary(
-    name = "build-script",
-    srcs = ["build.sh"],
-    data = ["@crosstool-ng"],
-)
-
 # The following targets are built for each target
 [
     (
-        # Build GCC with crosstool-ng
-        run_binary(
-            name = "gcc-{}".format(target),
-            srcs = ["crosstool-ng/{}.config".format(target)],
-            args = [
-                "$(@D)",
-                "$(rootpath crosstool-ng/{}.config)".format(target),
-            ],
-            out_dirs = ["gcc-" + target + "/toolchain"],
-            tool = "build-script",
-            use_default_shell_env = True,
-        ),
-
         # Build OpenMP
         cmake(
             name = "openmp-{}".format(target),
@@ -72,7 +51,7 @@ sh_binary(
         copy_to_directory(
             name = "sysroot-{}".format(target),
             srcs = [
-                "gcc-{}".format(target),
+                "//gcc:{}".format(target),
                 "openmp-{}".format(target),
                 "targets/{}.cfg".format(target),
             ],
@@ -86,8 +65,8 @@ sh_binary(
                 "**/openmp-*": "{}/sysroot/usr".format(target),
             },
             root_paths = [
-                "**/toolchain",
-                "**/targets",
+                "gcc/{}".format(target),
+                "linux/targets",
                 ".",
             ],
         ),
@@ -107,10 +86,10 @@ sh_binary(
         expand_template(
             name = "gcc-toolchain-{}".format(target),
             out = "gcc-toolchain-{}.cmake".format(target),
-            data = ["//linux:gcc-{}".format(target)],
+            data = ["//gcc:{}".format(target)],
             substitutions = {
                 "%target%": target,
-                "%gcc%": "$(execpath //linux:gcc-{})".format(target),
+                "%gcc%": "$(execpath //gcc:{})".format(target),
             },
             template = "gcc-toolchain.cmake",
         ),
@@ -118,13 +97,13 @@ sh_binary(
             name = "llvm-toolchain-{}".format(target),
             out = "llvm-toolchain-{}.cmake".format(target),
             data = [
-                "//linux:gcc-{}".format(target),
+                "//gcc:{}".format(target),
                 "//:llvm",
             ],
             substitutions = {
                 "%target%": target,
                 "%llvm%": "$(execpath //:llvm)",
-                "%gcc%": "$(execpath //linux:gcc-{})".format(target),
+                "%gcc%": "$(execpath //gcc:{})".format(target),
             },
             template = "llvm-toolchain.cmake",
         ),

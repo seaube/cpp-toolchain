@@ -38,11 +38,11 @@ def cmake(build_args = [], data = [], cache_entries = {}, env = {}, build_with_l
     if target == "host":
         cache_entries = cache_entries | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[0] for triple in APPLE_TARGETS + LINUX_TARGETS})
         env = env | select({"//platforms:config-" + triple: _cross_compile_flags(triple, build_with_llvm)[1] for triple in APPLE_TARGETS + LINUX_TARGETS})
-        data = data + select({"//platforms:config-" + triple: ["//linux:gcc-{}".format(triple), "//linux:{}-toolchain-{}.cmake".format(compiler, triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
+        data = data + select({"//platforms:config-" + triple: ["//gcc:{}".format(triple), "//linux:{}-toolchain-{}.cmake".format(compiler, triple)] for triple in LINUX_TARGETS} | {"//conditions:default": []})
     else:
         cache_entries = cache_entries | _cross_compile_flags(target, build_with_llvm)[0]
         env = env | _cross_compile_flags(target, build_with_llvm)[1]
-        data = data + ["//linux:gcc-{}".format(target), "//linux:{}-toolchain-{}.cmake".format(compiler, target)]
+        data = data + ["//gcc:{}".format(target), "//linux:{}-toolchain-{}.cmake".format(compiler, target)]
 
     cmake_impl(
         build_args = build_args + ["-j8"],

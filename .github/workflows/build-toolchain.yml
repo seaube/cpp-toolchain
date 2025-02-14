@@ -7,18 +7,26 @@ jobs:
   build-gcc:
     strategy:
       matrix:
-        include:
+        target:
           - name: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
           - name: armv7-unknown-linux-gnueabihf
             os: ubuntu-24.04
           - name: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04-arm
-    name: GCC ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+            os: ubuntu-24.04
+    name: gcc ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+    env:
+      gccdir: gcc/targets/${{ matrix.target.name }}/toolchain
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: gcc/targets/${{ matrix.target.name }}/toolchain/**/*
+          key: gcc-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('gcc/Makefile', 'gcc/targets/*/.config') }}
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y diffutils gawk libarchive-tools libtool-bin help2man ncurses-dev zlib1g-dev python3-dev
@@ -27,20 +35,100 @@ jobs:
           sudo apt-get remove texinfo
           mkdir ~/texinfo && curl -L https://ftp.gnu.org/gnu/texinfo/texinfo-7.2.tar.gz | tar --strip-components=1 -zx -C ~/texinfo
           cd ~/texinfo && ./configure && make && sudo make install
-      - name: Build toolchain
-        run: |
-          make -C gcc targets/${{ matrix.name }}/toolchain
-          tar -cf toolchain.tar gcc/targets/${{ matrix.name }}/toolchain # maintain case-sensitivity
+      - name: Build gcc
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: make -C gcc targets/${{ matrix.target.name }}/toolchain
+      - name: Create artifact archive
+        run: tar -cf gcc-${{ matrix.target.name }}.tar $gccdir # maintain case-sensitivity
       - name: Upload build log
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: ${{ matrix.name }} log
-          path: gcc/targets/${{ matrix.name }}/build.log
+          name: ${{ matrix.target.name }} log
+          path: gcc/targets/${{ matrix.target.name }}/build.log
           if-no-files-found: error
-      - name: Upload built toolchain
+      - name: Upload built gcc
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}
-          path: toolchain.tar
+          name: gcc-${{ matrix.target.name }}
+          path: gcc-${{ matrix.target.name }}.tar
+          if-no-files-found: error
+
+  build-sysroot:
+    needs: build-gcc
+    strategy:
+      matrix:
+        target:
+          - name: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - name: armv7-unknown-linux-gnueabihf
+            os: ubuntu-24.04
+          - name: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04
+    name: sysroot ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.13.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.job }} ${{ matrix.target.name }}
+          repository-cache: true
+      - name: Download built gcc
+        uses: actions/download-artifact@v4
+        with:
+          name: gcc-${{ matrix.target.name }}
+      - name: Build sysroot
+        run: |
+          tar -xf gcc-${{ matrix.target.name }}.tar
+          bazel build //linux:sysroot-package-${{ matrix.target.name }}
+      - name: Upload built sysroot
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysroot-${{ matrix.target.name }}
+          path: bazel-bin/linux/sysroot-*.tar.xz
+          if-no-files-found: error
+
+  build-llvm:
+    needs: build-gcc
+    strategy:
+      matrix:
+        target:
+          - name: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+            type: linux
+          - name: x86_64-apple-darwin
+            os: macos-13
+            type: macos
+          - name: arm64-apple-darwin
+            os: macos-14
+            type: macos
+    name: llvm ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.13.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.job }} ${{ matrix.target.name }}
+          repository-cache: true
+      - name: Install dependencies
+        if: ${{ contains(matrix.target.name, 'linux') }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libicu-dev
+      - name: Download built gcc
+        if: ${{ contains(matrix.target.name, 'linux') }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gcc-*
+      - name: Build llvm
+        run: |
+          find . -name "gcc-*.tar" -exec tar -xf {} \;
+          bazel build //${{ matrix.target.type }}:llvm-package
+      - name: Upload built llvm
+        uses: actions/upload-artifact@v4
+        with:
+          name: llvm-${{ matrix.target.name }}
+          path: bazel-bin/${{ matrix.target.type }}/llvm-*.tar.xz
           if-no-files-found: error

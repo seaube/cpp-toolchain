@@ -20,6 +20,7 @@ common_llvm_flags = {
     "LLDB_ENABLE_PYTHON": "OFF",
     "LLDB_ENABLE_LIBEDIT": "OFF",
     "LLDB_ENABLE_CURSES": "OFF",
+    "LLDB_ENABLE_LIBXML2": "OFF",
 }
 
 linux_llvm_flags = {
