@@ -22,6 +22,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y diffutils gawk libarchive-tools libtool-bin help2man ncurses-dev zlib1g-dev python3-dev
+
+          # https://lists.gnu.org/archive/html/bug-texinfo/2024-05/msg00000.html
+          sudo apt-get remove texinfo
+          mkdir ~/texinfo && curl -L https://ftp.gnu.org/gnu/texinfo/texinfo-7.2.tar.gz | tar --strip-components=1 -zx -C ~/texinfo
+          cd ~/texinfo && ./configure && make && sudo make install
       - name: Build toolchain
         run: make -C gcc targets/${{ matrix.name }}/toolchain
       - name: Upload build log
