@@ -39,6 +39,6 @@ LLVM_TOOLS = [
     # Apple tooling, but may be useful on Linux
     "llvm-install-name-tool",
     "llvm-lipo",
-    "llvm-libtool-darwin,",
+    "llvm-libtool-darwin",
     "llvm-otool",
 ]
