@@ -17,9 +17,6 @@ copy_to_directory(
 # Package the compiler into a tar
 tar_package(
     "llvm-package",
-    "llvm-{}-{}".format(
-        HOST_TARGET,
-        module_version(),
-    ),
+    "llvm-{}".format(HOST_TARGET),
     "llvm",
 )

@@ -74,10 +74,7 @@ LLVM_VERSION = "17.0.6"
         # Package the sysroot into a tar
         tar_package(
             "sysroot-package-{}".format(target),
-            "sysroot-{}-{}".format(
-                target,
-                module_version(),
-            ),
+            "sysroot-{}".format(target),
             "sysroot-{}".format(target),
         ),
 
@@ -134,9 +131,6 @@ copy_to_directory(
 # Package the compiler into a tar
 tar_package(
     "llvm-package",
-    "llvm-{}-{}".format(
-        HOST_TARGET,
-        module_version(),
-    ),
+    "llvm-{}".format(HOST_TARGET),
     "llvm",
 )
