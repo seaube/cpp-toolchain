@@ -98,10 +98,10 @@ jobs:
           - name: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
             type: linux
-          - name: x86_64-apple-darwin
+          - name: x86_64-apple-macos
             os: macos-13
             type: macos
-          - name: arm64-apple-darwin
+          - name: arm64-apple-macos
             os: macos-14
             type: macos
     name: llvm ${{ matrix.target.name }}
@@ -129,3 +129,77 @@ jobs:
           name: llvm-${{ matrix.target.name }}
           path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-*.tar.xz
           if-no-files-found: error
+
+  test-linux-targets:
+    needs: [build-llvm, build-sysroot]
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - name: x86_64-apple-macos
+            os: macos-13
+          - name: arm64-apple-macos
+            os: macos-14
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
+    runs-on: ${{ matrix.host.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+        with:
+          module-root: bazel/test
+          bazelisk-cache: true
+          disk-cache: false
+          repository-cache: false
+      - name: Download LLVM
+        uses: actions/download-artifact@v4
+        with:
+          name: llvm-${{ matrix.host.name }}
+      - name: Download sysroot
+        uses: actions/download-artifact@v4
+        with:
+          name: sysroot-${{ matrix.target }}
+      - name: Build Test
+        run: |
+          cd bazel/test && bazel build \
+              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
+              --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
+              --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/../../sysroot-${{ matrix.target }}.tar.xz \
+              binary
+
+  test-macos-targets:
+    needs: [build-llvm]
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-apple-macos
+            os: macos-13
+          - name: arm64-apple-macos
+            os: macos-14
+        target:
+          - x86_64-apple-macos
+          - arm64-apple-macos
+    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
+    runs-on: ${{ matrix.host.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+        with:
+          module-root: bazel/test
+          bazelisk-cache: true
+          disk-cache: false
+          repository-cache: false
+      - name: Download LLVM
+        uses: actions/download-artifact@v4
+        with:
+          name: llvm-${{ matrix.host.name }}
+      - name: Build Test
+        run: |
+          cd bazel/test && bazel build \
+              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
+              --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
+              binary
