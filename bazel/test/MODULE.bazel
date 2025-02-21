@@ -1,0 +1,9 @@
+module(name = "test", version = "0.0.0")
+
+bazel_dep(name = "portable_cc_toolchain")
+local_path_override(
+    module_name = "portable_cc_toolchain",
+    path = "..",
+)
+
+register_toolchains("@portable_cc_toolchain")
