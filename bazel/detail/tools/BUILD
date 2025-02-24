@@ -1,3 +1,4 @@
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("//detail:host.bzl", "HOST_TARGET")
@@ -12,10 +13,10 @@ alias(
 )
 
 COMMON_TOOLS = {
-    "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang",
-    "@rules_cc//cc/toolchains/actions:c_compile": ":clang",
-    "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++",
-    "@rules_cc//cc/toolchains/actions:link_actions": ":clang++",
+    "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-wrapper",
+    "@rules_cc//cc/toolchains/actions:c_compile": ":clang-wrapper",
+    "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++-wrapper",
+    "@rules_cc//cc/toolchains/actions:link_actions": ":clang++-wrapper",
     "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
     "@rules_cc//cc/toolchains/actions:strip": ":llvm-strip",
 }
@@ -59,11 +60,22 @@ TOOL = [
 ]
 
 [
-    cc_tool(
-        name = tool,
-        src = "@llvm-{}//:bin/{}".format(HOST_TARGET, tool),
-        data = ["@llvm-{}//:data".format(HOST_TARGET)],
-        visibility = ["//visibility:private"],
+    (
+        expand_template(
+            name = tool + "-impl",
+            out = tool,
+            data = ["@llvm-{}//:bin/{}".format(HOST_TARGET, tool)],
+            substitutions = {
+                "TOOL": "$(execpath @llvm-{}//:bin/{})".format(HOST_TARGET, tool),
+            },
+            template = "wrapper.sh",
+        ),
+        cc_tool(
+            name = tool + "-wrapper",
+            src = tool + "-impl",
+            data = ["@llvm-{}//:data".format(HOST_TARGET)],
+            visibility = ["//visibility:private"],
+        ),
     )
     for tool in [
         "clang",

@@ -24,3 +24,11 @@ cc_args(
     format = {"sysroot": "data"},
     visibility = ["//visibility:public"],
 )
+
+cc_args(
+    name = "reproducible_build",
+    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    args = ["-ffile-prefix-map={sysroot}=/sysroot"],
+    format = {"sysroot": "data"},
+    visibility = ["//visibility:public"],
+)

@@ -1,4 +1,4 @@
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_args_list", "cc_feature")
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_args_list")
 
 LINUX_TARGETS = [
     "x86_64-unknown-linux-gnu",
@@ -23,7 +23,12 @@ cc_args_list(
         "target",
         "sysroot",
         "no_absolute_paths",
-    ],
+        "c_driver",
+        "color",
+    ] + select({
+        "@platforms//os:linux": ["static_runtime"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -54,4 +59,28 @@ cc_args(
         "//platform:{}-config".format(target): ["--target={}".format(target)]
         for target in TARGETS
     }),
+)
+
+cc_args(
+    name = "static_runtime",
+    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    args = [
+        "-static-libgcc",
+        "-static-libstdc++",
+    ],
+)
+
+cc_args(
+    name = "c_driver",
+    actions = ["@rules_cc//cc/toolchains/actions:c_compile_actions"],
+    args = ["--driver-mode=gcc"],
+)
+
+cc_args(
+    name = "color",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = ["-fdiagnostics-color=always"],
 )
