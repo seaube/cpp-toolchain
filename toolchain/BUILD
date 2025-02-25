@@ -1,6 +1,6 @@
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("cmake.bzl", "cmake")
 load("config.bzl", "LLVM_TOOLS", "LLVM_VERSION")
-load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -40,9 +40,12 @@ macos_llvm_flags = {
         "lld",
         "lldb",
         "clang-tools-extra",
+    ]),
+    "LLVM_ENABLE_RUNTIMES": ";".join([
+        "libcxx",
+        "libcxxabi",
         "compiler-rt",
     ]),
-    "LLVM_ENABLE_RUNTIMES": "libcxx;libcxxabi",
     "LLVM_ENABLE_LIBCXX": "ON",
 
     # TODO enable zstd compression in the future, maybe with a static link.
@@ -66,13 +69,13 @@ macos_llvm_flags = {
 cmake(
     name = "llvm",
     build_args = ["-j16"],
-    data = select({
-        "@platforms//os:linux": ["//linux:zlib"],
-        "//conditions:default": [],
-    }),
     cache_entries = common_llvm_flags | select({
         "@platforms//os:linux": linux_llvm_flags,
         "@platforms//os:macos": macos_llvm_flags,
+    }),
+    data = select({
+        "@platforms//os:linux": ["//linux:zlib"],
+        "//conditions:default": [],
     }),
     env = select({
         "@platforms//os:linux": {

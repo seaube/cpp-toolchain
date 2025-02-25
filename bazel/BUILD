@@ -10,6 +10,9 @@ cc_toolchain(
     known_features = [
         "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
         "//detail/features:reproducible_build",
+        "//detail/features/sanitizers:asan",
+        "//detail/features/sanitizers:ubsan",
+        "//detail/features/sanitizers:lsan",
     ],
     tool_map = "//detail/tools",
 )
