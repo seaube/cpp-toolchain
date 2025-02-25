@@ -84,3 +84,36 @@ cc_args(
     ],
     args = ["-fdiagnostics-color=always"],
 )
+
+cc_args_list(
+    name = "opt",
+    args = [
+        "ndebug",
+        "function_sections",
+    ] + select({
+        "@platforms//os:macos": [],
+        "//conditions:default": ["gc_sections"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "ndebug",
+    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    args = ["-DNDEBUG"],
+)
+
+cc_args(
+    name = "function_sections",
+    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    args = [
+        "-ffunction-sections",
+        "-fdata-sections",
+    ],
+)
+
+cc_args(
+    name = "gc_sections",
+    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    args = ["-Wl,--gc-sections"],
+)
