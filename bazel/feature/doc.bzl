@@ -23,3 +23,23 @@ FEATURES = {
     "//feature:" + std: "Set C/C++ language standard"
     for std in STANDARDS_FEATURES
 }
+
+def _generate_features_doc(ctx):
+    doc = """\
+# Features
+
+| Feature | Target | Description |
+| ------- | ------ | ----------- |
+"""
+    for feature, description in ctx.attr._features.items():
+        doc += "| `{}` | `{}` | {} |\n".format(feature.label.name.replace("cpp", "c++"), str(feature.label).removeprefix("@@"), description)
+    f = ctx.actions.declare_file("README.md")
+    ctx.actions.write(f, doc)
+    return [DefaultInfo(files = depset([f]))]
+
+generate_features_doc = rule(
+    implementation = _generate_features_doc,
+    attrs = {
+        "_features": attr.label_keyed_string_dict(default = FEATURES),
+    },
+)
