@@ -105,6 +105,30 @@ cc_args(
     ],
 )
 
+# Strip unused dynamic libraries
+
+cc_feature(
+    name = "strip_unused_dynamic_libs",
+    args = select({
+        "@platforms//os:linux": ["as_needed"],
+        "//conditions:default": ["dead_strip_dylibs"],
+    }),
+    feature_name = "strip_unused_dynamic_libs",
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "as_needed",
+    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    args = ["-Wl,-as-needed"],
+)
+
+cc_args(
+    name = "dead_strip_dylibs",
+    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    args = ["-Wl,-dead_strip_dylibs"],
+)
+
 # ThinLTO
 
 cc_feature(
