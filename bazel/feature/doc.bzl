@@ -32,7 +32,7 @@ def _generate_features_doc(ctx):
 | ------- | ------ | ----------- |
 """
     for feature, description in ctx.attr._features.items():
-        doc += "| `{}` | `{}` | {} |\n".format(feature.label.name.replace("cpp", "c++"), str(feature.label).removeprefix("@@"), description)
+        doc += "| `{}` | `{}` | {} |\n".format(feature.split(":")[-1].replace("cpp", "c++"), feature, description)
     f = ctx.actions.declare_file("README.md")
     ctx.actions.write(f, doc)
     return [DefaultInfo(files = depset([f]))]
@@ -40,6 +40,6 @@ def _generate_features_doc(ctx):
 generate_features_doc = rule(
     implementation = _generate_features_doc,
     attrs = {
-        "_features": attr.label_keyed_string_dict(default = FEATURES),
+        "_features": attr.string_dict(default = FEATURES),
     },
 )
