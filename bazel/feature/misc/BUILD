@@ -6,38 +6,6 @@ LINUX_TARGETS = [
     "armv7-unknown-linux-gnueabihf",
 ]
 
-# Reproducible build
-
-cc_feature(
-    name = "reproducible_build",
-    args = ["reproducible_compile_args"] + select({
-        "//platform:{}-config".format(target): ["@sysroot-{}//:reproducible_build".format(target)]
-        for target in LINUX_TARGETS
-    } | {
-        "@platforms//os:macos": ["reproducible_link_args_macos"],
-    }),
-    feature_name = "reproducible_build",
-    visibility = ["//visibility:public"],
-)
-
-cc_args(
-    name = "reproducible_compile_args",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
-    args = [
-        "-Wno-builtin-macro-redefined",
-        '-D__DATE__="redacted"',
-        '-D__TIMESTAMP__="redacted"',
-        '-D__TIME__="redacted"',
-        "-ffile-prefix-map=__BAZEL_EXECUTION_ROOT__=.",
-    ],
-)
-
-cc_args(
-    name = "reproducible_link_args_macos",
-    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
-    args = ["-Wl,-oso_prefix,__BAZEL_EXECUTION_ROOT__/"],
-)
-
 # Debug symbols
 
 cc_feature(
@@ -48,7 +16,7 @@ cc_feature(
         "//detail/compilation_mode:fastbuild": ["debug_symbols_fastbuild"],
     }),
     feature_name = "debug_symbols",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -78,7 +46,7 @@ cc_feature(
     name = "strip_debug_symbols",
     args = ["strip_debug_symbols_args"],
     overrides = "@rules_cc//cc/toolchains/features/legacy:strip_debug_symbols",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -93,7 +61,7 @@ cc_feature(
     name = "hide_symbols",
     args = ["hidden_symbol_visibility"],
     feature_name = "hide_symbols",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -114,7 +82,7 @@ cc_feature(
         "//conditions:default": ["dead_strip_dylibs"],
     }),
     feature_name = "strip_unused_dynamic_libs",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -135,7 +103,7 @@ cc_feature(
     name = "thinlto",
     args = ["thinlto_args"],
     feature_name = "thinlto",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -156,7 +124,7 @@ cc_feature(
         "coverage_link_args",
     ],
     overrides = "@rules_cc//cc/toolchains/features/legacy:coverage",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(

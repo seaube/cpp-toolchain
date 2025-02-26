@@ -4,7 +4,7 @@ cc_feature(
     name = "ubsan",
     args = ["ubsan_args"],
     feature_name = "ubsan",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -30,7 +30,7 @@ cc_feature(
     name = "asan",
     args = ["asan_args"],
     feature_name = "asan",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(
@@ -51,7 +51,7 @@ cc_feature(
     name = "lsan",
     args = ["lsan_args"],
     feature_name = "lsan",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_args(

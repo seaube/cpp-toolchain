@@ -21,7 +21,7 @@ cc_mutually_exclusive_category(
             args = ["c{}_args".format(std)],
             feature_name = "c{}".format(std),
             mutually_exclusive = ["c_standard"],
-            visibility = ["//visibility:public"],
+            visibility = ["//feature:__pkg__"],
         ),
     )
     for std in C_STD
@@ -39,7 +39,7 @@ cc_mutually_exclusive_category(
             args = ["cpp{}_args".format(std)],
             feature_name = "c++{}".format(std),
             mutually_exclusive = ["cpp_standard"],
-            visibility = ["//visibility:public"],
+            visibility = ["//feature:__pkg__"],
         ),
     )
     for std in CPP_STD

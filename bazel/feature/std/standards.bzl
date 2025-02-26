@@ -16,4 +16,4 @@ C_STD = [
     "23",
 ]
 
-STANDARDS_FEATURES = ["//detail/features/std:c{}".format(std) for std in C_STD] + ["//detail/features/std:cpp{}".format(std) for std in CPP_STD]
+STANDARDS_FEATURES = ["c{}".format(std) for std in C_STD] + ["cpp{}".format(std) for std in CPP_STD]

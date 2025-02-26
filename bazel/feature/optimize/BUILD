@@ -49,7 +49,7 @@ cc_feature(
     args = ["no_optimization_args"],
     feature_name = "no_optimization",
     mutually_exclusive = ["opt_level"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -57,7 +57,7 @@ cc_feature(
     args = ["debug_optimization_args"],
     feature_name = "debug_optimization",
     mutually_exclusive = ["opt_level"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -65,7 +65,7 @@ cc_feature(
     args = ["moderate_optimization_args"],
     feature_name = "moderate_optimization",
     mutually_exclusive = ["opt_level"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -73,7 +73,7 @@ cc_feature(
     args = ["max_optimization_args"],
     feature_name = "max_optimization",
     mutually_exclusive = ["opt_level"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -81,5 +81,5 @@ cc_feature(
     args = ["size_optimization_args"],
     feature_name = "size_optimization",
     mutually_exclusive = ["opt_level"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )

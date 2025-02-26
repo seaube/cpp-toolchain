@@ -45,7 +45,7 @@ cc_feature(
     args = ["warnings_enabled_args"],
     feature_name = "warnings_enabled",
     mutually_exclusive = ["warnings"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -54,7 +54,7 @@ cc_feature(
     feature_name = "extra_warnings",
     implies = ["warnings_enabled"],
     requires_any_of = ["warnings_enabled"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -63,7 +63,7 @@ cc_feature(
     feature_name = "pedantic_warnings",
     implies = ["extra_warnings"],
     requires_any_of = ["extra_warnings"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 cc_feature(
@@ -71,7 +71,7 @@ cc_feature(
     args = ["warnings_disabled_args"],
     feature_name = "warnings_disabled",
     mutually_exclusive = ["warnings"],
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
 
 # Treat warnings as errors
@@ -107,5 +107,5 @@ cc_feature(
         "//conditions:default": ["treat_warnings_as_errors_apple_link_args"],
     }),
     feature_name = "treat_warnings_as_errors",
-    visibility = ["//visibility:public"],
+    visibility = ["//feature:__pkg__"],
 )
