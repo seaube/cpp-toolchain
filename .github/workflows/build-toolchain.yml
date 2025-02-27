@@ -76,7 +76,7 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           module-root: toolchain
           bazelisk-cache: true
@@ -115,7 +115,7 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           module-root: toolchain
           bazelisk-cache: true
@@ -156,7 +156,7 @@ jobs:
     runs-on: ${{ matrix.host.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           module-root: bazel/test
           bazelisk-cache: true
@@ -200,7 +200,7 @@ jobs:
     runs-on: ${{ matrix.host.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@c9396f3f254024281710f8c45215dadd5a62862d
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           module-root: bazel/test
           bazelisk-cache: true
