@@ -1,6 +1,13 @@
 name: Build Toolchain
 
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Extra build number (for multiple releases in one day)
+        required: true
+        default: 0
 
 jobs:
 
@@ -169,7 +176,13 @@ jobs:
               --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
               --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
               --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/../../sysroot-${{ matrix.target }}.tar.xz \
-              binary
+              c_binary cpp_binary
+      - name: Run Test
+        if: ${{ matrix.host.name == matrix.target}}
+        run: |
+          cd bazel/test
+          bazel-bin/c_binary
+          bazel-bin/cpp_binary
 
   test-macos-targets:
     needs: [build-llvm]
@@ -202,4 +215,32 @@ jobs:
           cd bazel/test && bazel build \
               --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
               --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
-              binary
+              c_binary cpp_binary
+      - name: Run Test
+        if: ${{ matrix.host.name == matrix.target}}
+        run: |
+          cd bazel/test
+          bazel-bin/c_binary
+          bazel-bin/cpp_binary
+
+  release:
+    needs: [test-linux-targets, test-macos-targets]
+    name: Release
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - run: |
+          VERSION=toolchain-$(date +%Y-%m-%d)-${{ inputs.build_number }}
+          git tag -a $VERSION -m "Release $VERSION"
+          git push --tags
+          gh release create $VERSION artifacts/*
+        env:
+          GH_TOKEN: ${{ github.token }}
