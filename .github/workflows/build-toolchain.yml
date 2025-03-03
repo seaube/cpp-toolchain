@@ -233,7 +233,11 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: |
+            llvm-*
+            sysroot-*
           path: artifacts/
+          merge-multiple: True
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -242,6 +246,6 @@ jobs:
           if [ "${{ inputs.build_number }}" != "0" ]; then VERSION="$VERSION-${{ inputs.build_number }}"; fi
           git tag -a $VERSION -m "Release $VERSION"
           git push --tags
-          gh release create $VERSION artifacts/*/*
+          gh release create $VERSION artifacts/*
         env:
           GH_TOKEN: ${{ github.token }}
