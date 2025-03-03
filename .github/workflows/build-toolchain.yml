@@ -238,9 +238,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
       - run: |
-          VERSION=toolchain-$(date +%Y-%m-%d)-${{ inputs.build_number }}
+          VERSION=toolchain-$(date +%Y.%m.%d)
+          if [ "${{ inputs.build_number }}" != "0" ]; then VERSION="$VERSION-${{ inputs.build_number }}"; fi
           git tag -a $VERSION -m "Release $VERSION"
           git push --tags
-          gh release create $VERSION artifacts/*
+          gh release create $VERSION artifacts/*/*
         env:
           GH_TOKEN: ${{ github.token }}
