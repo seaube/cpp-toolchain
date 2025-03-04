@@ -76,11 +76,12 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
+      - uses: calebzulawski/setup-bazel@a751db8360efdd12ada2c197609fbfd95457c896
         with:
           module-root: toolchain
           bazelisk-cache: true
           disk-cache: ${{ github.job }}-${{ matrix.target.name }}
+          max-disk-cache-size: 1
           repository-cache: true
       - name: Download built gcc
         uses: actions/download-artifact@v4
@@ -115,11 +116,12 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
+      - uses: calebzulawski/setup-bazel@a751db8360efdd12ada2c197609fbfd95457c896
         with:
           module-root: toolchain
           bazelisk-cache: true
           disk-cache: ${{ github.job }}-${{ matrix.target.name }}
+          max-disk-cache-size: 1
           repository-cache: true
       - name: Download built gcc
         if: ${{ contains(matrix.target.name, 'linux') }}
