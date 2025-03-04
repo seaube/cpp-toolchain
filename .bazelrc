@@ -1,2 +1,0 @@
-build -c opt
-build --action_env=SSL_CERT_FILE
