@@ -14,87 +14,40 @@ jobs:
       matrix:
         host:
           - name: x86_64-unknown-linux-gnu
-            os: ubuntu-24.04
+            runs-on: ubuntu-24.04
           - name: x86_64-apple-macos
-            os: macos-13
+            runs-on: macos-13
           - name: arm64-apple-macos
-            os: macos-14
+            runs-on: macos-14
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - armv7-unknown-linux-gnueabihf
-    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
-    runs-on: ${{ matrix.host.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
-        with:
-          module-root: bazel/test
-          bazelisk-cache: true
-          disk-cache: false
-          repository-cache: false
-      - name: Download built toolchain
-        uses: actions/download-artifact@v4
-        if: ${{ inputs.use-built-toolchain }}
-        with:
-          pattern: '{llvm-${{ matrix.host.name }},sysroot-${{ matrix.target }}}'
-      - name: Configure built toolchain
-        if: ${{ inputs.use-built-toolchain }}
-        run: |
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ matrix.host.name }}.tar.xz" >> ~/.bazelrc
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ matrix.target }}.tar.xz" >> ~/.bazelrc
-      - name: Build Test
-        run: |
-          cd bazel/test && bazel build \
-              --announce_rc \
-              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
-              c_binary cpp_binary
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target}}
-        run: |
-          cd bazel/test
-          bazel-bin/c_binary
-          bazel-bin/cpp_binary
+
+    name: test linux targets
+    uses: ./.github/workflows/bazel_impl.yml
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}
 
   test-macos-targets:
     strategy:
       matrix:
         host:
           - name: x86_64-apple-macos
-            os: macos-13
+            runs-on: macos-13
           - name: arm64-apple-macos
-            os: macos-14
+            runs-on: macos-14
         target:
           - x86_64-apple-macos
           - arm64-apple-macos
-    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
-    runs-on: ${{ matrix.host.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
-        with:
-          module-root: bazel/test
-          bazelisk-cache: true
-          disk-cache: false
-          repository-cache: false
-      - name: Download built toolchain
-        uses: actions/download-artifact@v4
-        if: ${{ inputs.use-built-toolchain }}
-        with:
-          name: llvm-${{ matrix.host.name }}
-      - name: Configure built toolchain
-        if: ${{ inputs.use-built-toolchain }}
-        run: |
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ matrix.host.name }}.tar.xz" >> ~/.bazelrc
-      - name: Build Test
-        run: |
-          cd bazel/test && bazel build \
-              --announce_rc \
-              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
-              c_binary cpp_binary
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target}}
-        run: |
-          cd bazel/test
-          bazel-bin/c_binary
-          bazel-bin/cpp_binary
+
+    name: test macOS targets
+    uses: ./.github/workflows/bazel_impl.yml
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}
