@@ -8,59 +8,26 @@ bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
 
+bazel_dep(name = "rules_python", version = "1.2.0", dev_dependency = True)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
+pip.parse(
+    hub_name = "pypi",
+    python_version = "3.11",
+    requirements_lock = "//detail/assets:requirements_lock.txt",
+)
+use_repo(pip, "pypi")
+
 host_platform = use_extension("@platforms//host:extension.bzl", "host_platform")
 use_repo(host_platform, "host_platform")
 
-http_archive_with_override = use_repo_rule("//detail:http_archive_with_override.bzl", "http_archive_with_override")
-
-http_archive_with_override(
-    name = "llvm-arm64-apple-macos",
-    build_file = "//detail:llvm.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_LLVM",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/llvm-arm64-apple-macos.tar.xz",
-)
-
-http_archive_with_override(
-    name = "llvm-x86_64-apple-macos",
-    build_file = "//detail:llvm.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_LLVM",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/llvm-x86_64-apple-macos.tar.xz",
-)
-
-http_archive_with_override(
-    name = "llvm-x86_64-unknown-linux-gnu",
-    build_file = "//detail:llvm.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_LLVM",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/llvm-x86_64-unknown-linux-gnu.tar.xz",
-)
-
-http_archive_with_override(
-    name = "llvm-aarch64-unknown-linux-gnu",
-    build_file = "//detail:llvm.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_LLVM",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/llvm-aarch64-unknown-linux-gnu.tar.xz",
-)
-
-http_archive_with_override(
-    name = "sysroot-x86_64-unknown-linux-gnu",
-    build_file = "//detail:sysroot.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_SYSROOT",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/sysroot-x86_64-unknown-linux-gnu.tar.xz",
-)
-
-http_archive_with_override(
-    name = "sysroot-aarch64-unknown-linux-gnu",
-    build_file = "//detail:sysroot.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_SYSROOT",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/sysroot-aarch64-unknown-linux-gnu.tar.xz",
-)
-
-http_archive_with_override(
-    name = "sysroot-armv7-unknown-linux-gnueabihf",
-    build_file = "//detail:sysroot.BUILD",
-    env_override = "PORTABLE_CC_TOOLCHAIN_SYSROOT",
-    url = "https://github.com/CACI-International/cpp-toolchain/releases/placeholder-version/sysroot-armv7-unknown-linux-gnueabihf.tar.xz",
-)
+assets = use_extension("//detail/assets:assets.bzl", "assets")
+use_repo(assets, "llvm-x86_64-unknown-linux-gnu")
+use_repo(assets, "llvm-arm64-apple-macos")
+use_repo(assets, "llvm-x86_64-apple-macos")
+use_repo(assets, "sysroot-x86_64-unknown-linux-gnu")
+use_repo(assets, "sysroot-aarch64-unknown-linux-gnu")
+use_repo(assets, "sysroot-armv7-unknown-linux-gnueabihf")
 
 find_xcode_sdk = use_repo_rule("//detail/xcode:find.bzl", "find_xcode_sdk")
 

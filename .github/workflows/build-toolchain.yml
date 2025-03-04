@@ -1,4 +1,4 @@
-name: Build Toolchain
+name: Build toolchain
 
 on:
   push:
@@ -137,94 +137,14 @@ jobs:
           path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-*.tar.xz
           if-no-files-found: error
 
-  test-linux-targets:
+  test-bazel-rules:
     needs: [build-llvm, build-sysroot]
-    strategy:
-      matrix:
-        host:
-          - name: x86_64-unknown-linux-gnu
-            os: ubuntu-24.04
-          - name: x86_64-apple-macos
-            os: macos-13
-          - name: arm64-apple-macos
-            os: macos-14
-        target:
-          - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
-    runs-on: ${{ matrix.host.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
-        with:
-          module-root: bazel/test
-          bazelisk-cache: true
-          disk-cache: false
-          repository-cache: false
-      - name: Download LLVM
-        uses: actions/download-artifact@v4
-        with:
-          name: llvm-${{ matrix.host.name }}
-      - name: Download sysroot
-        uses: actions/download-artifact@v4
-        with:
-          name: sysroot-${{ matrix.target }}
-      - name: Build Test
-        run: |
-          cd bazel/test && bazel build \
-              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
-              --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
-              --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/../../sysroot-${{ matrix.target }}.tar.xz \
-              c_binary cpp_binary
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target}}
-        run: |
-          cd bazel/test
-          bazel-bin/c_binary
-          bazel-bin/cpp_binary
-
-  test-macos-targets:
-    needs: [build-llvm]
-    strategy:
-      matrix:
-        host:
-          - name: x86_64-apple-macos
-            os: macos-13
-          - name: arm64-apple-macos
-            os: macos-14
-        target:
-          - x86_64-apple-macos
-          - arm64-apple-macos
-    name: test ${{ matrix.target }} target on ${{ matrix.host.name }} host
-    runs-on: ${{ matrix.host.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: bazel-contrib/setup-bazel@0.14.0
-        with:
-          module-root: bazel/test
-          bazelisk-cache: true
-          disk-cache: false
-          repository-cache: false
-      - name: Download LLVM
-        uses: actions/download-artifact@v4
-        with:
-          name: llvm-${{ matrix.host.name }}
-      - name: Build Test
-        run: |
-          cd bazel/test && bazel build \
-              --platforms=@portable_cc_toolchain//platform:${{ matrix.target }} \
-              --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/../../llvm-${{ matrix.host.name }}.tar.xz \
-              c_binary cpp_binary
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target}}
-        run: |
-          cd bazel/test
-          bazel-bin/c_binary
-          bazel-bin/cpp_binary
+    uses: ./.github/workflows/bazel.yml
+    with:
+      use-built-toolchain: true
 
   release:
-    needs: [test-linux-targets, test-macos-targets]
+    needs: test-bazel-rules
     name: Release
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
