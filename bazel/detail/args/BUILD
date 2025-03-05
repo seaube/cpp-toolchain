@@ -1,26 +1,9 @@
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_args_list")
-
-LINUX_TARGETS = [
-    "x86_64-unknown-linux-gnu",
-    "aarch64-unknown-linux-gnu",
-    "armv7-unknown-linux-gnueabihf",
-]
-
-APPLE_TARGETS = [
-    "x86_64-apple-macos",
-    "arm64-apple-macos",
-    "arm64-apple-ios",
-    "arm64-apple-watchos",
-    "arm64-apple-tvos",
-    "arm64-apple-visionos",
-]
-
-TARGETS = LINUX_TARGETS + APPLE_TARGETS
+load("target.bzl", "APPLE_OS", "LINUX_TARGETS")
 
 cc_args_list(
     name = "default",
     args = [
-        "target",
         "sysroot",
         "no_absolute_paths",
         "c_driver",
@@ -54,18 +37,6 @@ cc_args(
 )
 
 cc_args(
-    name = "target",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:compile_actions",
-        "@rules_cc//cc/toolchains/actions:link_actions",
-    ],
-    args = select({
-        "//platform:{}-config".format(target): ["--target={}".format(target)]
-        for target in TARGETS
-    }),
-)
-
-cc_args(
     name = "static_runtime",
     actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
     args = [
@@ -95,7 +66,8 @@ cc_args_list(
         "//platform:{}-config".format(target): ["@sysroot-{}//:reproducible_build".format(target)]
         for target in LINUX_TARGETS
     } | {
-        "@platforms//os:macos": ["reproducible_link_args_macos"],
+        "@platforms//os:" + os: ["reproducible_link_args_apple"]
+        for os in APPLE_OS
     }),
 )
 
@@ -112,7 +84,7 @@ cc_args(
 )
 
 cc_args(
-    name = "reproducible_link_args_macos",
+    name = "reproducible_link_args_apple",
     actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
     args = ["-Wl,-oso_prefix,__BAZEL_EXECUTION_ROOT__/"],
 )
@@ -123,8 +95,8 @@ cc_args_list(
         "ndebug",
         "function_sections",
     ] + select({
-        "@platforms//os:macos": [],
-        "//conditions:default": ["gc_sections"],
+        "@platforms//os:linux": ["gc_sections"],
+        "//conditions:default": [],
     }),
 )
 
