@@ -31,7 +31,7 @@ jobs:
         id: cache
         with:
           path: toolchain/gcc/targets/${{ matrix.target.name }}/toolchain/**/*
-          key: gcc-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/gcc/Makefile', 'gcc/targets/*/.config') }}
+          key: gcc-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/gcc/Makefile', 'toolchain/gcc/targets/*/.config') }}
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
