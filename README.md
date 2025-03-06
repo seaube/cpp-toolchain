@@ -11,7 +11,7 @@ This toolchain has the following goals:
 
 ### Linux
 
-All targets are compiled against kernel 3.10.108, glibc 2.17, and libstdc++ 13.2.
+All targets are compiled against kernel 3.10.108, glibc 2.17, and libstdc++ 14.2.
 
 The following targets are supported:
 * `aarch64-unknown-linux-gnu`
