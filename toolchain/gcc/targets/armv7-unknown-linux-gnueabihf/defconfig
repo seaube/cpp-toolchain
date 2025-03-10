@@ -7,6 +7,7 @@ CT_EXTRA_CXXFLAGS_FOR_BUILD="-ffile-prefix-map=${CT_TOP_DIR}=/sources"
 CT_EXTRA_CFLAGS_FOR_HOST="-ffile-prefix-map=${CT_TOP_DIR}=/sources"
 # CT_LOG_PROGRESS_BAR is not set
 CT_ARCH_ARM=y
+CT_ARCH_SUFFIX="v7"
 CT_ARCH_ARCH="armv7-a"
 CT_ARCH_FPU="vfpv3-d16"
 CT_ARCH_FLOAT_HW=y
