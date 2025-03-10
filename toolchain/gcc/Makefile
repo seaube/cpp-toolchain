@@ -18,7 +18,7 @@ crosstool-ng/build: crosstool-ng/source
 	make -C crosstool-ng/tmp
 	make -C crosstool-ng/tmp install
 
-targets/%/.config: targets/%/defconfig patch.config crosstool-ng/build
+targets/%/.config: targets/%/defconfig crosstool-ng/build
 	rm -f $@
 	cd $(dir $@); $(root_dir)/crosstool-ng/build/bin/ct-ng defconfig
 	rm -f $@.old
