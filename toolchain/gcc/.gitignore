@@ -1,4 +1,5 @@
 crosstool-ng/
+targets/*/.config
 targets/*/toolchain
 targets/*/.build
 targets/*/build.log

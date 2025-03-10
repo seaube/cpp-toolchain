@@ -18,6 +18,12 @@ crosstool-ng/build: crosstool-ng/source
 	make -C crosstool-ng/tmp
 	make -C crosstool-ng/tmp install
 
+targets/%/.config: targets/%/defconfig patch.config crosstool-ng/build
+	rm -f $@
+	cd $(dir $@); $(root_dir)/crosstool-ng/build/bin/ct-ng defconfig
+	cat patch.config >> $@
+	rm -f $@.old
+
 targets/%/toolchain: targets/%/.config crosstool-ng/build
 	cd $(dir $@); env -u LD_LIBRARY_PATH $(root_dir)/crosstool-ng/build/bin/ct-ng build
 
@@ -27,4 +33,4 @@ clean: clean-toolchains
 clean-toolchains:
 	find targets/ -mindepth 2 -maxdepth 2 ! -name .config -exec rm -rf {} +
 
-.PHONY: clean
+.PHONY: clean clean-toolchains
