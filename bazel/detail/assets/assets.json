@@ -15,6 +15,11 @@
     "integrity": "sha256-K8g0ZNcHXU/NEfxrL3376w1b7GCeSlO7XK+R2/C0HHw="
   },
   {
+    "name": "llvm-aarch64-unknown-linux-gnu",
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.03.03/llvm-x86_64-unknown-linux-gnu.tar.xz",
+    "integrity": "sha256-K8g0ZNcHXU/NEfxrL3376w1b7GCeSlO7XK+R2/C0HHw="
+  },
+  {
     "name": "sysroot-aarch64-unknown-linux-gnu",
     "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.03.03/sysroot-aarch64-unknown-linux-gnu.tar.xz",
     "integrity": "sha256-/LGsR2dnN6X9Qq5R/d7JO9utCyuXHeyOcMrtiqobJtM="

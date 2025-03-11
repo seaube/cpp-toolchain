@@ -18,6 +18,8 @@ on:
 jobs:
 
   test-bazel-rules:
+    # TODO remove once toolchain is released
+    if: ${{ inputs.use-built-toolchain || inputs.host != 'aarch64-unknown-linux-gnu' }}
 
     name: test ${{ inputs.target }} target on ${{ inputs.host }} host
     runs-on: ${{ inputs.runs-on }}

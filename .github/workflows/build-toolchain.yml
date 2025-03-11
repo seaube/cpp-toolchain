@@ -20,7 +20,7 @@ jobs:
           - name: armv7-unknown-linux-gnueabihf
             os: ubuntu-24.04
           - name: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04
+            os: ubuntu-24.04-arm
     name: gcc ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     env:
@@ -71,7 +71,7 @@ jobs:
           - name: armv7-unknown-linux-gnueabihf
             os: ubuntu-24.04
           - name: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04
+            os: ubuntu-24.04-arm
     name: sysroot ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     steps:
@@ -105,6 +105,9 @@ jobs:
         target:
           - name: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
+            type: linux
+          - name: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
             type: linux
           - name: x86_64-apple-macos
             os: macos-13
