@@ -23,6 +23,7 @@ use_repo(host_platform, "host_platform")
 
 assets = use_extension("//detail/assets:assets.bzl", "assets")
 use_repo(assets, "llvm-x86_64-unknown-linux-gnu")
+use_repo(assets, "llvm-aarch64-unknown-linux-gnu")
 use_repo(assets, "llvm-arm64-apple-macos")
 use_repo(assets, "llvm-x86_64-apple-macos")
 use_repo(assets, "sysroot-x86_64-unknown-linux-gnu")
