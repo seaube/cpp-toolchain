@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [toolchain-2025.03.03] - 2025-03-03
+## toolchain-2025.03.12 - 2025-03-12
+### Added
+- Added aarch64-unknown-linux-gnu hosts
+### Changed
+- Updated to libstdc++ 14.2
+
+## toolchain-2025.03.03 - 2025-03-03
 ### Changed
 - This is the first public release
 - The versioning scheme has been changed from semver to release date
