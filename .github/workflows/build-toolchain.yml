@@ -76,7 +76,7 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@693d9023c703e80fd51bf5196c0e120e7dfec882
+      - uses: calebzulawski/setup-bazel@bf0234dbea9ce7a4215a202e4def85f371c4f0a3
         with:
           module-root: toolchain
           cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
@@ -121,7 +121,7 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@693d9023c703e80fd51bf5196c0e120e7dfec882
+      - uses: calebzulawski/setup-bazel@bf0234dbea9ce7a4215a202e4def85f371c4f0a3
         with:
           module-root: toolchain
           cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
