@@ -45,19 +45,19 @@ def portable_cc_toolchain(
         name = name + "_cc_toolchain",
         args = [
             name + "_target_args",
-            "//detail/args:default",
+            Label("//detail/args:default"),
         ] + args,
         enabled_features = [
             "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
         ] + select({
-            "//detail/compilation_mode:fastbuild": fastbuild_features,
-            "//detail/compilation_mode:dbg": dbg_features,
-            "//detail/compilation_mode:opt": opt_features,
+            Label("//detail/compilation_mode:fastbuild"): fastbuild_features,
+            Label("//detail/compilation_mode:dbg"): dbg_features,
+            Label("//detail/compilation_mode:opt"): opt_features,
         }) + enabled_features,
         known_features = [
             "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
-        ] + FEATURES.keys() + known_features,
-        tool_map = "//detail/tools",
+        ] + [Label(f) for f in FEATURES.keys()] + known_features,
+        tool_map = Label("//detail/tools"),
         supports_param_files = False,  # we use a shell script wrapper to replace placeholder variables, maybe this can support param files in the future
         supports_header_parsing = True,
     )

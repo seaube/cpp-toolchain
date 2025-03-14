@@ -30,10 +30,10 @@ def target_args(name, apple_os_versions, **kwargs):
             "@rules_cc//cc/toolchains/actions:link_actions",
         ],
         args = select({
-            "//platform:{}-config".format(target): ["--target={}".format(target)]
+            Label("//platform:{}-config".format(target)): ["--target={}".format(target)]
             for target in LINUX_TARGETS
         } | {
-            "//platform:{}-apple-{}-config".format(arch, os): ["--target={}-apple-{}{}".format(arch, os, apple_os_versions.get(os, ""))]
+            Label("//platform:{}-apple-{}-config".format(arch, os)): ["--target={}-apple-{}{}".format(arch, os, apple_os_versions.get(os, ""))]
             for arch, os in APPLE_ARCH_OS_COMBINATIONS
         }),
         **kwargs
