@@ -3,13 +3,13 @@ load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
 directory(
     name = "sdk_link",
-    srcs = glob([
-        "usr/include/**/*",
-        "usr/lib/**/*",
-        "System/Library/Frameworks/CoreFoundation.framework/**/*",
-        "System/Library/Frameworks/IOKit.framework/**/*",
-        "System/Library/Frameworks/Security.framework/**/*",
-    ]),
+    srcs = glob(
+        [
+            "usr/include/**/*",
+            "usr/lib/**/*",
+            "System/Library/Frameworks/**/*",
+        ],
+    ),
 )
 
 cc_sysroot(
