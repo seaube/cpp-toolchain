@@ -19,7 +19,7 @@ DEFAULT_DBG_FEATURES = [
     "//feature:asan",
     "//feature:ubsan",
     "//feature:lsan",
-    "//feature:debug_optimization",
+    "//feature:no_optimization",  # in a future version, this could be debug_optimization
 ]
 
 DEFAULT_OPT_FEATURES = [
