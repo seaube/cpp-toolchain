@@ -40,21 +40,6 @@ cc_args(
     args = ["-gmlt"],
 )
 
-# Strip debug symbols
-
-cc_feature(
-    name = "strip_debug_symbols",
-    args = ["strip_debug_symbols_args"],
-    overrides = "@rules_cc//cc/toolchains/features/legacy:strip_debug_symbols",
-    visibility = ["//feature:__pkg__"],
-)
-
-cc_args(
-    name = "strip_debug_symbols_args",
-    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
-    args = ["-Wl,-S"],
-)
-
 # Hide symbols
 
 cc_feature(

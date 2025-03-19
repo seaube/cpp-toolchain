@@ -2,30 +2,6 @@ load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 load("//detail/args:target.bzl", "target_args")
 load("//feature:doc.bzl", "FEATURES")
 
-DEFAULT_ENABLED_FEATURES = [
-    "//feature:c17",
-    "//feature:cpp17",
-    "//feature:warnings_enabled",
-    "//feature:debug_symbols",
-    "//feature:strip_unused_dynamic_libs",
-]
-
-DEFAULT_FASTBUILD_FEATURES = [
-    "//feature:strip_debug_symbols",
-    "//feature:no_optimization",
-]
-
-DEFAULT_DBG_FEATURES = [
-    "//feature:asan",
-    "//feature:ubsan",
-    "//feature:lsan",
-    "//feature:no_optimization",  # in a future version, this could be debug_optimization
-]
-
-DEFAULT_OPT_FEATURES = [
-    "//feature:moderate_optimization",
-]
-
 def portable_cc_toolchain(
         name,
         args = [],

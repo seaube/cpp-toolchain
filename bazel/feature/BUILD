@@ -4,7 +4,6 @@ load("doc.bzl", "generate_features_doc")
 
 FEATURES = [
     "//feature/misc:debug_symbols",
-    "//feature/misc:strip_debug_symbols",
     "//feature/misc:strip_unused_dynamic_libs",
     "//feature/misc:thinlto",
     "//feature/misc:coverage",

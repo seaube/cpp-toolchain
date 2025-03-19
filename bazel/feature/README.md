@@ -3,7 +3,6 @@
 | Feature | Target | Description |
 | ------- | ------ | ----------- |
 | `debug_symbols` | `//feature:debug_symbols` | Generage debug information |
-| `strip_debug_symbols` | `//feature:strip_debug_symbols` | Strip debug information |
 | `strip_unused_dynamic_libs` | `//feature:strip_unused_dynamic_libs` | Don't link against dynamic libraries that aren't referenced by any symbols |
 | `thinlto` | `//feature:thinlto` | Link with ThinLTO (incremental link time optimization) |
 | `coverage` | `//feature:coverage` | Compile with instrumentation for code coverage |
