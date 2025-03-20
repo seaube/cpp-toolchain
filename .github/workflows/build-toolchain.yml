@@ -141,12 +141,19 @@ jobs:
         run: cd toolchain && bazel build //${{ matrix.target.type }}:llvm-package
       - name: Build compiler-rt
         run: cd toolchain && bazel build //${{ matrix.target.type }}:compiler-rt-package
-        if: ${{ contains(matrix.target.name, 'linux') }}
+        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }}
       - name: Upload built llvm
         uses: actions/upload-artifact@v4
         with:
           name: llvm-${{ matrix.target.name }}
-          path: toolchain/bazel-bin/${{ matrix.target.type }}/*.tar.xz
+          path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-*.tar.xz
+          if-no-files-found: error
+      - name: Upload built compiler-rt
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }}
+        with:
+          name: compiler-rt-linux
+          path: toolchain/bazel-bin/${{ matrix.target.type }}/compiler-rt-linux.tar.xz
           if-no-files-found: error
 
   test-bazel-rules:

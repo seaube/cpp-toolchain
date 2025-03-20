@@ -32,20 +32,37 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ inputs.use-built-toolchain }}
         with:
-          pattern: '{llvm-${{ inputs.host }},sysroot-${{ inputs.target }}}'
+          pattern: '{llvm-${{ inputs.host }},sysroot-${{ inputs.target }},compiler-rt-linux}'
           merge-multiple: True
       - name: Configure built toolchain
         if: ${{ inputs.use-built-toolchain }}
         run: |
           echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> ~/.bazelrc
           echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> ~/.bazelrc
-      - name: Build Test
+          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_COMPILER_RT_LINUX=`pwd`/compiler-rt-linux.tar.xz" >> ~/.bazelrc
+          echo "build --announce_rc --platforms=@portable_cc_toolchain//platform:${{ inputs.target }}" >> ~/.bazelrc
+
+      - name: Build Test (fastbuild)
+        run: cd bazel/test && bazel build -c fastbuild c_binary cpp_binary
+      - name: Run Test (fastbuild)
+        if: ${{ inputs.host == inputs.target }}
         run: |
-          cd bazel/test && bazel build \
-              --announce_rc \
-              --platforms=@portable_cc_toolchain//platform:${{ inputs.target }} \
-              c_binary cpp_binary
-      - name: Run Test
+          cd bazel/test
+          bazel-bin/c_binary
+          bazel-bin/cpp_binary
+
+      - name: Build Test (dbg)
+        run: cd bazel/test && bazel build -c dbg c_binary cpp_binary
+      - name: Run Test (dbg)
+        if: ${{ inputs.host == inputs.target }}
+        run: |
+          cd bazel/test
+          bazel-bin/c_binary
+          bazel-bin/cpp_binary
+
+      - name: Build Test (opt)
+        run: cd bazel/test && bazel build -c opt c_binary cpp_binary
+      - name: Run Test (opt)
         if: ${{ inputs.host == inputs.target }}
         run: |
           cd bazel/test

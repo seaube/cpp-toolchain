@@ -9,11 +9,13 @@ def tar_package(name, out, src):
     src_label = native.package_relative_label(src)
     mtree_mutate(
         name = name + "_mtree_mutate",
+        srcs = [src],
         mtree = name + "_mtree_spec",
         owner = "1000",
         ownername = "default",
         mtime = "946684800",
         strip_prefix = src_label.package + "/" + src_label.name,
+        preserve_symlinks = True,
     )
 
     tar(

@@ -7,23 +7,49 @@ _attrs = {
     "env_override": attr.string(mandatory = True),
 }
 
+def _override(ctx, asset):
+    if asset["name"] == "compiler-rt-linux":
+        suffix = "COMPILER_RT_LINUX"
+    else:
+        suffix = asset["name"].split("-")[0].upper()
+
+    override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + suffix)
+    if override == None:
+        return {
+            "url": asset["url"],
+            "integrity": asset["integrity"],
+        }
+    else:
+        return {
+            "url": "file://" + override,
+        }
+
 def _assets(ctx):
     assets = json.decode(ctx.read(Label("//detail/assets:assets.json")))
+
     for asset in assets:
-        component = asset["name"].split("-")[0]
-        override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + component.upper())
-        if override == None:
-            attrs = {
-                "url": asset["url"],
-                "integrity": asset["integrity"],
+        if asset["name"] == "compiler-rt-linux":
+            compiler_rt = asset
+
+    for asset in assets:
+        if asset["name"] == "compiler-rt-linux":
+            continue
+
+        attrs = _override(ctx, asset)
+
+        # Add Linux compiler-rt to macOS toolchains
+        if "macos" in asset["name"]:
+            crt = _override(ctx, compiler_rt)
+            attrs |= {
+                "remote_file_urls": {"compiler-rt-linux.tar.xz": [crt["url"]]},
+                "patch_cmds": ["tar -xf compiler-rt-linux.tar.xz && rm compiler-rt-linux.tar.xz"],
             }
-        else:
-            attrs = {
-                "url": "file://" + override,
-            }
+            if "integrity" in crt:
+                attrs["remote_file_integrity"] = {"compiler-rt-linux.tar.xz": crt["integrity"]}
+
         http_archive(
             name = asset["name"],
-            build_file = "//detail/assets:{}.BUILD".format(component),
+            build_file = "//detail/assets:{}.BUILD".format(asset["name"].split("-")[0]),
             **attrs
         )
     return ctx.extension_metadata(
@@ -34,5 +60,5 @@ def _assets(ctx):
 
 assets = module_extension(
     implementation = _assets,
-    environ = ["PORTABLE_CC_TOOLCHAIN_LLVM", "PORTABLE_CC_TOOLCHAIN_SYSROOT"],
+    environ = ["PORTABLE_CC_TOOLCHAIN_LLVM", "PORTABLE_CC_TOOLCHAIN_SYSROOT", "PORTABLE_CC_TOOLCHAIN_COMPILER_RT_LINUX"],
 )
