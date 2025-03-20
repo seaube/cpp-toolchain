@@ -1,13 +1,12 @@
 load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+load("@llvm_version//:llvm_version.bzl", "LLVM_VERSION")
 load("//:cmake.bzl", "cmake")
 load("//:config.bzl", "LINUX_TARGETS")
 load("//:host.bzl", "HOST_TARGET")
 load("//:tar.bzl", "tar_package")
 
 package(default_visibility = ["//visibility:public"])
-
-LLVM_VERSION = "17.0.6"
 
 # The following targets are built for each target
 [
@@ -114,18 +113,30 @@ cmake(
     lib_source = "@zlib",
 )
 
+ALL_COMPILER_RT_SRCS = ["compiler-rt-{}".format(target) for target in LINUX_TARGETS]
+
+COMPILER_RT_PREFIX = {
+    "**/compiler-rt-*": "lib/clang/" + LLVM_VERSION.split(".")[0],
+}
+
 # Add compiler-rt to LLVM installation
 copy_to_directory(
     name = "llvm",
-    srcs = ["//:llvm"] + ["compiler-rt-{}".format(target) for target in LINUX_TARGETS],
+    srcs = ["//:llvm"] + ALL_COMPILER_RT_SRCS,
     allow_overwrites = True,
-    replace_prefixes = {
-        "**/compiler-rt-*": "lib/clang/" + LLVM_VERSION.split(".")[0],
-    },
+    replace_prefixes = COMPILER_RT_PREFIX,
     root_paths = [
         "llvm",
         ".",
     ],
+)
+
+# Make standalone compiler-rt for macOS hosts
+copy_to_directory(
+    name = "compiler-rt",
+    srcs = ALL_COMPILER_RT_SRCS,
+    allow_overwrites = True,
+    replace_prefixes = COMPILER_RT_PREFIX,
 )
 
 # Package the compiler into a tar
@@ -133,4 +144,10 @@ tar_package(
     "llvm-package",
     "llvm-{}".format(HOST_TARGET),
     "llvm",
+)
+
+tar_package(
+    "compiler-rt-package",
+    "compiler-rt-linux",
+    "compiler-rt",
 )

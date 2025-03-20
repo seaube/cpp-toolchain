@@ -13,15 +13,12 @@ http_archive(
     name = "llvm-project",
     build_file_content = 'filegroup(name = "llvm-project", srcs = glob(["**/*"]), visibility = ["//visibility:public"])',
     integrity = "sha256-gkAf6nt50AeAQ/dZi4NShNZlCnW5PmS292Hqe2MJdQE=",
-    # integrity = "sha256-WKiBjGDmYnBk8xLb9GwC2ZSZVlWDQJOLcc9zGti8CBM=",
     patch_args = ["-p1"],
     patches = [
         "//:patches/50611.patch",
     ],
     strip_prefix = "llvm-project-19.1.7.src",
     url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/llvm-project-19.1.7.src.tar.xz",
-    # strip_prefix = "llvm-project-17.0.6.src",
-    # url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/llvm-project-17.0.6.src.tar.xz",
 )
 
 http_archive(
@@ -33,3 +30,7 @@ http_archive(
 )
 
 rules_foreign_cc_toolchains = use_extension("rules_foreign_cc.bzl", "rules_foreign_cc_toolchains")
+
+llvm_version = use_repo_rule("//:llvm_version.bzl", "llvm_version")
+
+llvm_version(name = "llvm_version")
