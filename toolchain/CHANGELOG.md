@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## toolchain-2025.03.20 - 2025-03-20
+### Added
+- Added standalone compiler-rt package for cross-compiling from macOS
+### Fixed
+- Fixed compiler-rt path on Linux
+
 ## toolchain-2025.03.12 - 2025-03-12
 ### Added
 - Added aarch64-unknown-linux-gnu hosts
