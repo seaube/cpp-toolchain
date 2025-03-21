@@ -1,10 +1,9 @@
-load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@llvm_version//:llvm_version.bzl", "LLVM_VERSION")
 load("//:cmake.bzl", "cmake")
 load("//:config.bzl", "LINUX_TARGETS")
 load("//:host.bzl", "HOST_TARGET")
-load("//:tar.bzl", "tar_package")
+load("//util:tar.bzl", "tar_package")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -46,35 +45,21 @@ package(default_visibility = ["//visibility:public"])
             working_directory = "compiler-rt",
         ),
 
-        # Arrange components into a sysroot
-        copy_to_directory(
-            name = "sysroot-{}".format(target),
-            srcs = [
-                "//gcc:{}".format(target),
-                "openmp-{}".format(target),
-                "targets/{}.cfg".format(target),
-            ],
-            exclude_srcs_patterns = [
+        # Package the sysroot into a tar
+        tar_package(
+            name = "sysroot-package-{}".format(target),
+            srcs = {
+                "//gcc:{}-srcs".format(target): "targets/{}/toolchain:.".format(target),  # don't use copy_to_directory here, because it erases symlinks
+                "openmp-{}".format(target): "openmp-{}:{}/sysroot/usr".format(target, target),
+                "targets/{}.cfg".format(target): "targets:.",
+            },
+            exclude = [
                 "build.log.bz2",
                 "bin/**",
                 "libexec/**",
                 "{}/bin/**".format(target),
             ],
-            replace_prefixes = {
-                "**/openmp-*": "{}/sysroot/usr".format(target),
-            },
-            root_paths = [
-                "gcc/{}".format(target),
-                "linux/targets",
-                ".",
-            ],
-        ),
-
-        # Package the sysroot into a tar
-        tar_package(
-            "sysroot-package-{}".format(target),
-            "sysroot-{}".format(target),
-            "sysroot-{}".format(target),
+            output = "sysroot-" + target,
         ),
 
         # toolchain.cmake files for building with the GCC and LLVM cross-compilers
@@ -113,41 +98,26 @@ cmake(
     lib_source = "@zlib",
 )
 
-ALL_COMPILER_RT_SRCS = ["compiler-rt-{}".format(target) for target in LINUX_TARGETS]
-
-COMPILER_RT_PREFIX = {
-    "**/compiler-rt-*": "lib/clang/" + LLVM_VERSION.split(".")[0],
+COMPILER_RT_SRCS = {
+    "compiler-rt-" + target: "compiler-rt-{}:lib/clang/{}".format(
+        target,
+        LLVM_VERSION.split(".")[0],
+    )
+    for target in LINUX_TARGETS
 }
-
-# Add compiler-rt to LLVM installation
-copy_to_directory(
-    name = "llvm",
-    srcs = ["//:llvm"] + ALL_COMPILER_RT_SRCS,
-    allow_overwrites = True,
-    replace_prefixes = COMPILER_RT_PREFIX,
-    root_paths = [
-        "llvm",
-        ".",
-    ],
-)
-
-# Make standalone compiler-rt for macOS hosts
-copy_to_directory(
-    name = "compiler-rt",
-    srcs = ALL_COMPILER_RT_SRCS,
-    allow_overwrites = True,
-    replace_prefixes = COMPILER_RT_PREFIX,
-)
 
 # Package the compiler into a tar
 tar_package(
-    "llvm-package",
-    "llvm-{}".format(HOST_TARGET),
-    "llvm",
+    name = "llvm-package",
+    srcs = {
+        "//:llvm": "llvm:.",
+    } | COMPILER_RT_SRCS,
+    output = "llvm-{}".format(HOST_TARGET),
 )
 
+# Make standalone compiler-rt for macOS hosts
 tar_package(
-    "compiler-rt-package",
-    "compiler-rt-linux",
-    "compiler-rt",
+    name = "compiler-rt-package",
+    srcs = COMPILER_RT_SRCS,
+    output = "compiler-rt-linux",
 )
