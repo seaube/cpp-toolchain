@@ -81,7 +81,7 @@ jobs:
           module-root: toolchain
           cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
           bazelisk-cache: true
-          disk-cache: true
+          disk-cache: ${{ github.event_name != 'workflow_dispatch' }} # https://github.com/bazelbuild/bazel/issues/25671
           repository-cache: true
           max-disk-cache-size: 2
           max-repository-cache-size: 0.5
@@ -126,7 +126,7 @@ jobs:
           module-root: toolchain
           cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
           bazelisk-cache: true
-          disk-cache: true
+          disk-cache: ${{ github.event_name != 'workflow_dispatch' }} # https://github.com/bazelbuild/bazel/issues/25671
           repository-cache: true
           max-disk-cache-size: 2
           max-repository-cache-size: 0.5
