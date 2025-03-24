@@ -172,7 +172,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: '{llvm,sysroot}-*'
+          pattern: '{llvm,sysroot,compiler-rt}-*'
           path: artifacts/
           merge-multiple: True
       - run: |
