@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## toolchain-2025.03.24 - 2025-03-24
+### Fixed
+- Retain symlinks in packages to reduce size
+
 ## toolchain-2025.03.20 - 2025-03-20
 ### Added
 - Added standalone compiler-rt package for cross-compiling from macOS
