@@ -1,0 +1,5 @@
+The files in this repository are licensed under the Apache License, Version 2.0 (see LICENSE-APACHE).
+
+The released toolchain packages are licensed under the terms of their respective projects, i.e.
+LLVM, crosstool-NG, and the various projects built by crosstool-NG. Please review the files contained
+in each package for more information.
