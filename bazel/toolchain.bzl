@@ -6,12 +6,43 @@ def portable_cc_toolchain(
         name,
         args = [],
         known_features = [],
-        enabled_features = [],
-        fastbuild_features = [],
-        dbg_features = [],
-        opt_features = [],
-        apple_os_versions = {},
+        enabled_features = [
+            Label("//feature:c17"),
+            Label("//feature:cpp17"),
+            Label("//feature:warnings_enabled"),
+            Label("//feature:debug_symbols"),
+            Label("//feature:strip_unused_dynamic_libs"),
+        ],
+        fastbuild_features = [
+            Label("//feature:no_optimization"),
+        ],
+        dbg_features = [
+            Label("//feature:asan"),
+            Label("//feature:ubsan"),
+            Label("//feature:lsan"),
+            Label("//feature:no_optimization"),
+        ],
+        opt_features = [
+            Label("//feature:moderate_optimization"),
+        ],
+        apple_os_versions = {
+            "macos": "11",
+        },
         **kwargs):
+    """Make an instance of a portable cc_toolchain
+
+    Arguments and features use `rules_cc`'s rules-based toolchain.
+
+    Args:
+      args: Extra args to use, in addition to the defaults. See [`cc_toolchain.args`](https://github.com/bazelbuild/rules_cc/blob/0.1.1/docs/toolchain_api.md#cc_toolchain-args).
+      known_features: Extra known features, in addition to the defaults. See [`cc_toolchain.known_features`](https://github.com/bazelbuild/rules_cc/blob/0.1.1/docs/toolchain_api.md#cc_toolchain-known_features).
+      enabled_features: Enabled features, overriding defaults. See [`cc_toolchain.enabled_features`](https://github.com/bazelbuild/rules_cc/blob/0.1.1/docs/toolchain_api.md#cc_toolchain-enabled_features).
+      fastbuild_features: Like `enabled_features`, but only for `fastbuild` compilation.
+      dbg_features: Like `enabled_features`, but only for `dbg` compilation.
+      opt_features: Like `enabled_features`, but only for `opt` compilation.
+      apple_os_versions: A map of apple OS to minimum supported version.
+      **kwargs: Additional arguments to pass to [`cc_toolchain`](https://github.com/bazelbuild/rules_cc/blob/0.1.1/docs/toolchain_api.md#cc_toolchain-enabled_features).
+    """
     target_args(
         name + "_target_args",
         apple_os_versions,

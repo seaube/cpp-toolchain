@@ -1,6 +1,11 @@
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_feature", "cc_mutually_exclusive_category")
 load("standards.bzl", "CPP_STD", "C_STD")
 
+exports_files(
+    ["standards.bzl"],
+    visibility = ["//:__subpackages__"],
+)
+
 cc_mutually_exclusive_category(
     name = "c_standard",
 )

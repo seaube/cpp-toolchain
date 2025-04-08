@@ -23,7 +23,16 @@ _llvm_tool_rule = rule(
     executable = True,
 )
 
-def llvm_tool(name = None, tool = None, *kwargs):
+def llvm_tool(name = None, tool = None, **kwargs):
+    """Access an LLVM tool by name.
+
+    Creates an executable target that can be called by other rules, e.g. genrules.
+
+    Args:
+      name: A unique name for this rule
+      tool: The name of the tool (e.g. `clang`)
+      **kwargs: Extra arguments to pass to this rule
+    """
     if tool == None:
         tool = name
     _llvm_tool_rule(
@@ -35,4 +44,12 @@ def llvm_tool(name = None, tool = None, *kwargs):
     )
 
 def llvm_tool_file(tool):
+    """Return the label to an LLVM tool.
+
+    Returns a label to the file, rather than an executable rule.
+    This might is useful in repository rules that might want to run an LLVM tool.
+
+    Args:
+      tool: The name of the tool (e.g. `clang`)
+    """
     return Label("@llvm-{}//:bin/{}".format(HOST_TARGET, tool))

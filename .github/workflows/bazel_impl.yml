@@ -42,6 +42,10 @@ jobs:
           echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_COMPILER_RT_LINUX=`pwd`/compiler-rt-linux.tar.xz" >> ~/.bazelrc
           echo "build --announce_rc --platforms=@portable_cc_toolchain//platform:${{ inputs.target }}" >> ~/.bazelrc
 
+      - name: Module Test
+        run: cd bazel && bazel test //...
+        if: ${{ inputs.host == inputs.target }}
+
       - name: Build Test (fastbuild)
         run: cd bazel/test && bazel build -c fastbuild c_binary cpp_binary
       - name: Run Test (fastbuild)

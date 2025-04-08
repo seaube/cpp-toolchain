@@ -39,11 +39,17 @@ def _toolchain_impl(ctx):
         reproducible = True,
     )
 
-_override = tag_class(attrs = {"toolchain": attr.label()})
+_override = tag_class(
+    attrs = {
+        "toolchain": attr.label(doc = "portable_cc_toolchain target"),
+    },
+    doc = "Override the default toolchain rule",
+)
 
 toolchain = module_extension(
     implementation = _toolchain_impl,
     tag_classes = {
         "override": _override,
     },
+    doc = "Creates a `@portable_cc_toolchains` repository containing toolchains",
 )

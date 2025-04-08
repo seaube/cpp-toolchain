@@ -1,6 +1,13 @@
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("//feature/std:standards.bzl", "STANDARDS_FEATURES")
-load("doc.bzl", "generate_features_doc")
+
+filegroup(
+    name = "bzl_srcs",
+    srcs = [
+        "doc.bzl",
+        "//feature/std:standards.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+)
 
 FEATURES = [
     "//feature/misc:debug_symbols",
@@ -30,12 +37,3 @@ FEATURES = [
     )
     for feature in FEATURES
 ]
-
-generate_features_doc(name = "doc")
-
-write_source_files(
-    name = "write_doc",
-    files = {
-        "README.md": "doc",
-    },
-)

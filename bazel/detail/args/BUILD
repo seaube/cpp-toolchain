@@ -1,6 +1,11 @@
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_args_list")
 load("target.bzl", "APPLE_OS", "LINUX_TARGETS")
 
+exports_files(
+    ["target.bzl"],
+    visibility = ["//:__subpackages__"],
+)
+
 cc_args_list(
     name = "default",
     args = [
