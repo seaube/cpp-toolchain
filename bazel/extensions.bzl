@@ -5,7 +5,8 @@ make_toolchains("portable_cc_toolchain", "{toolchain}")
 """
 
 def _make_toolchains_impl(ctx):
-    ctx.file("BUILD", _BUILD.format(toolchain = ctx.attr.toolchain))
+    BUILD = _BUILD.format(toolchain = ctx.attr.toolchain)
+    ctx.file("BUILD", BUILD)
 
 _make_toolchains = repository_rule(
     implementation = _make_toolchains_impl,
@@ -14,9 +15,16 @@ _make_toolchains = repository_rule(
     },
 )
 
+def _empty_impl(ctx):
+    ctx.file("BUILD", "")
+
+_empty = repository_rule(
+    implementation = _empty_impl,
+    attrs = {},
+)
+
 def _toolchain_impl(ctx):
-    root_module_direct_deps = []
-    root_module_direct_dev_deps = []
+    enabled = False
     for module in ctx.modules:
         if module.is_root:
             toolchain = Label("//:default_toolchain")
@@ -24,18 +32,16 @@ def _toolchain_impl(ctx):
                 toolchain = module.tags.override[-1].toolchain
 
             _make_toolchains(
-                name = "portable_cc_toolchains",
+                name = "toolchains",
                 toolchain = toolchain,
             )
 
-            if ctx.root_module_has_non_dev_dependency:
-                root_module_direct_deps = ["portable_cc_toolchains"]
-            else:
-                root_module_direct_dev_deps = ["portable_cc_toolchains"]
+            enabled = True
+
+    if not enabled:
+        _empty(name = "toolchains")
 
     return ctx.extension_metadata(
-        root_module_direct_deps = root_module_direct_deps,
-        root_module_direct_dev_deps = root_module_direct_dev_deps,
         reproducible = True,
     )
 

@@ -7,6 +7,12 @@ This toolchain has the following goals:
 * Support cross-compilation without necessitating specialty compilers
 * Provide a similar experience on Linux and macOS
 
+## Build system integration
+### Bazel
+
+This toolchain provides a Bazel rules integration.
+For more information, see the [Bazel API documentation](bazel).
+
 ## Supported targets and versions
 
 ### Linux

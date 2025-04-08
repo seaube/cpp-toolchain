@@ -10,6 +10,3 @@ local_path_override(
 )
 
 toolchain = use_extension("@portable_cc_toolchain//:extensions.bzl", "toolchain")
-use_repo(toolchain, "portable_cc_toolchains")
-
-register_toolchains("@portable_cc_toolchains//...")
