@@ -1,7 +1,7 @@
 _BUILD = """\
 load("@portable_cc_toolchain//:toolchain.bzl", "make_toolchains")
 
-make_toolchains("portable_cc_toolchain", "{toolchain}")
+make_toolchains(name = "toolchain", cc_toolchain = "{toolchain}")
 """
 
 def _make_toolchains_impl(ctx):
@@ -49,7 +49,7 @@ _override = tag_class(
     attrs = {
         "toolchain": attr.label(doc = "portable_cc_toolchain target"),
     },
-    doc = "Override the default toolchain rule",
+    doc = "Override the default toolchain rule.",
 )
 
 toolchain = module_extension(
@@ -57,5 +57,5 @@ toolchain = module_extension(
     tag_classes = {
         "override": _override,
     },
-    doc = "Creates a `@portable_cc_toolchains` repository containing toolchains",
+    doc = "Registers the portable C++ toolchain.",
 )

@@ -88,7 +88,26 @@ def _supported_combination(host, target):
         return False
     return True
 
-def make_toolchains(name, portable_cc_toolchain):
+def make_toolchains(name = None, cc_toolchain = None):
+    """Create `toolchain` rules for a portable C++ toolchain.
+
+    If you are using bzlmod, consider [`override`](extensions.md#override) instead.
+
+    For example:
+    ```bazel
+    toolchain/BUILD:
+      load("@portable_cc_toolchain//:toolchain.bzl", "make_toolchains", "portable_cc_toolchain")
+      portable_cc_toolchain(name = "my_cc_toolchain")
+      make_toolchains(name = "toolchain", cc_toolchain = "my_cc_toolchain")
+
+    WORKSPACE:
+      register_toolchains("//toolchain/...")
+    ```
+
+    Args:
+        name: a name prefix for the rules
+        cc_toolchain: an instance of [`portable_cc_toolchain`](#portable_cc_toolchain)
+    """
     for host in _HOSTS:
         for target in _TARGETS:
             if _supported_combination(host, target):
@@ -97,7 +116,7 @@ def make_toolchains(name, portable_cc_toolchain):
                                  "_".join([x.removeprefix("@platforms//os:").removeprefix("@platforms//cpu:") for x in target])
                 native.toolchain(
                     name = toolchain_name,
-                    toolchain = portable_cc_toolchain,
+                    toolchain = cc_toolchain,
                     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
                     exec_compatible_with = host,
                     target_compatible_with = target,

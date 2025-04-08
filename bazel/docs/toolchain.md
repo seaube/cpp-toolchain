@@ -9,9 +9,23 @@
 <pre>
 load("@portable_cc_toolchain//:toolchain.bzl", "make_toolchains")
 
-make_toolchains(<a href="#make_toolchains-name">name</a>, <a href="#make_toolchains-portable_cc_toolchain">portable_cc_toolchain</a>)
+make_toolchains(<a href="#make_toolchains-name">name</a>, <a href="#make_toolchains-cc_toolchain">cc_toolchain</a>)
 </pre>
 
+Create `toolchain` rules for a portable C++ toolchain.
+
+If you are using bzlmod, consider [`override`](extensions.md#override) instead.
+
+For example:
+```bazel
+toolchain/BUILD:
+  load("@portable_cc_toolchain//:toolchain.bzl", "make_toolchains", "portable_cc_toolchain")
+  portable_cc_toolchain(name = "my_cc_toolchain")
+  make_toolchains(name = "toolchain", cc_toolchain = "my_cc_toolchain")
+
+WORKSPACE:
+  register_toolchains("//toolchain/...")
+```
 
 
 **PARAMETERS**
@@ -19,8 +33,8 @@ make_toolchains(<a href="#make_toolchains-name">name</a>, <a href="#make_toolcha
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="make_toolchains-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="make_toolchains-portable_cc_toolchain"></a>portable_cc_toolchain |  <p align="center"> - </p>   |  none |
+| <a id="make_toolchains-name"></a>name |  a name prefix for the rules   |  `None` |
+| <a id="make_toolchains-cc_toolchain"></a>cc_toolchain |  an instance of [`portable_cc_toolchain`](#portable_cc_toolchain)   |  `None` |
 
 
 <a id="portable_cc_toolchain"></a>

@@ -11,7 +11,7 @@ toolchain = use_extension("@portable_cc_toolchain//:extensions.bzl", "toolchain"
 toolchain.override(<a href="#toolchain.override-toolchain">toolchain</a>)
 </pre>
 
-Creates a `@portable_cc_toolchains` repository containing toolchains
+Registers the portable C++ toolchain.
 
 
 **TAG CLASSES**
@@ -20,7 +20,7 @@ Creates a `@portable_cc_toolchains` repository containing toolchains
 
 ### override
 
-Override the default toolchain rule
+Override the default toolchain rule.
 
 **Attributes**
 

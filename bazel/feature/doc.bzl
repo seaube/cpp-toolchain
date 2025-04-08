@@ -1,5 +1,13 @@
 load("//feature/std:standards.bzl", "STANDARDS_FEATURES")
 
+def _std_doc(std):
+    if std.startswith("cpp"):
+        language = "C++"
+    else:
+        language = "C"
+    version = std.removeprefix("cpp").removeprefix("c")
+    return "Use {}{} language standard".format(language, version)
+
 FEATURES = {
     "//feature:debug_symbols": "Generage debug information",
     "//feature:strip_unused_dynamic_libs": "Don't link against dynamic libraries that aren't referenced by any symbols",
@@ -19,7 +27,7 @@ FEATURES = {
     "//feature:pedantic_warnings": "Emit pedantic warnings",
     "//feature:treat_warnings_as_errors": "Treat warnings as errors",
 } | {
-    "//feature:" + std: "Set C/C++ language standard"
+    "//feature:" + std: _std_doc(std)
     for std in STANDARDS_FEATURES
 }
 
