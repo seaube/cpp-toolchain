@@ -11,6 +11,19 @@ bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "1.2.0", dev_dependency = True)
 
+# the overrides below resolve https://github.com/bazelbuild/rules_java/issues/287
+single_version_override(
+    module_name = "abseil-cpp",
+    version = "20250127.1",
+)
+
+archive_override(
+    module_name = "re2",
+    integrity = "sha256-lK1zvSsyF3h0I5u7ClliWQEhIlJ1FRjCf4f3jRkcNq0=",
+    strip_prefix = "re2-c84a140c93352cdabbfb547c531be34515b12228",
+    url = "https://github.com/google/re2/archive/c84a140c93352cdabbfb547c531be34515b12228.tar.gz",
+)
+
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
     hub_name = "pypi",
