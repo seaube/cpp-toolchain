@@ -5,6 +5,8 @@ on:
     inputs:
       use-built-toolchain:
         type: boolean
+      ref:
+        type: string
       runs-on:
         type: string
         required: true
@@ -22,6 +24,8 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           module-root: bazel/test

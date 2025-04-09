@@ -6,6 +6,8 @@ on:
     inputs:
       use-built-toolchain:
         type: boolean
+      ref:
+        type: string
 
 jobs:
 
@@ -30,6 +32,7 @@ jobs:
     uses: ./.github/workflows/bazel_impl.yml
     with:
       use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
       runs-on: ${{ matrix.host.runs-on }}
       host: ${{ matrix.host.name }}
       target: ${{ matrix.target }}
@@ -50,6 +53,7 @@ jobs:
     uses: ./.github/workflows/bazel_impl.yml
     with:
       use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
       runs-on: ${{ matrix.host.runs-on }}
       host: ${{ matrix.host.name }}
       target: ${{ matrix.target }}
