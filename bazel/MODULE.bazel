@@ -21,7 +21,7 @@ archive_override(
     module_name = "re2",
     integrity = "sha256-lK1zvSsyF3h0I5u7ClliWQEhIlJ1FRjCf4f3jRkcNq0=",
     strip_prefix = "re2-c84a140c93352cdabbfb547c531be34515b12228",
-    url = "https://github.com/google/re2/archive/c84a140c93352cdabbfb547c531be34515b12228.tar.gz",
+    urls = ["https://github.com/google/re2/archive/c84a140c93352cdabbfb547c531be34515b12228.tar.gz"],
 )
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
