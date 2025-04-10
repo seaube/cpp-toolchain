@@ -8,21 +8,15 @@ bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
 
+# https://github.com/abseil/abseil-cpp/pull/1794
+# TODO use `repo_name = None` when it becomes available (Bazel 8.2.0)
+bazel_dep(name = "abseil-cpp", version = "20250127.1")
+
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "1.2.0", dev_dependency = True)
 
-# the overrides below resolve https://github.com/bazelbuild/rules_java/issues/287
-single_version_override(
-    module_name = "abseil-cpp",
-    version = "20250127.1",
-)
-
-archive_override(
-    module_name = "re2",
-    integrity = "sha256-lK1zvSsyF3h0I5u7ClliWQEhIlJ1FRjCf4f3jRkcNq0=",
-    strip_prefix = "re2-c84a140c93352cdabbfb547c531be34515b12228",
-    urls = ["https://github.com/google/re2/archive/c84a140c93352cdabbfb547c531be34515b12228.tar.gz"],
-)
+# https://github.com/bazelbuild/bazel/issues/24426#issuecomment-2574862618
+bazel_dep(name = "re2", version = "2024-07-02.bcr.1", dev_dependency = True)
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
