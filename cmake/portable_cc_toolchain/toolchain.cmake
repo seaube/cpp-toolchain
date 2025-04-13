@@ -22,6 +22,29 @@ endif()
 
 
 
+# Set CMake variables
+
+if(NOT _host_triple STREQUAL TARGET_TRIPLE)
+    if(TARGET_TRIPLE STREQUAL "x86_64-unknown-linux-gnu")
+        set(CMAKE_SYSTEM_NAME Linux)
+        set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    elseif(TARGET_TRIPLE STREQUAL "aarch64-unknown-linux-gnu")
+        set(CMAKE_SYSTEM_NAME Linux)
+        set(CMAKE_SYSTEM_PROCESSOR aarch64)
+    elseif(TARGET_TRIPLE STREQUAL "armv7-unknown-linux-gnueabihf")
+        set(CMAKE_SYSTEM_NAME Linux)
+        set(CMAKE_SYSTEM_PROCESSOR arm)
+    elseif(TARGET_TRIPLE STREQUAL "x86_64-apple-macos")
+        set(CMAKE_SYSTEM_NAME Darwin)
+        set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    elseif(TARGET_TRIPLE STREQUAL "arm64-apple-macos")
+        set(CMAKE_SYSTEM_NAME Darwin)
+        set(CMAKE_SYSTEM_PROCESSOR arm64)
+    endif()
+endif()
+
+
+
 # Download toolchain
 
 download(_llvm_dir "llvm-${_host_triple}")
@@ -54,7 +77,7 @@ set(CMAKE_C_COMPILER_TARGET "${TARGET_TRIPLE}")
 set(CMAKE_CXX_COMPILER_TARGET "${TARGET_TRIPLE}")
 set(CMAKE_ASM_COMPILER_TARGET "${TARGET_TRIPLE}")
 
-if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "${_sysroot_dir}")
     set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${_sysroot_dir}")
     set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${_sysroot_dir}")
@@ -71,22 +94,3 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-
-if(NOT _host_triple STREQUAL TARGET_TRIPLE)
-    if(TARGET_ARCH STREQUAL "x86_64-unknown-linux-gnu")
-        set(CMAKE_SYSTEM_NAME Linux)
-        set(CMAKE_SYSTEM_PROCESSOR x86_64)
-    elseif(TARGET_ARCH STREQUAL "aarch64-unknown-linux-gnu")
-        set(CMAKE_SYSTEM_NAME Linux)
-        set(CMAKE_SYSTEM_PROCESSOR aarch64)
-    elseif(TARGET_ARCH STREQUAL "armv7-unknown-linux-gnueabihf")
-        set(CMAKE_SYSTEM_NAME Linux)
-        set(CMAKE_SYSTEM_PROCESSOR arm)
-    elseif(TARGET_ARCH STREQUAL "x86_64-apple-macos")
-        set(CMAKE_SYSTEM_NAME Darwin)
-        set(CMAKE_SYSTEM_PROCESSOR x86_64)
-    elseif(TARGET_ARCH STREQUAL "arm64-apple-macos")
-        set(CMAKE_SYSTEM_NAME Darwin)
-        set(CMAKE_SYSTEM_PROCESSOR arm64)
-    endif()
-endif()
