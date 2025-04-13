@@ -34,6 +34,6 @@ function(download location asset)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${_dir}.tar.xz" WORKING_DIRECTORY "${_dir}" OUTPUT_QUIET)
     endif()
 
-    file(CREATE_LINK "${_dir}" "${_out}" SYMBOLIC)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${_dir}" "${_out}")
     set("${location}" "${_out}" PARENT_SCOPE)
 endfunction()

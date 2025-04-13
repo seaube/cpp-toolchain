@@ -33,7 +33,7 @@ def sha256(url):
     return hashlib.file_digest(response.raw, "sha256").hexdigest()
 
 def cmake(assets):
-    with open(Path(__file__).resolve().parent.parent / "cmake/assets.cmake", "w") as f:
+    with open(Path(__file__).resolve().parent.parent / "cmake/portable_cc_toolchain/assets.cmake", "w") as f:
         for asset in assets:
             name = asset["name"].removesuffix(".tar.xz")
             url = asset["browser_download_url"]

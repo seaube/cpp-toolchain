@@ -1,0 +1,69 @@
+name: Test CMake rules
+
+on:
+  push:
+  workflow_call:
+    inputs:
+      use-built-toolchain:
+        type: boolean
+      ref:
+        type: string
+
+jobs:
+
+  test-linux-targets:
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-24.04
+          - name: aarch64-unknown-linux-gnu
+            runs-on: ubuntu-24.04-arm
+          - name: x86_64-apple-macos
+            runs-on: macos-13
+          - name: arm64-apple-macos
+            runs-on: macos-14
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+
+    name: test linux targets
+    runs-on: ${{ matrix.host.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Build
+        run: cd cmake/test && ./test.sh ${{ matrix.target }}
+      - name: Run Test
+        if: ${{ matrix.host.name == matrix.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared
+
+  test-macos-targets:
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-apple-macos
+            runs-on: macos-13
+          - name: arm64-apple-macos
+            runs-on: macos-14
+        target:
+          - x86_64-apple-macos
+          - arm64-apple-macos
+
+    name: test macOS targets
+    runs-on: ${{ matrix.host.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Build
+        run: cd cmake/test && ./test.sh ${{ matrix.target }}
+      - name: Run Test
+        if: ${{ matrix.host.name == matrix.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared

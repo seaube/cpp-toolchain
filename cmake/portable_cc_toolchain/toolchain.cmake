@@ -16,8 +16,6 @@ endif()
 
 # Target triple
 
-set(TARGET_TRIPLE "" CACHE STRING "Target triple (e.g., x86_64-unknown-linux-gnu)")
-
 if(NOT TARGET_TRIPLE)
     set(TARGET_TRIPLE ${_host_triple})
 endif()
