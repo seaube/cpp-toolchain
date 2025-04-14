@@ -1,8 +1,4 @@
 {
     "url": "https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/bazel_portable_cc_toolchain-{TAG}.tar.gz",
     "strip_prefix": "portable_cc_toolchain-{VERSION}",
-    "patches": {
-        "module_dot_bazel_version.patch": "sha256-wDXDOI7jtEfy3s+oQBwI2GD+9G+5fo9JCnsx7/F29AU="
-    },
-    "patch_strip": 1
 }
