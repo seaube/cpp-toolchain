@@ -1,4 +1,4 @@
 {
     "url": "https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/bazel_portable_cc_toolchain-{TAG}.tar.gz",
-    "strip_prefix": "portable_cc_toolchain-{VERSION}",
+    "strip_prefix": "portable_cc_toolchain-{VERSION}"
 }
