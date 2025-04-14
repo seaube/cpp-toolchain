@@ -10,7 +10,7 @@ git archive --format=tar --prefix=${PREFIX}/ ${TAG}:bazel | gzip > ${BAZEL_ARCHI
 CMAKE_ARCHIVE="cmake_portable_cc_toolchain-$TAG.tar.gz"
 git archive --format=tar --prefix=${PREFIX}/ ${TAG}:cmake/portable_cc_toolchain | gzip > ${CMAKE_ARCHIVE}
 
-SHA=$(shasum -a 256 ${BAZEL_ARCHIVE} | awk '{print $1}')
+SHA=$(shasum -a 256 ${CMAKE_ARCHIVE} | awk '{print $1}')
 
 cat << EOF
 ## Bazel
@@ -25,7 +25,7 @@ toolchain = use_extension("@portable_cc_toolchain//:extensions.bzl", "toolchain"
 
 ## CMake
 
-Add to your \`CMakeLists.txt\` file (before \`project()\`):
+Add to your \`CMakeLists.txt\` file (before \`project\`):
 
 \`\`\`cmake
 FetchContent_Declare(
@@ -37,6 +37,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(PortableCcToolchain)
 \`\`\`
 
-To enable the toolchain, set `CMAKE_TOOLCHAIN_FILE` to `portable_cc_toolchain/toolchain.cmake`.
-For cross-compiling, set `CMAKE_TOOLCHAIN_FILE` to `portable_cc_toolchain/<target>.cmake` (e.g. `aarch64-unknown-linux-gnu.cmake`)
+To enable the toolchain, set \`CMAKE_TOOLCHAIN_FILE\` to \`portable_cc_toolchain/toolchain.cmake\`.
+For cross-compiling, set \`CMAKE_TOOLCHAIN_FILE\` to \`portable_cc_toolchain/<target>.cmake\` (e.g. \`aarch64-unknown-linux-gnu.cmake\`)
 EOF
