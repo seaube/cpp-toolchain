@@ -9,4 +9,7 @@ local_path_override(
     path = "..",
 )
 
+# https://github.com/bazelbuild/bazel/issues/24426#issuecomment-2574862618
+bazel_dep(name = "re2", version = "2024-07-02.bcr.1", dev_dependency = True)
+
 toolchain = use_extension("@portable_cc_toolchain//:extensions.bzl", "toolchain")

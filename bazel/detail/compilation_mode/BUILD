@@ -1,3 +1,5 @@
+package(default_visibility = ["//:__subpackages__"])
+
 config_setting(
     name = "opt",
     values = {
