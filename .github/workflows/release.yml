@@ -37,11 +37,17 @@ jobs:
     with:
       ref: ${{ needs.tag.outputs.version }}
 
+  test-cmake:
+    needs: [tag]
+    uses: ./.github/workflows/cmake.yml
+    with:
+      ref: ${{ needs.tag.outputs.version }}
+
   release:
-    needs: [tag, test-bazel]
+    needs: [tag, test-bazel, test-cmake]
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.1.0
     with:
       bazel_test_command: true || # we already tested the tag
       prerelease: false
-      release_files: bazel_portable_cc_toolchain-*.tar.gz
+      release_files: "*_portable_cc_toolchain-*.tar.gz"
       tag_name: ${{ needs.tag.outputs.version }}
