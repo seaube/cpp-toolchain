@@ -1,4 +1,4 @@
-include("${CMAKE_CURRENT_LIST_DIR}/download.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/private/download.cmake")
 
 
 
