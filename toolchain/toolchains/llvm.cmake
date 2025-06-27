@@ -1,31 +1,38 @@
 # Don't set this! It enables CMAKE_CROSSCOMPILING, which breaks the LLVM build.
 # set(CMAKE_SYSTEM_NAME Linux)
 
-set(CMAKE_C_COMPILER "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/clang")
-set(CMAKE_CXX_COMPILER "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/clang++")
-set(CMAKE_ASM_COMPILER "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/clang")
-set(CMAKE_LINKER "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/ld.lld")
-set(CMAKE_AR "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/llvm-ar")
-set(CMAKE_RANLIB "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/llvm-ranlib")
-set(CMAKE_NM "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/llvm-nm")
-set(CMAKE_OBJCOPY "$ENV{EXT_BUILD_ROOT}/%llvm%/bin/llvm-objcopy")
+set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+    LLVM_TOOLCHAIN_ROOT
+    GCC_TOOLCHAIN_ROOT
+    TOOLCHAIN_TRIPLE
+    LLVM_VERSION
+)
 
-set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "$ENV{EXT_BUILD_ROOT}/%gcc%")
-set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "$ENV{EXT_BUILD_ROOT}/%gcc%")
-set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "$ENV{EXT_BUILD_ROOT}/%gcc%")
+set(CMAKE_C_COMPILER "${LLVM_TOOLCHAIN_ROOT}/bin/clang")
+set(CMAKE_CXX_COMPILER "${LLVM_TOOLCHAIN_ROOT}/bin/clang++")
+set(CMAKE_ASM_COMPILER "${LLVM_TOOLCHAIN_ROOT}/bin/clang")
+set(CMAKE_LINKER "${LLVM_TOOLCHAIN_ROOT}/bin/ld.lld")
+set(CMAKE_AR "${LLVM_TOOLCHAIN_ROOT}/bin/llvm-ar")
+set(CMAKE_RANLIB "${LLVM_TOOLCHAIN_ROOT}/bin/llvm-ranlib")
+set(CMAKE_NM "${LLVM_TOOLCHAIN_ROOT}/bin/llvm-nm")
+set(CMAKE_OBJCOPY "${LLVM_TOOLCHAIN_ROOT}/bin/llvm-objcopy")
 
-set(CMAKE_ASM_FLAGS "--target=%target%")
+set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "${GCC_TOOLCHAIN_ROOT}")
+set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${GCC_TOOLCHAIN_ROOT}")
+set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${GCC_TOOLCHAIN_ROOT}")
 
-set(CMAKE_SYSROOT "$ENV{EXT_BUILD_ROOT}/%gcc%/%target%/sysroot")
+set(CMAKE_ASM_FLAGS "--target=${TOOLCHAIN_TRIPLE}")
+
+set(CMAKE_SYSROOT "${GCC_TOOLCHAIN_ROOT}/${TOOLCHAIN_TRIPLE}/sysroot")
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_C_COMPILER_TARGET "%target%")
-set(CMAKE_CXX_COMPILER_TARGET "%target%")
-set(CMAKE_ASM_COMPILER_TARGET "%target%")
+set(CMAKE_C_COMPILER_TARGET "${TOOLCHAIN_TRIPLE}")
+set(CMAKE_CXX_COMPILER_TARGET "${TOOLCHAIN_TRIPLE}")
+set(CMAKE_ASM_COMPILER_TARGET "${TOOLCHAIN_TRIPLE}")
             
-set(CMAKE_FIND_ROOT_PATH "$ENV{EXT_BUILD_ROOT}/%gcc%/%target%/sysroot")
+set(CMAKE_FIND_ROOT_PATH "${GCC_TOOLCHAIN_ROOT}/${TOOLCHAIN_TRIPLE}/sysroot")
 
 set(CMAKE_C_FLAGS "")
 set(CMAKE_CXX_FLAGS "-D__STDC_FORMAT_MACROS=1") # workaround for GNU libstdc++
@@ -33,13 +40,10 @@ set(CMAKE_ASM_FLAGS "")
 set(CMAKE_SHARED_LINKER_FLAGS "")
 set(CMAKE_EXE_LINKER_FLAGS "")
 
-if("%target%" STREQUAL "aarch64-unknown-linux-gnu")
+if("${TOOLCHAIN_TRIPLE}" STREQUAL "aarch64-unknown-linux-gnu")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAT_HWCAP2=26")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAT_HWCAP2=26")
 endif()
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+# Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/22995
+set(CMAKE_ASM_COMPILER_VERSION ${LLVM_VERSION})
