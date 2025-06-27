@@ -1,5 +1,6 @@
 # Build zlib, LLVM, compiler-rt, and openmp for each target
 
+# Build zlib, a dependency of LLVM. It's only needed by the host.
 ExternalProject_Add(zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
     GIT_TAG        v1.3.1
@@ -9,35 +10,25 @@ ExternalProject_Add(zlib
         -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}/zlib
         -DGCC_TOOLCHAIN_ROOT=${BUILD_DIR}/gcc/${HOST_TRIPLE}/toolchain
         -DTOOLCHAIN_TRIPLE=${HOST_TRIPLE}
+        -DCMAKE_BUILD_TYPE=Release
 )
 
-# # Custom function to build LLVM for a specific target
-# function(build_llvm_for_target TARGET_ARCH)
-#     set(GCC_TOOLCHAIN_DIR ${INSTALL_PREFIX}/toolchains/${TARGET_ARCH})
-#     set(ZLIB_INSTALL_DIR ${INSTALL_PREFIX}/zlib/${TARGET_ARCH})
-#     set(LLVM_BUILD_DIR ${BUILD_DIR}/llvm-${TARGET_ARCH})
-#     set(LLVM_INSTALL_DIR ${INSTALL_PREFIX}/llvm/${TARGET_ARCH})
-#     
-#     configure_external_project(llvm-${TARGET_ARCH}
-#         CACHE_FILE llvm.cmake
-#         SOURCE_DIR ${SOURCE_DIR}/llvm-project/llvm
-#         BINARY_DIR ${LLVM_BUILD_DIR}
-#         DEPENDS zlib-${TARGET_ARCH}
-#         CMAKE_ARGS
-#             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/toolchains/gcc-${TARGET_ARCH}.cmake
-#             -DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}
-#             -DGCC_TOOLCHAIN_ROOT=${GCC_TOOLCHAIN_DIR}
-#             -DZLIB_ROOT=${ZLIB_INSTALL_DIR}
-#     )
-#     
-#     # Download LLVM source if not present
-#     ExternalProject_Add_Step(llvm-${TARGET_ARCH} download-source
-#         COMMAND ${CMAKE_COMMAND} -E chdir ${SOURCE_DIR}
-#         git clone https://github.com/llvm/llvm-project.git || true
-#         DEPENDERS configure
-#     )
-# endfunction()
-# 
+# Build LLVM for the host
+ExternalProject_Add(llvm
+    GIT_REPOSITORY https://github.com/llvm/llvm-project.git
+    GIT_TAG        llvmorg-19.1.7
+    DEPENDS zlib gcc-toolchain-${HOST_TRIPLE}
+    SOURCE_SUBDIR llvm
+    CMAKE_ARGS
+        -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/toolchains/gcc.cmake
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}/llvm
+        -DGCC_TOOLCHAIN_ROOT=${BUILD_DIR}/gcc/${HOST_TRIPLE}/toolchain
+        -DTOOLCHAIN_TRIPLE=${HOST_TRIPLE}
+        -DZLIB_ROOT=${INSTALL_PREFIX}/zlib
+        -DCMAKE_BUILD_TYPE=Release
+)
+
 # # Custom function to build compiler-rt for a specific target
 # function(build_compiler_rt_for_target TARGET_ARCH)
 #     set(LLVM_INSTALL_DIR ${INSTALL_PREFIX}/llvm/${TARGET_ARCH})
