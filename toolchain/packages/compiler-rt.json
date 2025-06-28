@@ -2,7 +2,7 @@
   "directories": [
     {
       "source": "@COMPILER_RT_DIR@",
-      "target": "lib/clang/@LLVM_VERSION@"
+      "target": "lib/clang/@LLVM_MAJOR_VERSION@"
     }
   ]
 }

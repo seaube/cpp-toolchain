@@ -3,6 +3,7 @@
 
 set(LLVM_VERSION 19.1.7)
 set(LLVM_TAG llvmorg-${LLVM_VERSION})
+string(REGEX MATCH "^([0-9]+)" LLVM_MAJOR_VERSION ${LLVM_VERSION})
 
 function(get_gcc_toolchain_flags var triple)
     set(flags
@@ -115,6 +116,7 @@ foreach(TARGET IN LISTS TOOLCHAIN_TARGETS)
     build_packages(${TARGET})
 endforeach()
 
+# Create a compiler-rt package containing the runtime for all targets
 list(TRANSFORM TOOLCHAIN_TARGETS REPLACE "(.+)" "${CMAKE_BINARY_DIR}/packages/compiler-rt-\\1.json" OUTPUT_VARIABLE COMPILER_RT_PACKAGE_CONFIGS)
 list(TRANSFORM TOOLCHAIN_TARGETS REPLACE "(.+)" "compiler-rt-\\1" OUTPUT_VARIABLE COMPILER_RT_PACKAGE_DEPENDS)
 
@@ -123,4 +125,18 @@ add_custom_target(compiler-rt-package
             ${CMAKE_BINARY_DIR}/compiler-rt.tar.xz
             ${COMPILER_RT_PACKAGE_CONFIGS}
     DEPENDS ${COMPILER_RT_PACKAGE_DEPENDS} ${COMPILER_RT_PACKAGE_CONFIGS}
+)
+
+# Create an LLVM package that also contains compiler-rt
+configure_file(
+    ${CMAKE_SOURCE_DIR}/packages/llvm.json
+    ${CMAKE_BINARY_DIR}/packages/llvm.json
+    @ONLY
+)
+
+add_custom_target(llvm-package
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/tar.py
+            ${CMAKE_BINARY_DIR}/llvm-${HOST_TRIPLE}.tar.xz
+            ${CMAKE_BINARY_DIR}/packages/llvm.json ${COMPILER_RT_PACKAGE_CONFIGS}
+    DEPENDS llvm ${CMAKE_BINARY_DIR}/packages/llvm.json ${COMPILER_RT_PACKAGE_DEPENDS} ${COMPILER_RT_PACKAGE_CONFIGS}
 )

@@ -7,7 +7,6 @@ Creates reproducible tar.xz files with path mappings and exclusions.
 import tarfile
 import sys
 import json
-import fnmatch
 from pathlib import Path
 
 def should_exclude(rel_path, exclusions):
@@ -61,7 +60,6 @@ def create_tar(output_file, config):
             source = mapping['source']
             target = mapping.get('target', '')
             exclusions = mapping.get('exclude', [])
-            print(f"Adding directory: {source} -> {target or '(root)'}")
             add_directory(tar, source, target, exclusions)
         
         # Add individual files
@@ -69,7 +67,6 @@ def create_tar(output_file, config):
             source = Path(file_mapping['source'])
             target = file_mapping['target']
             assert source.exists(), f"Source file {source} does not exist"
-            print(f"Adding file: {source} -> {target}")
             add_file_reproducible(tar, str(source), target)
 
 def merge_configs(config_files):
@@ -80,7 +77,6 @@ def merge_configs(config_files):
     }
 
     for config_file in config_files:
-        print(f"Loading config: {config_file}")
         with open(config_file, 'r') as f:
             config = json.load(f)
 
@@ -92,7 +88,7 @@ def merge_configs(config_files):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python tar_assembler.py <output.tar.xz> <config1.json> [config2.json] ...")
+        print("Usage: python tar.py <output.tar.xz> <config1.json> [config2.json] ...")
         sys.exit(1)
     
     output_file = sys.argv[1]
@@ -101,7 +97,7 @@ def main():
     config = merge_configs(config_files)
     
     create_tar(output_file, config)
-    print(f"Successfully created {output_file}")
+    print(f"Created {output_file}")
 
 if __name__ == "__main__":
     main()

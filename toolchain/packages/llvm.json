@@ -1,0 +1,8 @@
+{
+  "directories": [
+    {
+      "source": "@INSTALL_PREFIX@/llvm",
+      "target": ""
+    }  
+  ]
+}
