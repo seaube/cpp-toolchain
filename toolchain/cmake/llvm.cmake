@@ -1,4 +1,5 @@
 # Build zlib, LLVM, compiler-rt, and openmp for each target
+# include(${CMAKE_SOURCE_DIR}/cmake/packaging.cmake)
 
 set(LLVM_VERSION 19.1.7)
 set(LLVM_TAG llvmorg-${LLVM_VERSION})
@@ -82,6 +83,44 @@ function(build_target_libraries TARGET_ARCH)
     )
 endfunction()
 
+# Build packages for each target
+function(build_packages TARGET_ARCH)
+    set(GCC_DIR         ${BUILD_DIR}/gcc/${TARGET_ARCH})
+    set(LLVM_DIR        ${INSTALL_PREFIX}/llvm)
+    set(COMPILER_RT_DIR ${INSTALL_PREFIX}/${TARGET_ARCH}/compiler-rt)
+    set(OPENMP_DIR      ${INSTALL_PREFIX}/${TARGET_ARCH}/openmp)
+
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/packages/sysroot.json
+        ${CMAKE_BINARY_DIR}/packages/sysroot-${TARGET_ARCH}.json
+        @ONLY
+    )
+
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/packages/compiler-rt.json
+        ${CMAKE_BINARY_DIR}/packages/compiler-rt-${TARGET_ARCH}.json
+        @ONLY
+    )
+
+    add_custom_target(sysroot-package-${TARGET_ARCH}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/tar.py
+                ${CMAKE_BINARY_DIR}/sysroot-${TARGET_ARCH}.tar.xz
+                ${CMAKE_BINARY_DIR}/packages/sysroot-${TARGET_ARCH}.json
+        DEPENDS gcc-toolchain-${TARGET_ARCH} openmp-${TARGET_ARCH} ${CMAKE_BINARY_DIR}/packages/sysroot-${TARGET_ARCH}.json
+    )
+endfunction()
+
 foreach(TARGET IN LISTS TOOLCHAIN_TARGETS)
     build_target_libraries(${TARGET})
+    build_packages(${TARGET})
 endforeach()
+
+list(TRANSFORM TOOLCHAIN_TARGETS REPLACE "(.+)" "${CMAKE_BINARY_DIR}/packages/compiler-rt-\\1.json" OUTPUT_VARIABLE COMPILER_RT_PACKAGE_CONFIGS)
+list(TRANSFORM TOOLCHAIN_TARGETS REPLACE "(.+)" "compiler-rt-\\1" OUTPUT_VARIABLE COMPILER_RT_PACKAGE_DEPENDS)
+
+add_custom_target(compiler-rt-package
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/tar.py
+            ${CMAKE_BINARY_DIR}/compiler-rt.tar.xz
+            ${COMPILER_RT_PACKAGE_CONFIGS}
+    DEPENDS ${COMPILER_RT_PACKAGE_DEPENDS} ${COMPILER_RT_PACKAGE_CONFIGS}
+)

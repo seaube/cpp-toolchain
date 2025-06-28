@@ -1,0 +1,19 @@
+{
+  "directories": [
+    {
+      "source": "@GCC_DIR@/toolchain",
+      "target": "",
+      "exclude": ["build.log.bz2", "bin", "libexec"]
+    },
+    {
+      "source": "@OPENMP_DIR@",
+      "target": "@TARGET_ARCH@/sysroot/usr"
+    }
+  ],
+  "files": [
+    {
+      "source": "@CMAKE_SOURCE_DIR@/clang/@TARGET_ARCH@.cfg",
+      "target": "@TARGET_ARCH@.cfg"
+    }
+  ]
+}
