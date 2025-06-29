@@ -84,7 +84,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           tar -xf gcc-${{ matrix.target.name }}.tar
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=built-gcc -B build -S toolchain
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=${{ github.workspace }}/built-gcc -B build -S toolchain
           cmake --build build --parallel -t sysroot-package-${{ matrix.target.name }}
       - name: Upload built sysroot
         uses: actions/upload-artifact@v4
