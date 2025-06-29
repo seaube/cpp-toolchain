@@ -121,22 +121,25 @@ jobs:
           pattern: gcc-*
       - name: Extract gcc
         run: find . -name "gcc-*.tar" -exec tar -xf {} \;
-      - name: Build
+      - name: Build LLVM
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=built-gcc -B build -S toolchain
-          cmake --build build --parallel -t llvm-package compiler-rt-package
+          cmake --build build --parallel -t llvm-package
+      - name: Build compiler-rt
+        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }}
+        run: cmake --build build --parallel -t compiler-rt-package
       - name: Upload built llvm
         uses: actions/upload-artifact@v4
         with:
           name: llvm-${{ matrix.target.name }}
-          path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-${{ matrix.target.name}}.tar.xz
+          path: build/llvm-${{ matrix.target.name}}.tar.xz
           if-no-files-found: error
       - name: Upload built compiler-rt
         uses: actions/upload-artifact@v4
         if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }}
         with:
           name: compiler-rt-linux
-          path: toolchain/bazel-bin/${{ matrix.target.type }}/compiler-rt-linux.tar.xz
+          path: build/compiler-rt-linux.tar.xz
           if-no-files-found: error
 
   test-bazel-rules:

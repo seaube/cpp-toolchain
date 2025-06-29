@@ -1,5 +1,11 @@
 # Build zlib, LLVM, compiler-rt, and openmp for each target
 
+set(toolchain_targets
+    "x86_64-unknown-linux-gnu"
+    "aarch64-unknown-linux-gnu"
+    "armv7-unknown-linux-gnueabihf"
+)
+
 function(get_gcc_toolchain_flags var triple)
     ExternalProject_Get_Property(gcc-toolchain-${triple} BINARY_DIR)
     set(gcc_dir ${BINARY_DIR})
@@ -71,6 +77,7 @@ function(build_target_libraries target_arch)
 
     ExternalProject_Add(compiler-rt-${target_arch}
         SOURCE_DIR ${SOURCE_DIR}
+        DOWNLOAD_COMMAND ""
         DEPENDS llvm
         SOURCE_SUBDIR compiler-rt
         CMAKE_ARGS
@@ -83,6 +90,7 @@ function(build_target_libraries target_arch)
 
     ExternalProject_Add(openmp-${target_arch}
         SOURCE_DIR ${SOURCE_DIR}
+        DOWNLOAD_COMMAND ""
         DEPENDS llvm
         SOURCE_SUBDIR openmp
         CMAKE_ARGS
