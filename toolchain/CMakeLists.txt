@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
 project(PortableToolchainImplementation NONE)
 
-set(TOOLCHAIN_TARGETS x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu armv7-unknown-linux-gnueabihf)
-set(INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
-set(SOURCE_DIR ${CMAKE_BINARY_DIR}/src)
-set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
-
 include(ExternalProject)
 
 include(${CMAKE_SOURCE_DIR}/cmake/host-triple.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/gcc.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/llvm.cmake)
+
+# On Linux, we include a gcc sysroot
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  add_subdirectory(gcc)
+endif()
+
+set(llvm_version 19.1.7)
+set(llvm_tag llvmorg-${llvm_version})
+string(REGEX MATCH "^([0-9]+)" llvm_major_version ${llvm_version})
+
+string(TOLOWER ${CMAKE_HOST_SYSTEM_NAME} suffix)
+include(${CMAKE_SOURCE_DIR}/cmake/llvm-${suffix}.cmake)
