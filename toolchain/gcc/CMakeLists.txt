@@ -40,6 +40,7 @@ function(build_crosstool_ng_toolchain target_arch)
             DEPENDS crosstool-ng
             SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/targets/${target_arch}
             UPDATE_COMMAND ""
+            BINARY_DIR "${CMAKE_BINARY_DIR}/${target_arch}"
             CONFIGURE_COMMAND
                 ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/defconfig defconfig && 
                 ${ct_ng} defconfig

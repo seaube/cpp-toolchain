@@ -23,15 +23,13 @@ jobs:
             os: ubuntu-24.04-arm
     name: gcc ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
-    env:
-      gccdir: toolchain/gcc/targets/${{ matrix.target.name }}/toolchain
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
         id: cache
         with:
-          path: toolchain/gcc/targets/${{ matrix.target.name }}/toolchain/**/*
-          key: gcc-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/gcc/Makefile', 'toolchain/gcc/targets/*/defconfig') }}
+          path: built-gcc
+          key: gcc-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/gcc/**/*') }}
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -42,17 +40,19 @@ jobs:
           sudo apt-get remove texinfo
           mkdir ~/texinfo && curl -L https://ftp.gnu.org/gnu/texinfo/texinfo-7.2.tar.gz | tar --strip-components=1 -zx -C ~/texinfo
           cd ~/texinfo && ./configure && make && sudo make install
-      - name: Build gcc
+      - name: Build
         if: steps.cache.outputs.cache-hit != 'true'
-        run: make -C toolchain/gcc targets/${{ matrix.target.name }}/toolchain
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B built-gcc -S toolchain/gcc
+          cmake --build built-gcc --parallel -t gcc-toolchain-${{ matrix.target.name }}
       - name: Create artifact archive
-        run: tar -cf gcc-${{ matrix.target.name }}.tar $gccdir # maintain case-sensitivity
+        run: tar -cf gcc-${{ matrix.target.name }}.tar built-gcc/${{ matrix.target.name }}/toolchain # maintain case-sensitivity
       - name: Upload build log
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: ${{ matrix.target.name }} log
-          path: toolchain/gcc/targets/${{ matrix.target.name }}/build.log
+          path: built-gcc/${{ matrix.target.name }}/build.log
           if-no-files-found: error
       - name: Upload built gcc
         uses: actions/upload-artifact@v4
@@ -76,28 +76,21 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@6f5d03873a7d0942aab3b8412c7f924c5b4e823d
-        with:
-          module-root: toolchain
-          cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
-          bazelisk-cache: true
-          disk-cache: ${{ github.event_name != 'workflow_dispatch' }} # https://github.com/bazelbuild/bazel/issues/25671
-          repository-cache: true
-          max-disk-cache-size: 2
-          max-repository-cache-size: 0.5
       - name: Download built gcc
         uses: actions/download-artifact@v4
         with:
           name: gcc-${{ matrix.target.name }}
-      - name: Build sysroot
+      - name: Build
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           tar -xf gcc-${{ matrix.target.name }}.tar
-          cd toolchain && bazel build //linux:sysroot-package-${{ matrix.target.name }}
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=built-gcc -B build -S toolchain
+          cmake --build build --parallel -t sysroot-package-${{ matrix.target.name }}
       - name: Upload built sysroot
         uses: actions/upload-artifact@v4
         with:
           name: sysroot-${{ matrix.target.name }}
-          path: toolchain/bazel-bin/linux/sysroot-*.tar.xz
+          path: build/sysroot-${{ matrix.target.name }}.tar.xz
           if-no-files-found: error
 
   build-llvm:
@@ -121,15 +114,6 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: calebzulawski/setup-bazel@6f5d03873a7d0942aab3b8412c7f924c5b4e823d
-        with:
-          module-root: toolchain
-          cache-prefix: ${{ github.job }}-${{ matrix.target.name }}
-          bazelisk-cache: true
-          disk-cache: ${{ github.event_name != 'workflow_dispatch' }} # https://github.com/bazelbuild/bazel/issues/25671
-          repository-cache: true
-          max-disk-cache-size: 2
-          max-repository-cache-size: 0.5
       - name: Download built gcc
         if: ${{ contains(matrix.target.name, 'linux') }}
         uses: actions/download-artifact@v4
@@ -137,16 +121,15 @@ jobs:
           pattern: gcc-*
       - name: Extract gcc
         run: find . -name "gcc-*.tar" -exec tar -xf {} \;
-      - name: Build llvm
-        run: cd toolchain && bazel build //${{ matrix.target.type }}:llvm-package
-      - name: Build compiler-rt
-        run: cd toolchain && bazel build //${{ matrix.target.type }}:compiler-rt-package
-        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }}
+      - name: Build
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=built-gcc -B build -S toolchain
+          cmake --build build --parallel -t llvm-package compiler-rt-package
       - name: Upload built llvm
         uses: actions/upload-artifact@v4
         with:
           name: llvm-${{ matrix.target.name }}
-          path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-*.tar.xz
+          path: toolchain/bazel-bin/${{ matrix.target.type }}/llvm-${{ matrix.target.name}}.tar.xz
           if-no-files-found: error
       - name: Upload built compiler-rt
         uses: actions/upload-artifact@v4
