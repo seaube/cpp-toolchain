@@ -5,7 +5,7 @@ configure_file(
     @ONLY
 )
 
-add_custom_target(toolchain_file DEPENDS ${CMAKE_BINARY_DIR}/toolchain/macos.cmake)
+add_custom_target(toolchain_file DEPENDS ${CMAKE_BINARY_DIR}/toolchains/macos.cmake)
 
 # Build LLVM
 ExternalProject_Add(llvm
