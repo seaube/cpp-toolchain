@@ -70,6 +70,7 @@ set(llvm_dir INSTALL_DIR)
 
 # Build compiler-rt and openmp for each target
 function(build_target_libraries target_arch)
+    get_gcc_toolchain_flags(compile_with_gcc ${target_arch})
     get_llvm_toolchain_flags(compile_with_llvm ${target_arch})
 
     ExternalProject_Get_Property(llvm SOURCE_DIR)
@@ -94,7 +95,9 @@ function(build_target_libraries target_arch)
         DEPENDS llvm
         SOURCE_SUBDIR openmp
         CMAKE_ARGS
-            ${compile_with_llvm}
+            # this could be build with LLVM, but building with GCC means
+            # the sysroot only depends on target GCC, rather than target + host GCCs
+            ${compile_with_gcc}
             -C ${CMAKE_SOURCE_DIR}/caches/openmp.cmake
             -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
             -DCMAKE_BUILD_TYPE=Release
