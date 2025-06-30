@@ -10,7 +10,7 @@ ExternalProject_Add(llvm
 )
 
 ExternalProject_Get_Property(llvm INSTALL_DIR)
-set(llvm_install_dir ${INSTALL_DIR})
+set(llvm_dir ${INSTALL_DIR})
 
 # Create LLVM package
 configure_file(

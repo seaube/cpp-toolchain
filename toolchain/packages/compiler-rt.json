@@ -1,7 +1,7 @@
 {
   "directories": [
     {
-      "source": "@compiler_rt_install_dir@",
+      "source": "@compiler_rt_dir@",
       "target": "lib/clang/@llvm_major_version@"
     }
   ]

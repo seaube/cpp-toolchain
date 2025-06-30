@@ -65,7 +65,7 @@ ExternalProject_Add(llvm
 )
 
 ExternalProject_Get_Property(llvm INSTALL_DIR)
-set(llvm_dir INSTALL_DIR)
+set(llvm_dir ${INSTALL_DIR})
 
 # Build compiler-rt and openmp for each target
 function(build_target_libraries target_arch)
@@ -107,13 +107,13 @@ endfunction()
 # Build packages for each target
 function(build_packages target_arch)
     ExternalProject_Get_Property(gcc-toolchain-${target_arch} BINARY_DIR)
-    set(gcc_dir BINARY_DIR)
+    set(gcc_dir ${BINARY_DIR})
 
     ExternalProject_Get_Property(compiler-rt-${target_arch} INSTALL_DIR)
-    set(compiler_rt_dir INSTALL_DIR)
+    set(compiler_rt_dir ${INSTALL_DIR})
 
     ExternalProject_Get_Property(openmp-${target_arch} INSTALL_DIR)
-    set(openmp_dir INSTALL_DIR)
+    set(openmp_dir ${INSTALL_DIR})
 
     configure_file(
         ${CMAKE_SOURCE_DIR}/packages/sysroot.json

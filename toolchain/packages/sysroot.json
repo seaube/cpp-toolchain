@@ -6,7 +6,7 @@
       "exclude": ["build.log.bz2", "bin", "libexec"]
     },
     {
-      "source": "@openmp_install_dir@",
+      "source": "@openmp_dir@",
       "target": "@target_arch@/sysroot/usr"
     }
   ],
