@@ -64,6 +64,15 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 
+    set(CMAKE_OSX_SYSROOT "macosx" CACHE STRING "")
+    if(arch STREQUAL "aarch64")
+        set(CMAKE_OSX_ARCHITECTURES "arm64"    CACHE STRING "")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "")
+    else()
+        set(CMAKE_OSX_ARCHITECTURES "x86_64"    CACHE STRING "")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "")
+    endif()
+
     set(LLVM_ENABLE_RUNTIMES
         "libcxx"
         "libcxxabi"
