@@ -1,7 +1,7 @@
 # Build LLVM
 ExternalProject_Add(llvm
-    GIT_REPOSITORY https://github.com/llvm/llvm-project.git
-    GIT_TAG ${LLVM_TAG}
+    SOURCE_DIR ${llvm_source_dir}
+    DOWNLOAD_COMMAND ""
     SOURCE_SUBDIR llvm
     CMAKE_ARGS
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake

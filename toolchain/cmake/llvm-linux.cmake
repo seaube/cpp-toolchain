@@ -53,8 +53,7 @@ set(zlib_dir ${INSTALL_DIR})
 
 # Build LLVM for the host
 ExternalProject_Add(llvm
-    GIT_REPOSITORY https://github.com/llvm/llvm-project.git
-    GIT_TAG ${llvm_tag}
+    SOURCE_DIR ${llvm_source_dir}
     DEPENDS zlib gcc-toolchain-${host_triple}
     SOURCE_SUBDIR llvm
     CMAKE_ARGS
@@ -77,7 +76,7 @@ function(build_target_libraries target_arch)
     ExternalProject_Get_Property(llvm BINARY_DIR)
 
     ExternalProject_Add(compiler-rt-${target_arch}
-        SOURCE_DIR ${SOURCE_DIR}
+        SOURCE_DIR ${llvm_source_dir}
         DOWNLOAD_COMMAND ""
         DEPENDS llvm
         SOURCE_SUBDIR compiler-rt
@@ -90,7 +89,7 @@ function(build_target_libraries target_arch)
     )
 
     ExternalProject_Add(openmp-${target_arch}
-        SOURCE_DIR ${SOURCE_DIR}
+        SOURCE_DIR ${llvm_source_dir}
         DOWNLOAD_COMMAND ""
         DEPENDS llvm
         SOURCE_SUBDIR openmp
