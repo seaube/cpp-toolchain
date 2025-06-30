@@ -91,7 +91,7 @@ function(build_target_libraries target_arch)
     ExternalProject_Add(openmp-${target_arch}
         SOURCE_DIR ${llvm_source_dir}
         DOWNLOAD_COMMAND ""
-        DEPENDS llvm
+        DEPENDS gcc-toolchain-${target_arch}
         SOURCE_SUBDIR openmp
         CMAKE_ARGS
             # this could be build with LLVM, but building with GCC means
