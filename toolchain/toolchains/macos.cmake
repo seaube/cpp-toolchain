@@ -1,8 +1,4 @@
-set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
-    TOOLCHAIN_TRIPLE
-)
-
-string(REGEX REPLACE "^([^-]+)-.*" "\\1" CPU_ARCH "${TARGET_TRIPLE}")
+string(REGEX REPLACE "^([^-]+)-.*" "\\1" CPU_ARCH "@host_triple@")
 
 set(CMAKE_OSX_ARCHITECTURES ${CPU_ARCH})
 set(CMAKE_OSX_SYSROOT "macosx")
