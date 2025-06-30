@@ -1,7 +1,7 @@
 {
   "directories": [
     {
-      "source": "@gcc_install_dir@/toolchain",
+      "source": "@gcc_dir@/toolchain",
       "target": "",
       "exclude": ["build.log.bz2", "bin", "libexec"]
     },

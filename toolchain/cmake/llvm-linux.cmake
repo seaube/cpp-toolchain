@@ -106,6 +106,9 @@ endfunction()
 
 # Build packages for each target
 function(build_packages target_arch)
+    ExternalProject_Get_Property(gcc-toolchain-${target_arch} BINARY_DIR)
+    set(gcc_dir BINARY_DIR)
+
     ExternalProject_Get_Property(compiler-rt-${target_arch} INSTALL_DIR)
     set(compiler_rt_dir INSTALL_DIR)
 
