@@ -5,12 +5,14 @@ configure_file(
     @ONLY
 )
 
+add_custom_target(toolchain_file DEPENDS ${CMAKE_BINARY_DIR}/toolchain/macos.cmake)
+
 # Build LLVM
 ExternalProject_Add(llvm
     SOURCE_DIR ${llvm_source_dir}
     DOWNLOAD_COMMAND ""
     SOURCE_SUBDIR llvm
-    DEPENDS ${CMAKE_BINARY_DIR}/toolchains/macos.cmake
+    DEPENDS toolchain_file
     CMAKE_ARGS
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/llvm
