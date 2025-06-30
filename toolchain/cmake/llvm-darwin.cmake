@@ -7,6 +7,8 @@ ExternalProject_Add(llvm
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/llvm
         -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/toolchains/macos.cmake
+        -DTOOLCHAIN_TRIPLE=${host_triple}
 )
 
 ExternalProject_Get_Property(llvm INSTALL_DIR)
