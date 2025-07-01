@@ -42,6 +42,7 @@ ExternalProject_Add(zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
     GIT_TAG        v1.3.1
     DEPENDS gcc-toolchain-${host_triple}
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_ARGS
         ${compile_with_gcc_for_host}
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
@@ -54,14 +55,16 @@ set(zlib_dir ${INSTALL_DIR})
 # Build LLVM for the host
 ExternalProject_Add(llvm
     SOURCE_DIR ${llvm_source_dir}
+    INSTALL_DIR ${CMAKE_BINARY_DIR}/install/llvm
     DEPENDS zlib gcc-toolchain-${host_triple}
     SOURCE_SUBDIR llvm
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_ARGS
-        ${compile_with_gcc_for_host}
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        -DZLIB_ROOT=${zlib_dir}
         -DCMAKE_BUILD_TYPE=Release
+        ${compile_with_gcc_for_host}
+        -DZLIB_ROOT=${zlib_dir}
 )
 
 ExternalProject_Get_Property(llvm INSTALL_DIR)
@@ -77,29 +80,33 @@ function(build_target_libraries target_arch)
 
     ExternalProject_Add(compiler-rt-${target_arch}
         SOURCE_DIR ${llvm_source_dir}
+        INSTALL_DIR ${CMAKE_BINARY_DIR}/install/compiler-rt-${target_arch}
         DOWNLOAD_COMMAND ""
         DEPENDS llvm
         SOURCE_SUBDIR compiler-rt
+        CMAKE_GENERATOR ${CMAKE_GENERATOR}
         CMAKE_ARGS
-            ${compile_with_llvm}
             -C ${CMAKE_SOURCE_DIR}/caches/compiler-rt.cmake
             -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
             -DCMAKE_BUILD_TYPE=Release
+            ${compile_with_llvm}
             -DLLVM_CMAKE_DIR=${BINARY_DIR}/lib/cmake/llvm
     )
 
     ExternalProject_Add(openmp-${target_arch}
         SOURCE_DIR ${llvm_source_dir}
+        INSTALL_DIR ${CMAKE_BINARY_DIR}/install/openmp-${target_arch}
         DOWNLOAD_COMMAND ""
         DEPENDS gcc-toolchain-${target_arch}
         SOURCE_SUBDIR openmp
+        CMAKE_GENERATOR ${CMAKE_GENERATOR}
         CMAKE_ARGS
-            # this could be build with LLVM, but building with GCC means
-            # the sysroot only depends on target GCC, rather than target + host GCCs
-            ${compile_with_gcc}
             -C ${CMAKE_SOURCE_DIR}/caches/openmp.cmake
             -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
             -DCMAKE_BUILD_TYPE=Release
+            # this could be build with LLVM, but building with GCC means
+            # the sysroot only depends on target GCC, rather than target + host GCCs
+            ${compile_with_gcc}
             -DLLVM_TOOLS_DIR=${BINARY_DIR}/bin
     )
 endfunction()
@@ -146,7 +153,7 @@ list(TRANSFORM toolchain_targets REPLACE "(.+)" "compiler-rt-\\1" OUTPUT_VARIABL
 
 add_custom_target(compiler-rt-package
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/tar.py
-            ${CMAKE_BINARY_DIR}/compiler-rt.tar.xz
+            ${CMAKE_BINARY_DIR}/compiler-rt-linux.tar.xz
             ${compiler_rt_package_configs}
     DEPENDS ${compiler_rt_package_depends} ${compiler_rt_package_configs}
 )

@@ -13,12 +13,10 @@ endif()
 
 # Download LLVM here, because we use it in multiple ExternalProjects
 set(llvm_version 19.1.7)
-set(llvm_tag llvmorg-${llvm_version})
 string(REGEX MATCH "^([0-9]+)" llvm_major_version ${llvm_version})
 
 FetchContent_Declare(llvm-source
-    GIT_REPOSITORY https://github.com/llvm/llvm-project.git
-    GIT_TAG ${llvm_tag}
+    URL https://github.com/llvm/llvm-project/releases/download/llvmorg-${llvm_version}/llvm-project-${llvm_version}.src.tar.xz
 )
 FetchContent_MakeAvailable(llvm-source)
 FetchContent_GetProperties(llvm-source SOURCE_DIR llvm_source_dir)

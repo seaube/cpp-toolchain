@@ -1,8 +1,10 @@
 # Build LLVM
 ExternalProject_Add(llvm
     SOURCE_DIR ${llvm_source_dir}
+    INSTALL_DIR ${CMAKE_BINARY_DIR}/install/llvm
     DOWNLOAD_COMMAND ""
     SOURCE_SUBDIR llvm
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_ARGS
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
