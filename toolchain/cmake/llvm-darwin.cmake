@@ -5,7 +5,7 @@ ExternalProject_Add(llvm
     SOURCE_SUBDIR llvm
     CMAKE_ARGS
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
-        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/llvm
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
         -DCMAKE_BUILD_TYPE=Release
 )
 
