@@ -72,6 +72,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
         set(CMAKE_OSX_ARCHITECTURES "x86_64"    CACHE STRING "")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "")
     endif()
+    set(RUNTIMES_CMAKE_ARGS "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13;-DCMAKE_OSX_ARCHITECTURES=arm64|x86_64" CACHE STRING "") # https://github.com/llvm/llvm-project/issues/63085
 
     set(LLVM_ENABLE_RUNTIMES
         "libcxx"
