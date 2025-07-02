@@ -124,23 +124,22 @@ jobs:
           path: build/*.tar.xz
           key: llvm-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/**/*') }}
       - name: Download built gcc
-        if: ${{ contains(matrix.target.name, 'linux') }} && steps.cache.outputs.cache-hit != 'true'
+        if: ${{ contains(matrix.target.name, 'linux') && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/download-artifact@v4
         with:
           pattern: gcc-*
       - name: Extract gcc
         run: find . -name "gcc-*.tar" -exec tar -xf {} \;
-        if: ${{ contains(matrix.target.name, 'linux') }} && steps.cache.outputs.cache-hit != 'true'
+        if: ${{ contains(matrix.target.name, 'linux') && steps.cache.outputs.cache-hit != 'true' }}
       - name: Build LLVM
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=${{ github.workspace }}/built-gcc -B build -S toolchain
           cmake --build build --parallel -t llvm-package
       - name: Build compiler-rt
-        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' }} && steps.cache.outputs.cache-hit != 'true'
+        if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' && steps.cache.outputs.cache-hit != 'true' }}
         run: cmake --build build --parallel -t compiler-rt-package
       - name: List files
-        shell: bash
         run: ls build
       - name: Upload built llvm
         uses: actions/upload-artifact@v4
