@@ -99,6 +99,6 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBCXXABI_USE_LLVM_UNWINDER  OFF  CACHE BOOL "")
     set(LLVM_ENABLE_ZSTD             OFF  CACHE BOOL "") # TODO enable zstd compression in the future, maybe with a static link.
 
-elseif(CMAKE_HOST_SYSTEM_NAME_STREQUAL "Windows")
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
 
 endif()
