@@ -16,11 +16,16 @@ def should_exclude(rel_path, exclusions):
 def add_file_reproducible(tar, file_path, arc_name):
     """Add file with reproducible metadata"""
     tarinfo = tar.gettarinfo(file_path, arcname=arc_name)
-    tarinfo.mtime = 0  # Unix epoch
+    tarinfo.mtime = 946684800
     tarinfo.uid = 0
     tarinfo.gid = 0
-    tarinfo.uname = "root"
-    tarinfo.gname = "root"
+    tarinfo.uname = ""
+    tarinfo.gname = ""
+
+    is_executable = tarinfo.mode & 0o111
+    tarinfo.mode = 0o644
+    if tarinfo.isdir() or is_executable:
+        tarinfo.mode |= 0o111
 
     if tarinfo.isreg():
         with open(file_path, 'rb') as f:
