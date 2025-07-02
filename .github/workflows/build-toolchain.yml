@@ -100,16 +100,14 @@ jobs:
         target:
           - name: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
-            type: linux
           - name: aarch64-unknown-linux-gnu
             os: ubuntu-24.04-arm
-            type: linux
           - name: x86_64-apple-macos
             os: macos-13
-            type: macos
           - name: arm64-apple-macos
             os: macos-14
-            type: macos
+          - name: x86_64-pc-windows-msvc
+            os: windows-2025
     name: llvm ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     steps:
@@ -121,6 +119,7 @@ jobs:
           pattern: gcc-*
       - name: Extract gcc
         run: find . -name "gcc-*.tar" -exec tar -xf {} \;
+        if: ${{ contains(matrix.target.name, 'linux') }}
       - name: Build LLVM
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=${{ github.workspace }}/built-gcc -B build -S toolchain
