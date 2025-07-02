@@ -38,15 +38,18 @@ def collect_directory_files(source_dir, target_path, exclusions):
     source_path = Path(source_dir)
     assert source_path.exists(), f"Source directory {source_dir} does not exist"
 
-    files_to_add = []
+    # First, collect all files and directory symlinks
+    all_items = []
+    for root, dirs, files in source_path.walk(follow_symlinks=False):
+        for item_name in files + [d for d in dirs if (root / d).is_symlink()]:
+            item_path = root / item_name
+            all_items.append(item_path)
 
-    for file_path in source_path.rglob('*'):
-        if not file_path.is_file():
-            continue
-        
+    # Then filter and create archive entries
+    files_to_add = []
+    for file_path in all_items:
         rel_path = file_path.relative_to(source_path)
 
-        # Check exclusions against the relative path from source
         if should_exclude(rel_path, exclusions):
             continue
 
