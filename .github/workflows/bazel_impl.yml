@@ -42,9 +42,9 @@ jobs:
         if: ${{ inputs.use-built-toolchain }}
         shell: bash
         run: |
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> ~/.bazelrc
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> ~/.bazelrc
-          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_COMPILER_RT_LINUX=`pwd`/compiler-rt-linux.tar.xz" >> ~/.bazelrc
+          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=${{ github.workspace }}/llvm-${{ inputs.host }}.tar.xz" >> ~/.bazelrc
+          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=${{ github.workspace }}/sysroot-${{ inputs.target }}.tar.xz" >> ~/.bazelrc
+          echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_COMPILER_RT_LINUX=${{ github.workspace }}/compiler-rt-linux.tar.xz" >> ~/.bazelrc
           echo "build --announce_rc --platforms=@portable_cc_toolchain//platform:${{ inputs.target }}" >> ~/.bazelrc
 
       - name: Module Test
