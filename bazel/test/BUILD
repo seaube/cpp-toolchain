@@ -1,6 +1,9 @@
 cc_library(
     name = "foo",
-    srcs = ["foo.c"],
+    srcs = [
+        "export.h",
+        "foo.c",
+    ],
 )
 
 cc_library(
@@ -18,12 +21,18 @@ cc_shared_library(
 
 cc_binary(
     name = "c_binary",
-    srcs = ["main.c"],
+    srcs = [
+        "export.h",
+        "main.c",
+    ],
     dynamic_deps = ["foo_shared"],
 )
 
 cc_binary(
     name = "cpp_binary",
-    srcs = ["main.cpp"],
+    srcs = [
+        "export.h",
+        "main.cpp",
+    ],
     dynamic_deps = ["foo_shared"],
 )

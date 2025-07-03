@@ -1,2 +1,4 @@
+#include "export.h"
+
 int bar(void);
-int foo(void) { return bar(); }
+EXPORT int foo(void) { return bar(); }
