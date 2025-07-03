@@ -80,6 +80,8 @@ cc_args_list(
     } | {
         "@platforms//os:" + os: ["reproducible_link_args_apple"]
         for os in APPLE_OS
+    } | {
+        "@platforms//os:windows": [],
     }),
 )
 

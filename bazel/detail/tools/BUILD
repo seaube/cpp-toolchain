@@ -7,32 +7,43 @@ alias(
     name = "tools",
     actual = select({
         "@platforms//os:macos": ":macos_tools",
+        "@platforms//os:windows": ":windows_tools",
         "//conditions:default": ":default_tools",
     }),
     visibility = ["//visibility:public"],
 )
 
-COMMON_TOOLS = {
+DEFAULT_TOOLS = {
     "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-wrapper",
     "@rules_cc//cc/toolchains/actions:c_compile": ":clang-wrapper",
     "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++-wrapper",
     "@rules_cc//cc/toolchains/actions:link_actions": ":clang++-wrapper",
+    "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
     "@rules_cc//cc/toolchains/actions:strip": ":llvm-strip",
 }
 
 cc_tool_map(
     name = "default_tools",
-    tools = COMMON_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
-    },
+    tools = DEFAULT_TOOLS,
     visibility = ["//visibility:private"],
 )
 
 cc_tool_map(
     name = "macos_tools",
-    tools = COMMON_TOOLS | {
+    tools = DEFAULT_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
+    },
+    visibility = ["//visibility:private"],
+)
+
+cc_tool_map(
+    name = "windows_tools",
+    tools = DEFAULT_TOOLS | {
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl",
     },
     visibility = ["//visibility:private"],
 )
@@ -80,5 +91,6 @@ TOOL = [
     for tool in [
         "clang",
         "clang++",
+        "clang-cl",
     ]
 ]
