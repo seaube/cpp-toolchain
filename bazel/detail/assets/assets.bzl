@@ -13,13 +13,16 @@ def _override(ctx, asset):
     else:
         suffix = asset["name"].split("-")[0].upper()
 
-    override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + suffix).replace("\\", "/")  # handle Windows paths too
+    override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + suffix)
     if override == None:
         return {
             "url": asset["url"],
             "integrity": asset["integrity"],
         }
     else:
+        override = override.replace("\\", "/")  # handle Windows paths too
+        if not override.startswith('/'):
+            override = '/' + override
         return {
             "url": "file://" + override,
         }
