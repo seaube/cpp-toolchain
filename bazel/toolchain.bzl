@@ -74,6 +74,7 @@ _HOSTS = [
     ["@platforms//os:linux", "@platforms//cpu:aarch64"],
     ["@platforms//os:macos", "@platforms//cpu:x86_64"],
     ["@platforms//os:macos", "@platforms//cpu:arm64"],
+    ["@platforms//os:windows", "@platforms//cpu:x86_64"],
 ]
 
 _TARGETS = [
@@ -81,6 +82,7 @@ _TARGETS = [
     ["@platforms//os:linux", "@platforms//cpu:armv7"],
     ["@platforms//os:linux", "@platforms//cpu:aarch64"],
     ["@platforms//os:macos"],
+    ["@platforms//os:windows"],
 ]
 
 def _supported_combination(host, target):
