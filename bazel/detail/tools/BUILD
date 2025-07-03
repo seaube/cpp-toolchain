@@ -40,10 +40,10 @@ cc_tool_map(
 cc_tool_map(
     name = "windows_tools",
     tools = DEFAULT_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl-wrapper",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl-wrapper",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl-wrapper",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl-wrapper",
     },
     visibility = ["//visibility:private"],
 )
@@ -63,7 +63,10 @@ TOOL = [
 [
     cc_tool(
         name = tool,
-        src = "@llvm-{}//:bin/{}".format(HOST_TARGET, tool),
+        src = select({
+            "@platforms//os:windows": "@llvm-{}//:bin/{}.exe".format(HOST_TARGET, tool),
+            "//conditions:default": "@llvm-{}//:bin/{}".format(HOST_TARGET, tool),
+        }),
         data = ["@llvm-{}//:data".format(HOST_TARGET)],
         visibility = ["//visibility:private"],
     )
@@ -75,10 +78,18 @@ TOOL = [
         expand_template(
             name = tool + "-impl",
             out = tool,
-            data = ["@llvm-{}//:bin/{}".format(HOST_TARGET, tool)],
-            substitutions = {
-                "TOOL": "$(execpath @llvm-{}//:bin/{})".format(HOST_TARGET, tool),
-            },
+            data = select({
+                "@platforms//os:windows": ["@llvm-{}//:bin/{}.exe".format(HOST_TARGET, tool)],
+                "//conditions:default": ["@llvm-{}//:bin/{}".format(HOST_TARGET, tool)],
+            }),
+            substitutions = select({
+                "@platforms//os:windows": {
+                    "TOOL": "$(execpath @llvm-{}//:bin/{}.exe)".format(HOST_TARGET, tool),
+                },
+                "//conditions:default": {
+                    "TOOL": "$(execpath @llvm-{}//:bin/{})".format(HOST_TARGET, tool),
+                },
+            }),
             template = "wrapper.sh",
         ),
         cc_tool(
