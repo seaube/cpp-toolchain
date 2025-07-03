@@ -9,14 +9,12 @@ exports_files(
 cc_args_list(
     name = "default",
     args = [
+        "sysroot",
         "no_absolute_paths",
         "c_driver",
         "color",
         "reproducible_build",
     ] + select({
-        "@platforms//os:windows": [],
-        "//conditions:default": ["sysroot"],
-    }) + select({
         "@platforms//os:linux": ["static_runtime"],
         "//conditions:default": [],
     }) + select({
@@ -28,13 +26,20 @@ cc_args_list(
 
 alias(
     name = "sysroot",
-    actual = select({
+    actual = select({"//platform:{}-config".format(target): "@sysroot-{}//:sysroot".format(target) for target in LINUX_TARGETS} | {
         "@platforms//os:macos": "@xcode-macosx//:sdk",
         "@platforms//os:ios": "@xcode-iphoneos//:sdk",
         "@platforms//os:watchos": "@xcode-watchos//:sdk",
         "@platforms//os:tvos": "@xcode-appletvos//:sdk",
         "@platforms//os:visionos": "@xcode-xros//:sdk",
-    } | {"//platform:{}-config".format(target): "@sysroot-{}//:sysroot".format(target) for target in LINUX_TARGETS}),
+        "@platforms//os:windows": "no_sysroot",
+    }),
+)
+
+cc_args(
+    name = "no_sysroot",
+    actions = [],
+    args = [],
 )
 
 cc_args(
