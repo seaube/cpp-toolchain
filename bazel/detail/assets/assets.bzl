@@ -46,7 +46,7 @@ def _assets(ctx):
             attrs |= {
                 "remote_file_urls": {"compiler-rt-linux.tar.xz": [crt["url"]]},
                 "patch_cmds": ["tar -xf compiler-rt-linux.tar.xz && rm compiler-rt-linux.tar.xz"],
-                "patch_cmds_win": ["tar -xf compiler-rt-linux.tar.xz && rm compiler-rt-linux.tar.xz"],
+                "patch_cmds_win": ["tar -xf compiler-rt-linux.tar.xz; rm compiler-rt-linux.tar.xz"],
             }
             if "integrity" in crt:
                 attrs["remote_file_integrity"] = {"compiler-rt-linux.tar.xz": crt["integrity"]}
