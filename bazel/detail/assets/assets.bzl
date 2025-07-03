@@ -13,7 +13,7 @@ def _override(ctx, asset):
     else:
         suffix = asset["name"].split("-")[0].upper()
 
-    override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + suffix)
+    override = ctx.getenv("PORTABLE_CC_TOOLCHAIN_" + suffix).replace("\\", "/")  # handle Windows paths too
     if override == None:
         return {
             "url": asset["url"],
