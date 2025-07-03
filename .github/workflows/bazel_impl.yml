@@ -40,6 +40,7 @@ jobs:
           merge-multiple: True
       - name: Configure built toolchain
         if: ${{ inputs.use-built-toolchain }}
+        shell: bash
         run: |
           echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> ~/.bazelrc
           echo "build --repo_env=PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> ~/.bazelrc
