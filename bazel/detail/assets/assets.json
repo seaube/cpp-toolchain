@@ -25,6 +25,11 @@
     "integrity": "sha256-s3P63iONDh4QASA/HvzaNpU5MCIZQLSbQA8EYqOmGAg="
   },
   {
+    "name": "llvm-x86_64-pc-windows-msvc",
+    "url": "bootstrap",
+    "integrity": "bootstrap"
+  },
+  {
     "name": "sysroot-aarch64-unknown-linux-gnu",
     "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.03.24-1/sysroot-aarch64-unknown-linux-gnu.tar.xz",
     "integrity": "sha256-ECrSCGi6iAxQy9ycLcJd8Q5n/q0cxM7okwTkYhfLpqg="

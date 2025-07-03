@@ -57,3 +57,22 @@ jobs:
       runs-on: ${{ matrix.host.runs-on }}
       host: ${{ matrix.host.name }}
       target: ${{ matrix.target }}
+
+  test-windows-targets:
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-pc-windows-msvc
+            runs-on: windows-2025
+        target:
+          - x86_64-pc-windows-msvc
+
+    name: test Windows targets
+    uses: ./.github/workflows/bazel_impl.yml
+    if: ${{ inputs.use-built-toolchain || false }} # remove this once a windows build has been released
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}

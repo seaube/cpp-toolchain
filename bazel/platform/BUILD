@@ -15,6 +15,14 @@ _CONSTRAINTS = {
         "@platforms//cpu:armv7",
         "@platforms//os:linux",
     ],
+    "x86_64-pc-windows-msvc": [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:windows",
+    ],
+    "aarch64-pc-windows-msvc": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:windows",
+    ],
 } | {
     "{}-apple-{}".format(arch, os): [
         "@platforms//cpu:" + arch,

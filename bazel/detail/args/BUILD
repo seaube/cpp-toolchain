@@ -9,12 +9,14 @@ exports_files(
 cc_args_list(
     name = "default",
     args = [
-        "sysroot",
         "no_absolute_paths",
         "c_driver",
         "color",
         "reproducible_build",
     ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["sysroot"],
+    }) + select({
         "@platforms//os:linux": ["static_runtime"],
         "//conditions:default": [],
     }) + select({

@@ -6,6 +6,11 @@ LINUX_TARGETS = [
     "armv7-unknown-linux-gnueabihf",
 ]
 
+WINDOWS_TARGETS = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
+
 APPLE_ARCH = [
     "x86_64",
     "arm64",
@@ -31,7 +36,7 @@ def target_args(name, apple_os_versions, **kwargs):
         ],
         args = select({
             Label("//platform:{}-config".format(target)): ["--target={}".format(target)]
-            for target in LINUX_TARGETS
+            for target in LINUX_TARGETS + WINDOWS_TARGETS
         } | {
             Label("//platform:{}-apple-{}-config".format(arch, os)): ["--target={}-apple-{}{}".format(arch, os, apple_os_versions.get(os, ""))]
             for arch, os in APPLE_ARCH_OS_COMBINATIONS
