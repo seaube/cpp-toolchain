@@ -11,7 +11,6 @@ cc_args_list(
     args = [
         "sysroot",
         "no_absolute_paths",
-        "c_driver",
         "color",
         "reproducible_build",
     ] + select({
@@ -55,12 +54,6 @@ cc_args(
         "-static-libgcc",
         "-static-libstdc++",
     ],
-)
-
-cc_args(
-    name = "c_driver",
-    actions = ["@rules_cc//cc/toolchains/actions:c_compile_actions"],
-    args = ["--driver-mode=gcc"],
 )
 
 cc_args(

@@ -73,29 +73,32 @@ TOOL = [
     for tool in TOOL
 ]
 
+SCRIPT_EXT = ".bat" if "windows" in HOST_TARGET else ".sh"
+EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
+
 [
     (
         expand_template(
-            name = tool + "-impl",
-            out = tool,
-            data = select({
-                "@platforms//os:windows": ["@llvm-{}//:bin/{}.exe".format(HOST_TARGET, tool)],
-                "//conditions:default": ["@llvm-{}//:bin/{}".format(HOST_TARGET, tool)],
-            }),
-            substitutions = select({
-                "@platforms//os:windows": {
-                    "TOOL": "$(execpath @llvm-{}//:bin/{}.exe)".format(HOST_TARGET, tool),
-                },
-                "//conditions:default": {
-                    "TOOL": "$(execpath @llvm-{}//:bin/{})".format(HOST_TARGET, tool),
-                },
-            }),
+            name = tool + "_bash",
+            out = tool + ".sh",
+            data = ["@llvm-{}//:bin/{}{}".format(HOST_TARGET, tool, EXE_EXT)],
+            substitutions = {
+                "TOOL": "$(execpath @llvm-{}//:bin/{}{})".format(HOST_TARGET, tool, EXE_EXT),
+            },
             template = "wrapper.sh",
+        ),
+        expand_template(
+            name = tool + "_batch",
+            out = tool + ".bat",
+            substitutions = {
+                "TOOL": tool,
+            },
+            template = "wrapper.bat",
         ),
         cc_tool(
             name = tool + "-wrapper",
-            src = tool + "-impl",
-            data = ["@llvm-{}//:data".format(HOST_TARGET)],
+            src = tool + SCRIPT_EXT,
+            data = ["@llvm-{}//:data".format(HOST_TARGET)] + ([tool + "_bash"] if "windows" in HOST_TARGET else []),
             visibility = ["//visibility:private"],
         ),
     )
