@@ -101,4 +101,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
 
+    set(CMAKE_C_COMPILER     cl  CACHE STRING "")
+    set(DCMAKE_CXX_COMPILER  cl  CACHE STRING "")
+
 endif()
