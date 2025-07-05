@@ -114,7 +114,6 @@ jobs:
             os: macos-14
           - name: x86_64-pc-windows-msvc
             os: windows-2025
-            before_build: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
     name: llvm ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     steps:
@@ -124,6 +123,7 @@ jobs:
         with:
           path: build/*.tar.xz
           key: llvm-${{ matrix.target.os }}-${{ matrix.target.name }}-${{ hashFiles('toolchain/**/*') }}
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download built gcc
         if: ${{ contains(matrix.target.name, 'linux') && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/download-artifact@v4
@@ -135,7 +135,6 @@ jobs:
       - name: Build LLVM
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          ${{ matrix.target.before_build }}
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=${{ github.workspace }}/built-gcc -B build -S toolchain
           cmake --build build --parallel -t llvm-package
       - name: Build compiler-rt
