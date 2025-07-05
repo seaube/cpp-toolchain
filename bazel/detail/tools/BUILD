@@ -14,10 +14,10 @@ alias(
 )
 
 DEFAULT_TOOLS = {
-    "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-wrapper",
-    "@rules_cc//cc/toolchains/actions:c_compile": ":clang-wrapper",
-    "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++-wrapper",
-    "@rules_cc//cc/toolchains/actions:link_actions": ":clang++-wrapper",
+    "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang",
+    "@rules_cc//cc/toolchains/actions:c_compile": ":clang",
+    "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++",
+    "@rules_cc//cc/toolchains/actions:link_actions": ":clang++",
     "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
     "@rules_cc//cc/toolchains/actions:strip": ":llvm-strip",
@@ -40,10 +40,10 @@ cc_tool_map(
 cc_tool_map(
     name = "windows_tools",
     tools = DEFAULT_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl-wrapper",
-        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl-wrapper",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl-wrapper",
-        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl-wrapper",
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl",
     },
     visibility = ["//visibility:private"],
 )
@@ -79,26 +79,18 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
 [
     (
         expand_template(
-            name = tool + "_bash",
-            out = tool + ".sh",
+            name = tool + "_wrapper",
+            out = tool + SCRIPT_EXT,
             data = ["@llvm-{}//:bin/{}{}".format(HOST_TARGET, tool, EXE_EXT)],
             substitutions = {
-                "TOOL": "$(execpath @llvm-{}//:bin/{}{})".format(HOST_TARGET, tool, EXE_EXT),
+                "TOOL": "$(execpath @llvm-{}//:bin/{}{})".format(HOST_TARGET, tool, EXE_EXT)
             },
-            template = "wrapper.sh",
-        ),
-        expand_template(
-            name = tool + "_batch",
-            out = tool + ".bat",
-            substitutions = {
-                "TOOL": tool,
-            },
-            template = "wrapper.bat",
+            template = "wrapper" + SCRIPT_EXT,
         ),
         cc_tool(
-            name = tool + "-wrapper",
+            name = tool,
             src = tool + SCRIPT_EXT,
-            data = ["@llvm-{}//:data".format(HOST_TARGET)] + ([tool + "_bash"] if "windows" in HOST_TARGET else []),
+            data = ["@llvm-{}//:data".format(HOST_TARGET), "@llvm-{}//:bin/{}{}".format(HOST_TARGET, tool, EXE_EXT)],
             visibility = ["//visibility:private"],
         ),
     )
