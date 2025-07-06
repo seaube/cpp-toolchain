@@ -7,7 +7,6 @@ alias(
     name = "tools",
     actual = select({
         "@platforms//os:macos": ":macos_tools",
-        "@platforms//os:windows": ":windows_tools",
         "//conditions:default": ":default_tools",
     }),
     visibility = ["//visibility:public"],
@@ -37,17 +36,6 @@ cc_tool_map(
     visibility = ["//visibility:private"],
 )
 
-cc_tool_map(
-    name = "windows_tools",
-    tools = DEFAULT_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl",
-    },
-    visibility = ["//visibility:private"],
-)
-
 TOOL = [
     "ld.lld",
     "ld64.lld",
@@ -73,7 +61,8 @@ TOOL = [
     for tool in TOOL
 ]
 
-SCRIPT_EXT = ".bat" if "windows" in HOST_TARGET else ".sh"
+SCRIPT_EXT = ".ps1" if "windows" in HOST_TARGET else ".sh"
+CALL_SCRIPT_EXT = ".bat" if "windows" in HOST_TARGET else ".sh"
 EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
 
 [
@@ -87,10 +76,18 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
             },
             template = "wrapper" + SCRIPT_EXT,
         ),
+        expand_template(
+            name = tool + "_bat",
+            out = tool + ".bat",
+            substitutions = {
+                "TOOL": tool,
+            },
+            template = "wrapper.bat",
+        ),
         cc_tool(
             name = tool,
-            src = tool + SCRIPT_EXT,
-            data = ["@llvm-{}//:data".format(HOST_TARGET), "@llvm-{}//:bin/{}{}".format(HOST_TARGET, tool, EXE_EXT)],
+            src = tool + CALL_SCRIPT_EXT,
+            data = ["@llvm-{}//:data".format(HOST_TARGET), tool + "_wrapper"],
             visibility = ["//visibility:private"],
         ),
     )
