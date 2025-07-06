@@ -31,7 +31,7 @@ alias(
         "@platforms//os:watchos": "@xcode-watchos//:sdk",
         "@platforms//os:tvos": "@xcode-appletvos//:sdk",
         "@platforms//os:visionos": "@xcode-xros//:sdk",
-        "@platforms//os:windows": "no_sysroot",
+        "@platforms//os:windows": "@winsysroot//:sysroot",
     }),
 )
 

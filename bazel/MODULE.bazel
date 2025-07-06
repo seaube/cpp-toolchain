@@ -52,6 +52,10 @@ find_xcode_sdk(
     sdk = "xros",
 )
 
+find_windows_sysroot = use_repo_rule("//detail/windows:find.bzl", "find_windows_sysroot")
+
+find_windows_sysroot(name = "winsysroot")
+
 # Register the toolchain
 toolchain = use_extension("//:extensions.bzl", "toolchain")
 use_repo(toolchain, "toolchains")
