@@ -12,6 +12,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
 
     ExternalProject_Get_Property(zlib INSTALL_DIR)
     set(zlib_flag -DZLIB_ROOT=${INSTALL_DIR})
+    set(zlib_dep zlib)
 endif()
 
 # Build LLVM
@@ -20,6 +21,7 @@ ExternalProject_Add(llvm
     INSTALL_DIR ${CMAKE_BINARY_DIR}/install/llvm
     DOWNLOAD_COMMAND ""
     SOURCE_SUBDIR llvm
+    DEPENDS ${zlib_dep}
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_ARGS
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
