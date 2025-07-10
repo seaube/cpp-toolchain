@@ -11,7 +11,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     )
 
     ExternalProject_Get_Property(zlib INSTALL_DIR)
-    set(zlib_flag -DZLIB_ROOT=${INSTALL_DIR})
+    set(zlib_flag -DZLIB_ROOT=${INSTALL_DIR} -DZLIB_USE_STATIC_LIBS=ON)
     set(zlib_dep zlib)
 endif()
 
