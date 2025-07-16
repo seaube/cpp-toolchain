@@ -47,9 +47,9 @@ endif()
 
 # Download toolchain
 
-download(_llvm_dir "llvm-${_host_triple}")
+download(_llvm_dir "llvm-${_host_triple}" PORTABLE_CC_TOOLCHAIN_LLVM)
 if("${TARGET_TRIPLE}" MATCHES "linux")
-    download(_sysroot_dir "sysroot-${TARGET_TRIPLE}")
+    download(_sysroot_dir "sysroot-${TARGET_TRIPLE}" PORTABLE_CC_TOOLCHAIN_SYSROOT)
 endif()
 
 

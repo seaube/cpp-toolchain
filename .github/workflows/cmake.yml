@@ -29,18 +29,13 @@ jobs:
           - armv7-unknown-linux-gnueabihf
 
     name: test linux targets
-    runs-on: ${{ matrix.host.runs-on }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-      - name: Build
-        run: cd cmake/test && ./test.sh ${{ matrix.target }}
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared
+    uses: ./.github/workflows/cmake_impl.yml
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}
 
   test-macos-targets:
     strategy:
@@ -55,15 +50,10 @@ jobs:
           - arm64-apple-macos
 
     name: test macOS targets
-    runs-on: ${{ matrix.host.runs-on }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-      - name: Build
-        run: cd cmake/test && ./test.sh ${{ matrix.target }}
-      - name: Run Test
-        if: ${{ matrix.host.name == matrix.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared
+    uses: ./.github/workflows/cmake_impl.yml
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}

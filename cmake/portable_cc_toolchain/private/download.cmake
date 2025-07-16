@@ -1,3 +1,4 @@
+include(FetchContent)
 include("${CMAKE_CURRENT_LIST_DIR}/assets.cmake")
 
 function(find_root_binary_dir root_binary_dir)
@@ -21,19 +22,42 @@ endfunction()
 
 find_root_binary_dir(_root_binary_dir)
 
-function(download location asset)
+function(download location asset variable)
     set(_url "${_ASSET_URL_${asset}}")
     set(_sha "${_ASSET_SHA256_${asset}}")
-    set(_dir "${_root_binary_dir}/_portable_cc_toolchain/${asset}-${_sha}")
     set(_out "${_root_binary_dir}/_portable_cc_toolchain/${asset}")
 
-    if(NOT EXISTS "${_dir}")
-        message("Downloading ${asset}...")
-        file(DOWNLOAD "${_url}" "${_dir}.tar.xz" EXPECTED_HASH "SHA256=${_sha}")
-        file(MAKE_DIRECTORY ${_dir})
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${_dir}.tar.xz" WORKING_DIRECTORY "${_dir}" OUTPUT_QUIET)
+    if(DEFINED ${variable})
+        set(_override ${${variable}})
+    elseif(DEFINED ENV{${variable}})
+        set(_override $ENV{${variable}})
     endif()
 
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${_dir}" "${_out}")
+    set(DOWNLOAD_ARGS)
+	if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+        set(DOWNLOAD_ARGS DOWNLOAD_EXTRACT_TIMESTAMP OFF)
+	endif()
+
+    if(DEFINED _override)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xvf "${_override}"
+            WORKING_DIRECTORY "${_out}"
+            OUTPUT_QUIET
+            RESULT_VARIABLE _status
+        )
+        if(NOT _status EQUAL 0)
+            message(FATAL_ERROR "Could not extract ${_override}")
+        endif()
+    else()
+        FetchContent_Declare(
+            ${asset}
+            URL "${_url}"
+            URL_HASH "SHA256=${_sha}"
+            SOURCE_DIR "${_out}"
+            ${DOWNLOAD_ARGS}
+        )
+        FetchContent_MakeAvailable(${asset})
+    endif()
+
     set("${location}" "${_out}" PARENT_SCOPE)
 endfunction()

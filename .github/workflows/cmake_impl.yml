@@ -1,0 +1,71 @@
+name: Test bazel rules
+
+on:
+  workflow_call:
+    inputs:
+      use-built-toolchain:
+        type: boolean
+      ref:
+        type: string
+      runs-on:
+        type: string
+        required: true
+      host:
+        type: string
+        required: true
+      target:
+        type: string
+        required: true
+
+jobs:
+
+  test-cmake-rules:
+    name: test ${{ inputs.target }} target on ${{ inputs.host }} host
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Download built toolchain
+        uses: actions/download-artifact@v4
+        if: ${{ inputs.use-built-toolchain }}
+        with:
+          pattern: '{llvm-${{ inputs.host }},sysroot-${{ inputs.target }},compiler-rt-linux}'
+          merge-multiple: True
+      - name: Configure built toolchain
+        if: ${{ inputs.use-built-toolchain }}
+        run: |
+          echo "PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> $GITHUB_ENV
+          echo "PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" $GITHUB_ENV
+
+      - name: Build (Debug)
+        run: cd cmake/test && ./test.sh ${{ inputs.target }} Debug
+      - name: Run Test (Debug)
+        if: ${{ inputs.host == inputs.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared
+
+      - name: Build (RelWithDebInfo)
+        run: cd cmake/test && ./test.sh ${{ inputs.target }} RelWithDebInfo
+      - name: Run Test (RelWithDebInfo)
+        if: ${{ inputs.host == inputs.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared
+
+      - name: Build (MinSizeRel)
+        run: cd cmake/test && ./test.sh ${{ inputs.target }} MinSizeRel
+      - name: Run Test (MinSizeRel)
+        if: ${{ inputs.host == inputs.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared
+
+      - name: Build (Release)
+        run: cd cmake/test && ./test.sh ${{ inputs.target }} Release
+      - name: Run Test (Release)
+        if: ${{ inputs.host == inputs.target }}
+        run: |
+          cmake/test/build/ExeStatic
+          cmake/test/build/ExeShared
