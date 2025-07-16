@@ -76,9 +76,9 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     endif()
     set(RUNTIMES_CMAKE_ARGS "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13;-DCMAKE_OSX_ARCHITECTURES=arm64|x86_64" CACHE STRING "") # https://github.com/llvm/llvm-project/issues/63085
 
+    # It would be nice to include our own libc++ headers here, to allow using features not available in the installed xcode, but in practice that can cause issues: https://github.com/llvm/llvm-project/issues/77653
+    # LLVM can introduce new libc++ symbols not yet released in any macOS version.
     set(LLVM_ENABLE_RUNTIMES
-        "libcxx"
-        "libcxxabi"
         "compiler-rt"
         CACHE STRING ""
     )
