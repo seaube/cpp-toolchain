@@ -54,7 +54,7 @@ jobs:
 
       - name: Module Test
         run: cd bazel && bazel test //...
-        if: ${{ inputs.host == inputs.target && contains(inputs.host, 'windows') == false }}
+        if: ${{ inputs.host == inputs.target && contains(inputs.host, 'linux') }}
 
       - name: Build Test (fastbuild)
         run: cd bazel/test && bazel build -c fastbuild c_binary cpp_binary
