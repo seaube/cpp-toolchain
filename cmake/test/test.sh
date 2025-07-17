@@ -5,6 +5,7 @@ rm -rf build
 cmake -S . -B build \
     --warn-uninitialized \
     -Werror=dev \
+    -GNinja \
     -DCMAKE_EXECUTE_PROCESS_COMMAND_ECHO=STDOUT \
     -DCMAKE_TOOLCHAIN_FILE="portable_cc_toolchain/${1:-toolchain}.cmake" \
     -DCMAKE_BUILD_TYPE=${2:-Debug}
