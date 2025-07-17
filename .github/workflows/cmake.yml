@@ -23,6 +23,8 @@ jobs:
             runs-on: macos-13
           - name: arm64-apple-macos
             runs-on: macos-14
+          - name: x86_64-pc-windows-msvc
+            runs-on: windows-2025
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
@@ -50,6 +52,24 @@ jobs:
           - arm64-apple-macos
 
     name: test macOS targets
+    uses: ./.github/workflows/cmake_impl.yml
+    with:
+      use-built-toolchain: ${{ inputs.use-built-toolchain || false }}
+      ref: ${{ inputs.ref }}
+      runs-on: ${{ matrix.host.runs-on }}
+      host: ${{ matrix.host.name }}
+      target: ${{ matrix.target }}
+
+  test-windows-targets:
+    strategy:
+      matrix:
+        host:
+          - name: x86_64-pc-windows-msvc
+            runs-on: windows-2025
+        target:
+          - x86_64-pc-windows-msvc
+
+    name: test Windows targets
     uses: ./.github/workflows/cmake_impl.yml
     with:
       use-built-toolchain: ${{ inputs.use-built-toolchain || false }}

@@ -20,6 +20,7 @@ on:
 jobs:
 
   test-cmake-rules:
+    if: ${{ inputs.use-built-toolchain || contains(inputs.host, 'windows') == false }} # only test Windows with built toolchain
     name: test ${{ inputs.target }} target on ${{ inputs.host }} host
     runs-on: ${{ inputs.runs-on }}
     steps:
@@ -36,7 +37,7 @@ jobs:
         if: ${{ inputs.use-built-toolchain }}
         run: |
           echo "PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> $GITHUB_ENV
-          echo "PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" $GITHUB_ENV
+          echo "PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> $GITHUB_ENV
 
       - name: Build (Debug)
         run: cd cmake/test && ./test.sh ${{ inputs.target }} Debug

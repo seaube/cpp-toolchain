@@ -162,6 +162,12 @@ jobs:
     with:
       use-built-toolchain: true
 
+  test-cmake-rules:
+    needs: [build-llvm, build-sysroot]
+    uses: ./.github/workflows/cmake.yml
+    with:
+      use-built-toolchain: true
+
   release:
     needs: test-bazel-rules
     name: Release
