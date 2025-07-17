@@ -12,15 +12,19 @@ set(LLVM_TOOLCHAIN_TOOLS
     "llvm-symbolizer"
     "llvm-cov"
 
-    # Linux tooling, but may be useful on macOS
+    # Linux tooling
     "llvm-readelf"
     "llvm-readobj"
 
-    # Apple tooling, but may be useful on Linux
+    # Apple tooling
     "llvm-install-name-tool"
     "llvm-lipo"
     "llvm-libtool-darwin"
     "llvm-otool"
+
+    # Windows tooling
+    "llvm-dlltool"
+    "llvm-lib"
 
     CACHE STRING ""
 )
@@ -85,18 +89,6 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 
     set(LLVM_ENABLE_LIBCXX           ON   CACHE BOOL "")
     set(LLDB_USE_SYSTEM_DEBUGSERVER  ON   CACHE BOOL "")
-    set(LIBCXX_INSTALL_LIBRARY       OFF  CACHE BOOL "")
-    set(LIBCXX_INSTALL_HEADERS       ON   CACHE BOOL "")
-    set(LIBCXX_ENABLE_SHARED         ON   CACHE BOOL "")
-    set(LIBCXX_ENABLE_STATIC         OFF  CACHE BOOL "")
-    set(LIBCXX_USE_COMPILER_RT       ON   CACHE BOOL "")
-    set(LIBCXX_HAS_ATOMIC_LIB        OFF  CACHE BOOL "")
-    set(LIBCXX_HIDE_FROM_ABI_PER_TU_BY_DEFAULT ON CACHE BOOL "")
-    set(LIBCXXABI_INSTALL_LIBRARY    OFF  CACHE BOOL "")
-    set(LIBCXXABI_ENABLE_SHARED      ON   CACHE BOOL "")
-    set(LIBCXXABI_ENABLE_STATIC      OFF  CACHE BOOL "")
-    set(LIBCXXABI_USE_COMPILER_RT    ON   CACHE BOOL "")
-    set(LIBCXXABI_USE_LLVM_UNWINDER  OFF  CACHE BOOL "")
     set(LLVM_ENABLE_ZSTD             OFF  CACHE BOOL "") # TODO enable zstd compression in the future, maybe with a static link.
 
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
