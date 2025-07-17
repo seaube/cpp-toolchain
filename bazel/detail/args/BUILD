@@ -15,6 +15,7 @@ cc_args_list(
         "reproducible_build",
     ] + select({
         "@platforms//os:linux": ["static_runtime"],
+        "@platforms//os:windows": ["windows"],
         "//conditions:default": [],
     }) + select({
         "//detail/compilation_mode:opt": ["opt"],
@@ -36,9 +37,12 @@ alias(
 )
 
 cc_args(
-    name = "no_sysroot",
-    actions = [],
-    args = [],
+    name = "windows",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions"
+    ],
+    args = ["-fms-extensions"],
 )
 
 cc_args(

@@ -2,6 +2,9 @@ load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 
+INCLUDES = "{{INCLUDE}}".split(";")
+LIBS = "{{LIB}}".split(";")
+
 directory(
     name = "sysroot_link",
     srcs = glob(
@@ -22,6 +25,6 @@ cc_args(
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
         "@rules_cc//cc/toolchains/actions:link_actions",
     ],
-    args = ["/winsysroot", "{sysroot}"],
+    args = ["-isysroot{sysroot}"] + ["-isystem{sysroot}/" + i for i in INCLUDES] + ["-L{sysroot}/" + l for l in LIBS],
     visibility = ["//visibility:public"],
 )

@@ -7,7 +7,6 @@ alias(
     name = "tools",
     actual = select({
         "@platforms//os:macos": ":macos_tools",
-        "@platforms//os:windows": ":windows_tools",
         "//conditions:default": ":default_tools",
     }),
     visibility = ["//visibility:public"],
@@ -33,17 +32,6 @@ cc_tool_map(
     name = "macos_tools",
     tools = DEFAULT_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
-    },
-    visibility = ["//visibility:private"],
-)
-
-cc_tool_map(
-    name = "windows_tools",
-    tools = DEFAULT_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:c_compile": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang-cl",
-        "@rules_cc//cc/toolchains/actions:link_actions": ":clang-cl",
     },
     visibility = ["//visibility:private"],
 )
@@ -100,6 +88,14 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
             name = tool,
             src = tool + CALL_SCRIPT_EXT,
             data = ["@llvm-{}//:data".format(HOST_TARGET), tool + "_wrapper"],
+            capabilities = [
+                "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
+#                "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
+#                "@rules_cc//cc/toolchains/capabilities:has_configured_linker_path",
+#                "@rules_cc//cc/toolchains/capabilities:targets_windows",
+#                "@rules_cc//cc/toolchains/capabilities:copy_dynamic_libraries_to_binary",
+
+            ],
             visibility = ["//visibility:private"],
         ),
     )

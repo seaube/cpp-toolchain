@@ -67,6 +67,18 @@ def portable_cc_toolchain(
         tool_map = Label("//detail/tools"),
         supports_param_files = False,  # we use a shell script wrapper to replace placeholder variables, maybe this can support param files in the future
         supports_header_parsing = True,
+        compiler = "clang",
+        artifact_name_patterns = select({
+            Label("@platforms//os:windows"): [
+                Label("//detail/artifacts:object_file"),
+                Label("//detail/artifacts:static_library"),
+                Label("//detail/artifacts:alwayslink_static_library"),
+                Label("//detail/artifacts:executable"),
+                Label("//detail/artifacts:dynamic_library"),
+                Label("//detail/artifacts:interface_library"),
+            ],
+            "//conditions:default": [],
+        }),
     )
 
 _HOSTS = [
@@ -82,7 +94,7 @@ _TARGETS = [
     ["@platforms//os:linux", "@platforms//cpu:armv7"],
     ["@platforms//os:linux", "@platforms//cpu:aarch64"],
     ["@platforms//os:macos"],
-    ["@platforms//os:windows"],
+#    ["@platforms//os:windows"],
 ]
 
 def _supported_combination(host, target):

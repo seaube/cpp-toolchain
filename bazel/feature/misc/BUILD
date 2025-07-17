@@ -64,7 +64,7 @@ cc_feature(
     name = "strip_unused_dynamic_libs",
     args = select({
         "@platforms//os:linux": ["as_needed"],
-        "@platforms//os:windows": ["optref"],
+        "@platforms//os:windows": [], #"optref"],
         "//conditions:default": ["dead_strip_dylibs"],
     }),
     feature_name = "strip_unused_dynamic_libs",
@@ -80,7 +80,7 @@ cc_args(
 cc_args(
     name = "optref",
     actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
-    args = ["/OPT:REF"],
+    args = ["-Wl,/OPT:REF"],
 )
 
 cc_args(
