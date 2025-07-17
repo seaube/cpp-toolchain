@@ -35,12 +35,15 @@ jobs:
           merge-multiple: True
       - name: Configure built toolchain
         if: ${{ inputs.use-built-toolchain }}
+        shell: bash
         run: |
           echo "PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> $GITHUB_ENV
           echo "PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> $GITHUB_ENV
 
       - name: Build (Debug)
-        run: cd cmake/test && ./test.sh ${{ inputs.target }} Debug
+        working-directory: cmake/test
+        shell: bash
+        run: ./test.sh ${{ inputs.target }} Debug
       - name: Run Test (Debug)
         if: ${{ inputs.host == inputs.target }}
         run: |
@@ -48,7 +51,9 @@ jobs:
           cmake/test/build/ExeShared
 
       - name: Build (RelWithDebInfo)
-        run: cd cmake/test && ./test.sh ${{ inputs.target }} RelWithDebInfo
+        working-directory: cmake/test
+        shell: bash
+        run: ./test.sh ${{ inputs.target }} RelWithDebInfo
       - name: Run Test (RelWithDebInfo)
         if: ${{ inputs.host == inputs.target }}
         run: |
@@ -56,7 +61,9 @@ jobs:
           cmake/test/build/ExeShared
 
       - name: Build (MinSizeRel)
-        run: cd cmake/test && ./test.sh ${{ inputs.target }} MinSizeRel
+        working-directory: cmake/test
+        shell: bash
+        run: ./test.sh ${{ inputs.target }} MinSizeRel
       - name: Run Test (MinSizeRel)
         if: ${{ inputs.host == inputs.target }}
         run: |
@@ -64,7 +71,9 @@ jobs:
           cmake/test/build/ExeShared
 
       - name: Build (Release)
-        run: cd cmake/test && ./test.sh ${{ inputs.target }} Release
+        working-directory: cmake/test
+        shell: bash
+        run: ./test.sh ${{ inputs.target }} Release
       - name: Run Test (Release)
         if: ${{ inputs.host == inputs.target }}
         run: |
