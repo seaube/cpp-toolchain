@@ -195,7 +195,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
       - run: |
-          cat .github/workflows/notes/toolchain.md artifacts/version_info.md > notes.md
+          cat .github/workflows/notes/toolchain.md version_info.md > notes.md
       - run: |
           VERSION=toolchain-$(date +%Y.%m.%d)
           if [ "${{ inputs.build_number }}" != "0" ]; then VERSION="$VERSION-${{ inputs.build_number }}"; fi
