@@ -1,23 +1,29 @@
 # Portable C++ Toolchain
 
-The Portable C++ Toolchain is a complete C/C++ toolchain based on LLVM 19.
+The Portable C++ Toolchain is a complete C/C++ toolchain based on LLVM.
 
 This toolchain has the following goals:
-* Create binaries compatible with a broad variety of Linux distributions and macOS versions
+* Create binaries compatible with a broad variety of Linux distributions
 * Support cross-compilation without necessitating specialty compilers
-* Provide a similar experience on Linux and macOS
+* Provide a similar experience on Linux, macOS, and Windows
 
 ## Build system integration
 ### Bazel
 
 This toolchain provides a Bazel rules integration.
-For more information, see the [Bazel API documentation](bazel).
+Consult the [release notes](https://github.com/CACI-International/cpp-toolchain/releases) for a quick start guide.
+For more information, see the [Bazel API documentation](bazel/docs).
 
-## Supported targets and versions
+Note that the Bazel integration currently does not target Windows. Cross-compiling from Windows hosts to Linux targets is supported.
+
+### CMake
+
+This toolchain provides a CMake integration.
+Consult the [release notes](https://github.com/CACI-International/cpp-toolchain/releases) for a quick start guide.
+
+## Supported targets
 
 ### Linux
-
-All targets are compiled against kernel 3.10.108, glibc 2.17, and libstdc++ 14.2.
 
 The following targets are supported:
 * `aarch64-unknown-linux-gnu`
@@ -26,7 +32,7 @@ The following targets are supported:
 
 ### macOS
 
-To specify compatibility, compile with `-mmacosx-version-min=MAJOR.MINOR`. Supported targets and versions depend on the installed Xcode version.
+To specify compatibility, compile with `-mmacosx-version-min=MAJOR.MINOR` or similar. Supported targets and versions depend on the installed Xcode version.
 
 `arm64` and `x86_64` targets are supported. These include (but not limited to):
 * `arm64-apple-macos`
@@ -34,6 +40,12 @@ To specify compatibility, compile with `-mmacosx-version-min=MAJOR.MINOR`. Suppo
 * `arm64-apple-ios`
 
 macOS hosts can also cross-compile to Linux targets.
+
+### Windows
+
+`arm64` and `x86_64` targets using the MSVC ABI are supported. These include (but not limited to):
+* `x86_64-pc-windows-msvc`
+* `aarch64-pc-windows-msvc`
 
 ### NVPTX
 
@@ -44,9 +56,12 @@ Clang is built with NVPTX support.
 ### Linux
 * glibc and libstdc++ are used rather than musl and libc++ to ensure compatibility when linking against system libraries on most distributions.
 * libstdc++ is statically linked into Linux binaries to maximize compatibility with older operating systems.
+* "Old" kernel headers are used to maximize compatibility with older operating systems.
 
-### macOS
-* macOS does not always have the latest libc++ available. Header-only features are generally fine to use with this older libc++, but some features reference `libc++.dylib` and won't work on some macOS versions.
+For exact versions, consult the release notes.
+
+### macOS and Windows
+Apple and Microsoft provide their own SDKs that are not redistributed with this toolchain. You must install Xcode or the Windows SDK/Visual Studio to target those operating systems.
 
 ## Comparison to other toolchains and methods
 
