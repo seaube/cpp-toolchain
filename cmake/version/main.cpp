@@ -20,7 +20,7 @@ std::string format_version(int major, int minor, int patch = -1) {
 int main() {
   std::cout << "| Component            | Version   |" << std::endl;
   std::cout << "| -------------------- | --------- |" << std::endl;
-  std::cout << "| Clang                | "
+  std::cout << "| LLVM (clang)         | "
             << format_version(__clang_major__, __clang_minor__,
                               __clang_patchlevel__)
             << "|" << std::endl;
