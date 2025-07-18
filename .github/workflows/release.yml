@@ -51,9 +51,10 @@ jobs:
 
   release:
     needs: [tag, test-bazel, test-cmake, generate-version-info]
-    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.1.0
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.3
     with:
       bazel_test_command: true || # we already tested the tag
+      mount_bazel_caches: false
       prerelease: false
       release_files: "*_portable_cc_toolchain-*.tar.gz"
       tag_name: ${{ needs.tag.outputs.version }}
