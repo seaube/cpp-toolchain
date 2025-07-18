@@ -45,4 +45,4 @@ For cross-compiling, set \`CMAKE_TOOLCHAIN_FILE\` to \`portable_cc_toolchain/<ta
 These integrations use the following components:
 EOF
 
-cat version_info.md
+cat version-info/version_info.md
