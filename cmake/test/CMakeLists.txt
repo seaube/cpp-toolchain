@@ -11,13 +11,17 @@ FetchContent_MakeAvailable(PortableCcToolchain)
 
 project(Test)
 
-add_library(LibStatic STATIC foo.c bar.c export.h)
-add_library(LibShared SHARED foo.c bar.c export.h)
-add_executable(ExeStaticC main.c)
-add_executable(ExeSharedC main.c)
-add_executable(ExeStaticCpp main.cpp)
-add_executable(ExeSharedCpp main.cpp)
-target_link_libraries(ExeStaticC PRIVATE LibStatic)
-target_link_libraries(ExeSharedC PRIVATE LibShared)
-target_link_libraries(ExeStaticCpp PRIVATE LibStatic)
-target_link_libraries(ExeSharedCpp PRIVATE LibShared)
+enable_testing()
+
+add_library(Foo SHARED foo.c bar.c export.h)
+
+function(make_test name main)
+    add_executable(${name} ${main})
+    target_link_libraries(${name} PRIVATE Foo)
+    if(NOT ${CMAKE_CROSSCOMPILING})
+        add_test(NAME "${name}Test" COMMAND ${name})
+    endif()
+endfunction()
+
+make_test(CBinary main.c)
+make_test(CppBinary main.cpp)

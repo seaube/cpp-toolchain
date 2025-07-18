@@ -26,6 +26,10 @@ if(NOT TARGET_TRIPLE)
     set(TARGET_TRIPLE ${_host_triple})
 endif()
 
+if(TARGET_TRIPLE STREQUAL ${_host_triple})
+    set(CMAKE_CROSSCOMPILING OFF CACHE BOOL "")
+endif()
+
 
 
 # Set CMake variables

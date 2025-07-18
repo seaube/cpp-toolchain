@@ -40,42 +40,22 @@ jobs:
           echo "PORTABLE_CC_TOOLCHAIN_LLVM=`pwd`/llvm-${{ inputs.host }}.tar.xz" >> $GITHUB_ENV
           echo "PORTABLE_CC_TOOLCHAIN_SYSROOT=`pwd`/sysroot-${{ inputs.target }}.tar.xz" >> $GITHUB_ENV
 
-      - name: Build (Debug)
+      - name: Build and Test (Debug)
         working-directory: cmake/test
         shell: bash
         run: ./test.sh ${{ inputs.target }} Debug
-      - name: Run Test (Debug)
-        if: ${{ inputs.host == inputs.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared
 
-      - name: Build (RelWithDebInfo)
+      - name: Build and Test (RelWithDebInfo)
         working-directory: cmake/test
         shell: bash
         run: ./test.sh ${{ inputs.target }} RelWithDebInfo
-      - name: Run Test (RelWithDebInfo)
-        if: ${{ inputs.host == inputs.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared
 
-      - name: Build (MinSizeRel)
+      - name: Build and Test (MinSizeRel)
         working-directory: cmake/test
         shell: bash
         run: ./test.sh ${{ inputs.target }} MinSizeRel
-      - name: Run Test (MinSizeRel)
-        if: ${{ inputs.host == inputs.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared
 
-      - name: Build (Release)
+      - name: Build and Test (Release)
         working-directory: cmake/test
         shell: bash
         run: ./test.sh ${{ inputs.target }} Release
-      - name: Run Test (Release)
-        if: ${{ inputs.host == inputs.target }}
-        run: |
-          cmake/test/build/ExeStatic
-          cmake/test/build/ExeShared

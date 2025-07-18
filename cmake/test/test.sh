@@ -10,10 +10,4 @@ cmake -S . -B build \
     -DCMAKE_TOOLCHAIN_FILE="portable_cc_toolchain/${1:-toolchain}.cmake" \
     -DCMAKE_BUILD_TYPE=${2:-Debug}
 cmake --build build --verbose
-
-if [[ "${1:-toolchain}" == "toolchain" ]]; then
-    build/ExeStaticC
-    build/ExeSharedC
-    build/ExeStaticCpp
-    build/ExeSharedCpp
-fi
+ctest --test-dir build --no-tests=ignore
