@@ -1,5 +1,8 @@
-#include "lib.hpp"
+#include <iostream>
+#include "export.h"
 
+extern "C" { IMPORT int foo(); }
 int main() {
-    return c() + cpp();
+    std::cout << "test" << std::endl;
+    return (foo() == 42) ? 0 : -1;
 }

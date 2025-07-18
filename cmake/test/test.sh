@@ -12,6 +12,8 @@ cmake -S . -B build \
 cmake --build build --verbose
 
 if [[ "${1:-toolchain}" == "toolchain" ]]; then
-    build/ExeStatic
-    build/ExeShared
+    build/ExeStaticC
+    build/ExeSharedC
+    build/ExeStaticCpp
+    build/ExeSharedCpp
 fi
