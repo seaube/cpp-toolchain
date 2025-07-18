@@ -168,6 +168,12 @@ jobs:
     with:
       use-built-toolchain: true
 
+  generate-version-info:
+    needs: [build-llvm, build-sysroot]
+    uses: ./.github/workflows/version-info.yml
+    with:
+      use-built-toolchain: true
+
   release:
     needs: test-bazel-rules
     name: Release
@@ -181,14 +187,20 @@ jobs:
           pattern: '{llvm,sysroot,compiler-rt}-*'
           path: artifacts/
           merge-multiple: True
+      - name: Download version info
+        uses: actions/download-artifact@v4
+        with:
+          name: version-info
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+      - run: |
+          cat .github/workflows/notes/toolchain.md artifacts/version_info.md > notes.md
       - run: |
           VERSION=toolchain-$(date +%Y.%m.%d)
           if [ "${{ inputs.build_number }}" != "0" ]; then VERSION="$VERSION-${{ inputs.build_number }}"; fi
           git tag -a $VERSION -m "Release $VERSION"
           git push --tags
-          gh release create $VERSION artifacts/*
+          gh release create -F notes.md $VERSION artifacts/*
         env:
           GH_TOKEN: ${{ github.token }}

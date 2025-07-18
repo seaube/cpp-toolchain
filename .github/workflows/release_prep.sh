@@ -39,4 +39,8 @@ FetchContent_MakeAvailable(PortableCcToolchain)
 
 To enable the toolchain, set \`CMAKE_TOOLCHAIN_FILE\` to \`portable_cc_toolchain/toolchain.cmake\`.
 For cross-compiling, set \`CMAKE_TOOLCHAIN_FILE\` to \`portable_cc_toolchain/<target>.cmake\` (e.g. \`aarch64-unknown-linux-gnu.cmake\`)
+
+These integrations use the following components:
 EOF
+
+cat artifacts/version_info.md

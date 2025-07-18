@@ -43,8 +43,14 @@ jobs:
     with:
       ref: ${{ needs.tag.outputs.version }}
 
+  generate-version-info:
+    needs: [tag]
+    uses: ./.github/workflows/version-info.yml
+    with:
+      ref: ${{ needs.tag.outputs.version }}
+
   release:
-    needs: [tag, test-bazel, test-cmake]
+    needs: [tag, test-bazel, test-cmake, generate-version-info]
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.1.0
     with:
       bazel_test_command: true || # we already tested the tag
