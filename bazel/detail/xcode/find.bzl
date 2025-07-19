@@ -18,3 +18,20 @@ find_xcode_sdk = repository_rule(
         "sdk": attr.string(),
     },
 )
+
+def _extension(ctx):
+    for sdk in ["macosx", "iphoneos", "appletvos", "xros"]:
+        find_xcode_sdk(
+            name = "xcode-" + sdk,
+            sdk = sdk,
+        )
+
+    return ctx.extension_metadata(
+        root_module_direct_deps = "all",
+        root_module_direct_dev_deps = [],
+        reproducible = True,
+    )
+
+extension = module_extension(
+    implementation = _extension,
+)

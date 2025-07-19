@@ -63,3 +63,16 @@ def _find_windows_sysroot(rctx):
 find_windows_sysroot = repository_rule(
     implementation = _find_windows_sysroot,
 )
+
+def _extension(ctx):
+    find_windows_sysroot(name = "winsysroot")
+
+    return ctx.extension_metadata(
+        root_module_direct_deps = "all",
+        root_module_direct_dev_deps = [],
+        reproducible = True,
+    )
+
+extension = module_extension(
+    implementation = _extension,
+)

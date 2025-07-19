@@ -62,7 +62,9 @@ TOOL = [
 ]
 
 SCRIPT_EXT = ".ps1" if "windows" in HOST_TARGET else ".sh"
+
 CALL_SCRIPT_EXT = ".bat" if "windows" in HOST_TARGET else ".sh"
+
 EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
 
 [
@@ -72,7 +74,7 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
             out = tool + SCRIPT_EXT,
             data = ["@llvm-{}//:bin/{}{}".format(HOST_TARGET, tool, EXE_EXT)],
             substitutions = {
-                "TOOL": "$(execpath @llvm-{}//:bin/{}{})".format(HOST_TARGET, tool, EXE_EXT)
+                "TOOL": "$(execpath @llvm-{}//:bin/{}{})".format(HOST_TARGET, tool, EXE_EXT),
             },
             template = "wrapper" + SCRIPT_EXT,
         ),
@@ -87,14 +89,19 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
         cc_tool(
             name = tool,
             src = tool + CALL_SCRIPT_EXT,
-            data = ["@llvm-{}//:data".format(HOST_TARGET), tool + "_wrapper"],
-            capabilities = [
-                "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
-#                "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
-#                "@rules_cc//cc/toolchains/capabilities:has_configured_linker_path",
-#                "@rules_cc//cc/toolchains/capabilities:targets_windows",
-#                "@rules_cc//cc/toolchains/capabilities:copy_dynamic_libraries_to_binary",
-
+            capabilities = select({
+                "@platforms//os:windows": [
+                    # "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
+                    # "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
+                    # "@rules_cc//cc/toolchains/capabilities:targets_windows",
+                    # "@rules_cc//cc/toolchains/capabilities:has_configured_linker_path",
+                    # "@rules_cc//cc/toolchains/capabilities:copy_dynamic_libraries_to_binary",
+                ],
+                "//conditions:default": [],
+            }),
+            data = [
+                "@llvm-{}//:data".format(HOST_TARGET),
+                tool + "_wrapper",
             ],
             visibility = ["//visibility:private"],
         ),

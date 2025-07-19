@@ -30,31 +30,14 @@ use_repo(assets, "sysroot-x86_64-unknown-linux-gnu")
 use_repo(assets, "sysroot-aarch64-unknown-linux-gnu")
 use_repo(assets, "sysroot-armv7-unknown-linux-gnueabihf")
 
-find_xcode_sdk = use_repo_rule("//detail/xcode:find.bzl", "find_xcode_sdk")
+xcode = use_extension("//detail/xcode:find.bzl", "extension")
+use_repo(xcode, "xcode-macosx")
+use_repo(xcode, "xcode-iphoneos")
+use_repo(xcode, "xcode-appletvos")
+use_repo(xcode, "xcode-xros")
 
-find_xcode_sdk(
-    name = "xcode-macosx",
-    sdk = "macosx",
-)
-
-find_xcode_sdk(
-    name = "xcode-iphoneos",
-    sdk = "iphoneos",
-)
-
-find_xcode_sdk(
-    name = "xcode-appletvos",
-    sdk = "appletvos",
-)
-
-find_xcode_sdk(
-    name = "xcode-xros",
-    sdk = "xros",
-)
-
-find_windows_sysroot = use_repo_rule("//detail/windows:find.bzl", "find_windows_sysroot")
-
-find_windows_sysroot(name = "winsysroot")
+windows = use_extension("//detail/windows:find.bzl", "find_windows_sysroot")
+use_repo(windows, "winsysroot")
 
 # Register the toolchain
 toolchain = use_extension("//:extensions.bzl", "toolchain")

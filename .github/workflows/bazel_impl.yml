@@ -57,7 +57,7 @@ jobs:
         if: ${{ inputs.host == inputs.target && contains(inputs.host, 'linux') }}
 
       - name: Build Test (fastbuild)
-        run: cd bazel/test && bazel build -c fastbuild c_binary cpp_binary
+        run: cd bazel/test && bazel build -c fastbuild //...
       - name: Run Test (fastbuild)
         if: ${{ inputs.host == inputs.target }}
         run: |
@@ -66,7 +66,7 @@ jobs:
           bazel-bin/cpp_binary
 
       - name: Build Test (dbg)
-        run: cd bazel/test && bazel build -c dbg c_binary cpp_binary
+        run: cd bazel/test && bazel build -c dbg //...
       - name: Run Test (dbg)
         if: ${{ inputs.host == inputs.target }}
         run: |
@@ -75,7 +75,7 @@ jobs:
           bazel-bin/cpp_binary
 
       - name: Build Test (opt)
-        run: cd bazel/test && bazel build -c opt c_binary cpp_binary
+        run: cd bazel/test && bazel build -c opt //...
       - name: Run Test (opt)
         if: ${{ inputs.host == inputs.target }}
         run: |
