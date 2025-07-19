@@ -58,3 +58,20 @@ jobs:
       prerelease: false
       release_files: "*_portable_cc_toolchain-*.tar.gz"
       tag_name: ${{ needs.tag.outputs.version }}
+
+  publish:
+    needs: [tag, release]
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v0.2.2
+    with:
+      tag_name: ${{ needs.tag.outputs.version }}
+      registry_fork: CACI-International/bazel-central-registry
+      attest: true
+    permissions:
+      contents: write
+      # Necessary if attest:true
+      id-token: write
+      # Necessary if attest:true
+      attestations: write
+    secrets:
+      # Necessary to push to the BCR fork, and to open a pull request against a registry
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
