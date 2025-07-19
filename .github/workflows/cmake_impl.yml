@@ -20,7 +20,6 @@ on:
 jobs:
 
   test-cmake-rules:
-    if: ${{ inputs.use-built-toolchain || contains(inputs.host, 'windows') == false }} # only test Windows with built toolchain
     name: test ${{ inputs.target }} target on ${{ inputs.host }} host
     runs-on: ${{ inputs.runs-on }}
     steps:
