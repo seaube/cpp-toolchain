@@ -132,10 +132,13 @@ jobs:
       - name: Extract gcc
         run: find . -name "gcc-*.tar" -exec tar -xf {} \;
         if: ${{ contains(matrix.target.name, 'linux') && steps.cache.outputs.cache-hit != 'true' }}
-      - name: Build LLVM
+      - name: Configure LLVM
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DGCC_CACHE_DIR=${{ github.workspace }}/built-gcc -B build -S toolchain
+      - name: Build LLVM
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
           cmake --build build --parallel -t llvm-package
       - name: Build compiler-rt
         if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' && steps.cache.outputs.cache-hit != 'true' }}

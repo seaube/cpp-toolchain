@@ -27,6 +27,7 @@ ExternalProject_Add(llvm
         -C ${CMAKE_SOURCE_DIR}/caches/llvm.cmake
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
         -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_OSX_ARCHITECTURES=${CMAKE_HOST_SYSTEM_PROCESSOR}
         ${zlib_flag}
 )
 
