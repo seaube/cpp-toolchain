@@ -1,27 +1,27 @@
-set(_ASSET_URL_compiler-rt-linux "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/compiler-rt-linux.tar.xz")
-set(_ASSET_SHA256_compiler-rt-linux 821cc1ef987820c09276297889bae945dc9c915fdbae753127026013e0544498)
+set(_ASSET_URL_compiler-rt-linux "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/compiler-rt-linux.tar.xz")
+set(_ASSET_SHA256_compiler-rt-linux 0776fbfa12901016eeb6cd28a0c20344a78f1a6a4e1547a8ba6287d7c89c3eb0)
 
-set(_ASSET_URL_llvm-aarch64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/llvm-aarch64-unknown-linux-gnu.tar.xz")
-set(_ASSET_SHA256_llvm-aarch64-unknown-linux-gnu 2d072655f96ff26a2778dd5afa0267f34bb01907d77867d89ec054e8e97c9713)
+set(_ASSET_URL_llvm-aarch64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/llvm-aarch64-unknown-linux-gnu.tar.xz")
+set(_ASSET_SHA256_llvm-aarch64-unknown-linux-gnu 9b11508cd8f04f09e105b578069979d167fdb04cdd3e352ab6b675738e7fbe88)
 
-set(_ASSET_URL_llvm-arm64-apple-macos "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/llvm-arm64-apple-macos.tar.xz")
-set(_ASSET_SHA256_llvm-arm64-apple-macos 75019fb0d338fafbdf8311da614392148c33fd6a28bef58bcb33635e8de0a031)
+set(_ASSET_URL_llvm-arm64-apple-macos "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/llvm-arm64-apple-macos.tar.xz")
+set(_ASSET_SHA256_llvm-arm64-apple-macos e90c99bf91c51f1a72578a824b29b790e7812046b8a8bdb64615435eef0a4ffc)
 
-set(_ASSET_URL_llvm-x86_64-apple-macos "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/llvm-x86_64-apple-macos.tar.xz")
-set(_ASSET_SHA256_llvm-x86_64-apple-macos 18ef5bac8cbdb11625ce40f2d61dc792f757cd87127f6b60757989c464874da1)
+set(_ASSET_URL_llvm-x86_64-apple-macos "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/llvm-x86_64-apple-macos.tar.xz")
+set(_ASSET_SHA256_llvm-x86_64-apple-macos 0163764cdbd7eaf4cc2b16ef710ea187fe1acb21d99b6523bf66d963d4a1260b)
 
-set(_ASSET_URL_llvm-x86_64-pc-windows-msvc "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/llvm-x86_64-pc-windows-msvc.tar.xz")
-set(_ASSET_SHA256_llvm-x86_64-pc-windows-msvc 959ed25e806fb8c39933dda62ad3c5701861bfcfd6d42283e521242fe829a738)
+set(_ASSET_URL_llvm-x86_64-pc-windows-msvc "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/llvm-x86_64-pc-windows-msvc.tar.xz")
+set(_ASSET_SHA256_llvm-x86_64-pc-windows-msvc b24899ee0874e0b41449f358364dd602f2a2662567d80a08285f16148fba1738)
 
-set(_ASSET_URL_llvm-x86_64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/llvm-x86_64-unknown-linux-gnu.tar.xz")
-set(_ASSET_SHA256_llvm-x86_64-unknown-linux-gnu d170b12a6122c1ad788970d8f6523e87cf056a0c7f1a0ad9b0fa9099967cc26a)
+set(_ASSET_URL_llvm-x86_64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/llvm-x86_64-unknown-linux-gnu.tar.xz")
+set(_ASSET_SHA256_llvm-x86_64-unknown-linux-gnu 1ca46b15bd46bf07ced65661195bdf70f5213defb90080c1cf22eecd5fc71dbe)
 
-set(_ASSET_URL_sysroot-aarch64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/sysroot-aarch64-unknown-linux-gnu.tar.xz")
-set(_ASSET_SHA256_sysroot-aarch64-unknown-linux-gnu 3d659bcb42c7e8111b131c686bf4a472d7bbb526879d3e8a66031ac41dfa10d6)
+set(_ASSET_URL_sysroot-aarch64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/sysroot-aarch64-unknown-linux-gnu.tar.xz")
+set(_ASSET_SHA256_sysroot-aarch64-unknown-linux-gnu 68aec827771831ad7f08e66d7d245e8274d966e7d501e16292827ccb869231d4)
 
-set(_ASSET_URL_sysroot-armv7-unknown-linux-gnueabihf "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/sysroot-armv7-unknown-linux-gnueabihf.tar.xz")
+set(_ASSET_URL_sysroot-armv7-unknown-linux-gnueabihf "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/sysroot-armv7-unknown-linux-gnueabihf.tar.xz")
 set(_ASSET_SHA256_sysroot-armv7-unknown-linux-gnueabihf 074c16968376316f28745dc7d0632b5ed24f4f63bd18769386645cd964fd6eaf)
 
-set(_ASSET_URL_sysroot-x86_64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.18/sysroot-x86_64-unknown-linux-gnu.tar.xz")
-set(_ASSET_SHA256_sysroot-x86_64-unknown-linux-gnu ea0b73e7ba77bd570fd29750eaac01105c9cf48e538b9c73084337d7047dbac6)
+set(_ASSET_URL_sysroot-x86_64-unknown-linux-gnu "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.21/sysroot-x86_64-unknown-linux-gnu.tar.xz")
+set(_ASSET_SHA256_sysroot-x86_64-unknown-linux-gnu 0bf9cb82f62cc42ee52abfabe59d3a39d499a9a614308b9107be0a12e284e069)
 
