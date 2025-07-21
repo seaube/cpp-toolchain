@@ -45,6 +45,7 @@ jobs:
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B built-gcc -S toolchain/gcc
           cmake --build built-gcc --parallel -t gcc-toolchain-${{ matrix.target.name }}
+          rm -rf built-gcc/${{ matrix.target.name }}/.build
       - name: Create artifact archive
         run: tar -cf gcc-${{ matrix.target.name }}.tar built-gcc/${{ matrix.target.name }}/toolchain # maintain case-sensitivity
       - name: Upload build log
