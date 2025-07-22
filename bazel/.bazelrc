@@ -1,0 +1,7 @@
+# https://github.com/bazelbuild/bazel-central-registry/blob/main/incompatible_flags.yml
+build \
+  --incompatible_config_setting_private_default_visibility \
+  --incompatible_disable_starlark_host_transitions \
+  --incompatible_disable_native_repo_rules \
+  --incompatible_autoload_externally= \
+  --incompatible_disable_autoloads_in_main_repo
