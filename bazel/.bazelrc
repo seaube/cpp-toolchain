@@ -1,5 +1,5 @@
 # https://github.com/bazelbuild/bazel-central-registry/blob/main/incompatible_flags.yml
-build \
+build:incompatible \ 
   --incompatible_config_setting_private_default_visibility \
   --incompatible_disable_starlark_host_transitions \
   --incompatible_disable_native_repo_rules \

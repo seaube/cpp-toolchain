@@ -34,7 +34,7 @@ jobs:
           repository-cache: false
           bazelrc: |
             startup --windows_enable_symlinks
-            build --announce_rc --platforms=@portable_cc_toolchain//platform:${{ inputs.target }}
+            build --config=incompatible --announce_rc --platforms=@portable_cc_toolchain//platform:${{ inputs.target }}
       - name: Download built toolchain
         uses: actions/download-artifact@v4
         if: ${{ inputs.use-built-toolchain }}
