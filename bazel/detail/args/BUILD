@@ -40,7 +40,7 @@ cc_args(
     name = "windows",
     actions = [
         "@rules_cc//cc/toolchains/actions:compile_actions",
-        "@rules_cc//cc/toolchains/actions:link_actions"
+        "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-fms-extensions"],
 )

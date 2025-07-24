@@ -14,6 +14,7 @@ string(REGEX MATCH "^([0-9]+)" llvm_major_version ${llvm_version})
 
 FetchContent_Declare(llvm-source
     URL https://github.com/llvm/llvm-project/releases/download/llvmorg-${llvm_version}/llvm-project-${llvm_version}.src.tar.xz
+    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/patches/musl.patch
 )
 FetchContent_MakeAvailable(llvm-source)
 FetchContent_GetProperties(llvm-source SOURCE_DIR llvm_source_dir)

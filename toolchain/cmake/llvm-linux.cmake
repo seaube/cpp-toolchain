@@ -4,6 +4,8 @@ set(toolchain_targets
     "x86_64-unknown-linux-gnu"
     "aarch64-unknown-linux-gnu"
     "armv7-unknown-linux-gnueabihf"
+    "x86_64-unknown-linux-musl"
+    "aarch64-unknown-linux-musl"
 )
 
 function(get_gcc_toolchain_flags var triple)
@@ -82,7 +84,7 @@ function(build_target_libraries target_arch)
         SOURCE_DIR ${llvm_source_dir}
         INSTALL_DIR ${CMAKE_BINARY_DIR}/install/compiler-rt-${target_arch}
         DOWNLOAD_COMMAND ""
-        DEPENDS llvm
+        DEPENDS llvm gcc-toolchain-${target_arch}
         SOURCE_SUBDIR compiler-rt
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
         CMAKE_ARGS

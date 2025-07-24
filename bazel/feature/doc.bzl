@@ -21,11 +21,14 @@ FEATURES = {
     "//feature:asan": "Instrument with AddressSanitizer",
     "//feature:ubsan": "Instrument with UndefinedBehaviorSanitizer",
     "//feature:lsan": "Instrument with LeakSanitizer",
+    "//feature:default_sanitizers": "Instrument with the sanitizers supported by the default_linkage feature",
     "//feature:warnings_enabled": "Emit warnings",
     "//feature:warnings_disabled": "Disable warnings",
     "//feature:extra_warnings": "Emit extra warnings",
     "//feature:pedantic_warnings": "Emit pedantic warnings",
     "//feature:treat_warnings_as_errors": "Treat warnings as errors",
+    "//feature:static_position_independent_executable": "Link static PIE executables",
+    "//feature:default_linkage": "Default linkage for the platform: static PIE on musl, regular linkage elsewhere",
 } | {
     "//feature:" + std: _std_doc(std)
     for std in STANDARDS_FEATURES

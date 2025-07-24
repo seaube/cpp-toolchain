@@ -22,11 +22,14 @@ FEATURES = [
     "//feature/sanitizers:asan",
     "//feature/sanitizers:ubsan",
     "//feature/sanitizers:lsan",
+    "//feature/sanitizers:default_sanitizers",
     "//feature/warnings:warnings_enabled",
     "//feature/warnings:warnings_disabled",
     "//feature/warnings:extra_warnings",
     "//feature/warnings:pedantic_warnings",
     "//feature/warnings:treat_warnings_as_errors",
+    "//feature/static:static_position_independent_executable",
+    "//feature/static:default_linkage",
 ] + ["//feature/std:" + std for std in STANDARDS_FEATURES]
 
 [

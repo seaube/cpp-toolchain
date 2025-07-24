@@ -12,15 +12,14 @@ def portable_cc_toolchain(
             Label("//feature:warnings_enabled"),
             Label("//feature:debug_symbols"),
             Label("//feature:strip_unused_dynamic_libs"),
+            Label("//feature:default_linkage"),
         ],
         fastbuild_features = [
             Label("//feature:no_optimization"),
         ],
         dbg_features = [
-            Label("//feature:asan"),
-            Label("//feature:ubsan"),
-            Label("//feature:lsan"),
             Label("//feature:no_optimization"),
+            Label("//feature:default_sanitizers"),
         ],
         opt_features = [
             Label("//feature:moderate_optimization"),
@@ -43,6 +42,7 @@ def portable_cc_toolchain(
       apple_os_versions: A map of apple OS to minimum supported version.
       **kwargs: Additional arguments to pass to [`cc_toolchain`](https://github.com/bazelbuild/rules_cc/blob/0.1.1/docs/toolchain_api.md#cc_toolchain-enabled_features).
     """
+
     target_args(
         name + "_target_args",
         apple_os_versions,
