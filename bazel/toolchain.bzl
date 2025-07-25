@@ -54,13 +54,14 @@ def portable_cc_toolchain(
             name + "_target_args",
             Label("//detail/args:default"),
         ] + args,
-        enabled_features = [
-            "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
-        ] + select({
+        enabled_features = select({
             Label("//detail/compilation_mode:fastbuild"): fastbuild_features,
             Label("//detail/compilation_mode:dbg"): dbg_features,
             Label("//detail/compilation_mode:opt"): opt_features,
-        }) + enabled_features,
+        }) + enabled_features + [
+            # last, to allow overriding other features with --cxxopt etc (rules_cc#446)
+            "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+        ],
         known_features = [
             "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
         ] + [Label(f) for f in FEATURES.keys()] + known_features,
