@@ -14,11 +14,14 @@
 | `asan` | `//feature:asan` | Instrument with AddressSanitizer |
 | `ubsan` | `//feature:ubsan` | Instrument with UndefinedBehaviorSanitizer |
 | `lsan` | `//feature:lsan` | Instrument with LeakSanitizer |
+| `default_sanitizers` | `//feature:default_sanitizers` | Instrument with the sanitizers supported by the default_linkage feature |
 | `warnings_enabled` | `//feature:warnings_enabled` | Emit warnings |
 | `warnings_disabled` | `//feature:warnings_disabled` | Disable warnings |
 | `extra_warnings` | `//feature:extra_warnings` | Emit extra warnings |
 | `pedantic_warnings` | `//feature:pedantic_warnings` | Emit pedantic warnings |
 | `treat_warnings_as_errors` | `//feature:treat_warnings_as_errors` | Treat warnings as errors |
+| `static_position_independent_executable` | `//feature:static_position_independent_executable` | Link static PIE executables |
+| `default_linkage` | `//feature:default_linkage` | Default linkage for the platform: static PIE on musl, regular linkage elsewhere |
 | `c89` | `//feature:c89` | Use C89 language standard |
 | `c99` | `//feature:c99` | Use C99 language standard |
 | `c11` | `//feature:c11` | Use C11 language standard |

@@ -7,6 +7,8 @@ set(toolchain_targets
     "x86_64-unknown-linux-gnu"
     "aarch64-unknown-linux-gnu"
     "armv7-unknown-linux-gnueabihf"
+    "x86_64-unknown-linux-musl"
+    "aarch64-unknown-linux-musl"
 )
 
 ExternalProject_Add(crosstool-ng

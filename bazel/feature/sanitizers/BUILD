@@ -1,4 +1,4 @@
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_feature")
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args", "cc_feature", "cc_feature_set")
 
 cc_feature(
     name = "ubsan",
@@ -63,4 +63,17 @@ cc_args(
     args = [
         "-fsanitize=leak",
     ],
+)
+
+cc_feature_set(
+    name = "default_sanitizers",
+    all_of = select({
+        "//platform:musl": ["ubsan"],
+        "//conditions:default": [
+            "ubsan",
+            "asan",
+            "lsan",
+        ],
+    }),
+    visibility = ["//feature:__pkg__"],
 )
