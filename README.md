@@ -21,7 +21,6 @@ With this toolchain you can:
   * and other targets supported by your Xcode version
 * Windows (requires Windows SDK)
   * `x86_64-pc-windows-msvc`
-  * `aarch64-pc-windows-msvc`
 * Nvidia
   * `nvptx64-nvidia-cuda`
 
