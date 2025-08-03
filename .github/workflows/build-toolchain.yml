@@ -149,11 +149,17 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cmake --build build --parallel -t llvm-package
+      - name: Upload CMake Output
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cmake-output-llvm-${{ matrix.target.name }}
+          path: |
+            build/llvm-prefix/src/llvm-build/CMakeCache.txt
+            build/llvm-prefix/src/llvm-build/CMakeFiles/CMakeConfigureLog.yaml
       - name: Build compiler-rt
         if: ${{ matrix.target.name == 'x86_64-unknown-linux-gnu' && steps.cache.outputs.cache-hit != 'true' }}
         run: cmake --build build --parallel -t compiler-rt-package
-      - name: List files
-        run: ls build
       - name: Upload built llvm
         uses: actions/upload-artifact@v4
         with:
