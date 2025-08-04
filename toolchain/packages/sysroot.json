@@ -3,7 +3,7 @@
     {
       "source": "@gcc_dir@/toolchain",
       "target": "",
-      "exclude": ["build.log.bz2", "bin", "libexec"]
+      "exclude": ["build.log.bz2", "bin", "sbin", "libexec", "i18n"]
     },
     {
       "source": "@openmp_dir@",
