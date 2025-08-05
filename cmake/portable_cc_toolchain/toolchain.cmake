@@ -107,11 +107,13 @@ else()
 endif()
 
 set(CMAKE_RANLIB  "${_llvm_dir}/bin/llvm-ranlib${_exe}"    CACHE FILEPATH "")
+set(CMAKE_MT      "${_llvm_dir}/bin/llvm-mt${_exe}"        CACHE FILEPATH "")
 set(CMAKE_NM      "${_llvm_dir}/bin/llvm-nm${_exe}"        CACHE FILEPATH "")
 set(CMAKE_STRIP   "${_llvm_dir}/bin/llvm-strip${_exe}"     CACHE FILEPATH "")
 set(CMAKE_OBJCOPY "${_llvm_dir}/bin/llvm-objcopy${_exe}"   CACHE FILEPATH "")
 set(CMAKE_OBJDUMP "${_llvm_dir}/bin/llvm-objdump${_exe}"   CACHE FILEPATH "")
 set(CMAKE_READELF "${_llvm_dir}/bin/llvm-readelf${_exe}"   CACHE FILEPATH "")
+set(CMAKE_RC_COMPILER "${_llvm_dir}/bin/llvm-rc${_exe}"    CACHE FILEPATH "")
 set(CMAKE_INSTALL_NAME_TOOL "${_llvm_dir}/bin/llvm-install-name-tool${_exe}" CACHE FILEPATH "")
 
 set(CMAKE_ASM_FLAGS "--target=${TARGET_TRIPLE}")

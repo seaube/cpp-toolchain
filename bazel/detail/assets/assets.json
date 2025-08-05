@@ -1,57 +1,57 @@
 [
   {
     "name": "compiler-rt-linux",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/compiler-rt-linux.tar.xz",
-    "integrity": "sha256-TLoykNTnpEpYsEVVoHECqJ9ybuCeYoMwoX3nC9nskhc="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/compiler-rt-linux.tar.xz",
+    "integrity": "sha256-DOfLl6olPjW+mCDqL9jHK1q4fvmwSBnSCF4mkSKi1Wk="
   },
   {
     "name": "llvm-aarch64-unknown-linux-gnu",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/llvm-aarch64-unknown-linux-gnu.tar.xz",
-    "integrity": "sha256-BVeVsUUW/sPqrj2xqfnp6pqMwg5xuwBV/ysRiCxsCE0="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/llvm-aarch64-unknown-linux-gnu.tar.xz",
+    "integrity": "sha256-K7cjNloiBqzxv87Q3oXrK2ha2rLqlM53+us0CW+X6PM="
   },
   {
     "name": "llvm-arm64-apple-macos",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/llvm-arm64-apple-macos.tar.xz",
-    "integrity": "sha256-P6+DbQfFPvBdDBIMNc0ICtbJSOPPKuAxX/oo2x0pZ24="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/llvm-arm64-apple-macos.tar.xz",
+    "integrity": "sha256-Cf+99OOOWE5ZPUwjinGWZKRuXKUl9raRJLFoggXNBK4="
   },
   {
     "name": "llvm-x86_64-apple-macos",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/llvm-x86_64-apple-macos.tar.xz",
-    "integrity": "sha256-szuhV23mQRobymsx+nJcLfRxv4/JCIXburuwAc6U7gc="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/llvm-x86_64-apple-macos.tar.xz",
+    "integrity": "sha256-bvjxgglCTe+owre1f0gTCtWrEBAp0kFhi1o7ZxlgVdU="
   },
   {
     "name": "llvm-x86_64-pc-windows-msvc",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/llvm-x86_64-pc-windows-msvc.tar.xz",
-    "integrity": "sha256-qN8yjRWgvgXhhmogHKaL+KBHdJr4+y3rvC4ZjZW2R0c="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/llvm-x86_64-pc-windows-msvc.tar.xz",
+    "integrity": "sha256-nhXzRW4t04mT+1VRd9I3FMTCS0jzimxN5Er1+oTU88w="
   },
   {
     "name": "llvm-x86_64-unknown-linux-gnu",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/llvm-x86_64-unknown-linux-gnu.tar.xz",
-    "integrity": "sha256-dysPWCy5yEYyKgBH0OX8YBKnHNh1yYcCWkMUP7MworE="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/llvm-x86_64-unknown-linux-gnu.tar.xz",
+    "integrity": "sha256-Z6hz2iWKYVN/+Uki9aLyTUO4OsKemaqry1f+exRo4Vs="
   },
   {
     "name": "sysroot-aarch64-unknown-linux-gnu",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/sysroot-aarch64-unknown-linux-gnu.tar.xz",
-    "integrity": "sha256-cIqyCo4dLUTxG3ymb2uJGLW7NdjvLNoI2yvJZ7rniLI="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/sysroot-aarch64-unknown-linux-gnu.tar.xz",
+    "integrity": "sha256-l0Fe71lcl9jS9ba5/mExLMIzL/dj12peSBu7XEK2Z70="
   },
   {
     "name": "sysroot-aarch64-unknown-linux-musl",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/sysroot-aarch64-unknown-linux-musl.tar.xz",
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/sysroot-aarch64-unknown-linux-musl.tar.xz",
     "integrity": "sha256-8ZFZV5nRZMbsmQMWX63sxtUpJoOALw0hl10QN0fFdYk="
   },
   {
     "name": "sysroot-armv7-unknown-linux-gnueabihf",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/sysroot-armv7-unknown-linux-gnueabihf.tar.xz",
-    "integrity": "sha256-AKHUNEUdmkskqLDx8HCdawCwnhHkCZ2ZDeHc7retpPU="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/sysroot-armv7-unknown-linux-gnueabihf.tar.xz",
+    "integrity": "sha256-kA/UKIAe6h+nefq5xtcOhmf2oF6uSDwBSXwBuDXtE/Q="
   },
   {
     "name": "sysroot-x86_64-unknown-linux-gnu",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/sysroot-x86_64-unknown-linux-gnu.tar.xz",
-    "integrity": "sha256-hKmT9FZTw7RY2OwTv0XAWhaTNIrDdnRPt1A5AAYLyVA="
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/sysroot-x86_64-unknown-linux-gnu.tar.xz",
+    "integrity": "sha256-xSAzNRfKvMQTA7LDxmAUWA6B7WR/dyNHSucoYnUaU3s="
   },
   {
     "name": "sysroot-x86_64-unknown-linux-musl",
-    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.07.27/sysroot-x86_64-unknown-linux-musl.tar.xz",
+    "url": "https://github.com/CACI-International/cpp-toolchain/releases/download/toolchain-2025.08.05/sysroot-x86_64-unknown-linux-musl.tar.xz",
     "integrity": "sha256-W15hGFCCFrUNVjSc6BABJtMjzxAe+Mapv8qeVQHeyjE="
   }
 ]
