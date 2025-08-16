@@ -60,10 +60,10 @@ def portable_cc_toolchain(
             Label("//detail/compilation_mode:opt"): opt_features,
         }) + enabled_features + [
             # last, to allow overriding other features with --cxxopt etc (rules_cc#446)
-            "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+            # "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
         ],
         known_features = [
-            "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+            # "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
         ] + [Label(f) for f in FEATURES.keys()] + known_features,
         tool_map = Label("//detail/tools"),
         supports_param_files = False,  # we use a shell script wrapper to replace placeholder variables, maybe this can support param files in the future

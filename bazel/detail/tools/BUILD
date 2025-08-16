@@ -91,8 +91,8 @@ EXE_EXT = ".exe" if "windows" in HOST_TARGET else ""
             src = tool + CALL_SCRIPT_EXT,
             capabilities = select({
                 "@platforms//os:windows": [
-                    # "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
-                    # "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
+                    "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
+                    "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
                     # "@rules_cc//cc/toolchains/capabilities:targets_windows",
                     # "@rules_cc//cc/toolchains/capabilities:has_configured_linker_path",
                     # "@rules_cc//cc/toolchains/capabilities:copy_dynamic_libraries_to_binary",
