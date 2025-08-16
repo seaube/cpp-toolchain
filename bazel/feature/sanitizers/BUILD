@@ -69,6 +69,10 @@ cc_feature_set(
     name = "default_sanitizers",
     all_of = select({
         "//platform:musl": ["ubsan"],
+        "@platforms//os:windows": [
+            "ubsan",
+            "asan",
+        ],
         "//conditions:default": [
             "ubsan",
             "asan",

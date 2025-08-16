@@ -92,7 +92,7 @@ _TARGETS = [
     ["@platforms//os:linux", "@platforms//cpu:armv7"],
     ["@platforms//os:linux", "@platforms//cpu:aarch64"],
     ["@platforms//os:macos"],
-    #    ["@platforms//os:windows"],
+    ["@platforms//os:windows"],
 ]
 
 def _supported_combination(host, target):
